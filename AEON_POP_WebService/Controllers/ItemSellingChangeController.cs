@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AEON_POP_WebService.Models;
+using Microsoft.AspNetCore.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace AEON_POP_WebService.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ItemSellingChangeController : ControllerBase

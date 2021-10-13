@@ -10,7 +10,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using MySqlConnector;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AEON_POP_WebService
 {
@@ -28,7 +34,10 @@ namespace AEON_POP_WebService
         {
             services.AddControllers();
             // Register the Swagger generator, defining 1 or more Swagger documents  
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "AEON_POP_WebServices", Version = "v1" });
+            });
 
             services.AddTransient<AppDb>(_ => new AppDb(Configuration["ConnectionStrings:DefaultConnection"]));
 
@@ -41,6 +50,24 @@ namespace AEON_POP_WebService
                 options.MultipartHeadersLengthLimit = int.MaxValue;
             });
 
+            // add authentication
+            services.AddAuthentication(authOptions => {
+                authOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                authOptions.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(jwtOptions => {
+                    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateAudience = true,
+                        ValidAudience = Configuration["JwtSettings:Issuer"],
+                        ValidateIssuer = true,
+                        ValidIssuer = Configuration["JwtSettings:Issuer"],
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"])),
+                        ValidateLifetime = true
+                    };
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,7 +82,10 @@ namespace AEON_POP_WebService
 
             app.UseRouting();
 
+            app.UseAuthentication();
+
             app.UseAuthorization();
+            
 
             app.UseEndpoints(endpoints =>
             {
@@ -76,8 +106,6 @@ namespace AEON_POP_WebService
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
                 c.RoutePrefix = string.Empty;
             });
-
-            
         }
     }
 }
