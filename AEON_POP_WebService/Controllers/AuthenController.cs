@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace AEON_POP_WebService.Controllers
 {
+    [ServiceFilter(typeof(ClientIpCheckActionFilter))]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenController : ControllerBase

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace AEON_POP_WebService.Controllers
 {
+    [ServiceFilter(typeof(ClientIpCheckActionFilter))]
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]

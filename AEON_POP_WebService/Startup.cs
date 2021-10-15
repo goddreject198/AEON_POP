@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AEON_POP_WebService
 {
@@ -56,18 +57,38 @@ namespace AEON_POP_WebService
                 authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 authOptions.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-                .AddJwtBearer(jwtOptions => {
-                    jwtOptions.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateAudience = true,
-                        ValidAudience = Configuration["JwtSettings:Issuer"],
-                        ValidateIssuer = true,
-                        ValidIssuer = Configuration["JwtSettings:Issuer"],
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"])),
-                        ValidateLifetime = true
-                    };
-                });
+            .AddJwtBearer(jwtOptions => {
+                jwtOptions.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["JwtSettings:Issuer"],
+                    ValidateIssuer = true,
+                    ValidIssuer = Configuration["JwtSettings:Issuer"],
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"])),
+                    ValidateLifetime = true
+                };
+            });
+
+            services.AddScoped<ClientIpCheckActionFilter>(container =>
+            {
+                var loggerFactory = container.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<ClientIpCheckActionFilter>();
+
+                return new ClientIpCheckActionFilter(
+                    Configuration["AdminSafeList"], logger);
+            });
+
+            services.AddRazorPages()
+            .AddMvcOptions(options =>
+            {
+                var logger = LoggerFactory.Create(builder => builder.AddConsole())
+                                .CreateLogger<ClientIpCheckPageFilter>();
+                var filter = new ClientIpCheckPageFilter(
+                    Configuration["AdminSafeList"], logger);
+
+                options.Filters.Add(filter);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -106,6 +127,9 @@ namespace AEON_POP_WebService
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
                 c.RoutePrefix = string.Empty;
             });
+
+            app.UseMiddleware<AdminSafeListMiddleware>(Configuration["AdminSafeList"]);
+
         }
     }
 }
