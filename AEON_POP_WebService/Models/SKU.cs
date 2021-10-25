@@ -1,13 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using MySqlConnector;
 
 namespace AEON_POP_WebService.Models
 {
     public class SKU
     {
         internal AppDb Db { get; set; }
+
+        public string P_Sku { get; set; }
+        public string P_Store { get; set; }
+        public string P_Status { get; set; }
+
 
         public SKU()
         {
@@ -16,6 +23,40 @@ namespace AEON_POP_WebService.Models
         internal SKU(AppDb db)
         {
             Db = db;
+        }
+
+        public async Task UpdateAsync()
+        {
+            using var cmd = Db.Connection.CreateCommand();
+            cmd.CommandText = @"UPDATE `sku` SET STATUS = @status WHERE SKU_CODE = @sku AND STORE = @store;";
+            BindParams(cmd);
+            BindId(cmd);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        private void BindId(MySqlCommand cmd)
+        {
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@sku",
+                DbType = DbType.String,
+                Value = P_Sku,
+            });
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@store",
+                DbType = DbType.String,
+                Value = P_Store,
+            });
+        }
+        private void BindParams(MySqlCommand cmd)
+        {
+            cmd.Parameters.Add(new MySqlParameter
+            {
+                ParameterName = "@status",
+                DbType = DbType.String,
+                Value = P_Status,
+            });
+            
         }
 
         public string SKU_CODE { get; set; }

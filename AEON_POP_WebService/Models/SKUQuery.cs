@@ -14,25 +14,26 @@ namespace AEON_POP_WebService.Models
         {
             Db = db;
         }
-        public async Task<List<SKU>> FindOneAsync(string tungay, string denngay)
+
+        public async Task<SKU> FindOneAsync(string sku, string store)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT * FROM `sku` WHERE STR_TO_DATE(DATE_CREATE, '%Y%m%d') BETWEEN @tungay AND @denngay";
+            cmd.CommandText = @"SELECT * FROM `sku` WHERE SKU_CODE = @sku AND STORE = @store";
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@tungay",
+                ParameterName = "@sku",
                 DbType = DbType.String,
-                Value = tungay,
+                Value = sku,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@denngay",
+                ParameterName = "@store",
                 DbType = DbType.String,
-                Value = denngay,
+                Value = store,
             });
-            //var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
-            //return result.Count > 0 ? result[0] : null;
-            return await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
+            //return await ReadAllAsync(await cmd.ExecuteReaderAsync());
         }
 
         public async Task<List<SKU>> FindAllAsync()
