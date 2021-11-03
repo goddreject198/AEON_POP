@@ -12,26 +12,44 @@ using System.Windows.Forms;
 using System.Linq;
 using System.Net;
 using WinSCP;
+using System.Collections;
 
 namespace AEON_POP_WinForm
 {
     public partial class Form1 : Form
     {
         private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "lyngocluan.synology.me", "AEON_POP", "fpt", "w3gXanGvWS=rV>en");
+
+        //khai báo backgroundprocess
+        private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
+
         public Form1()
         {
             InitializeComponent();
+            //khai báo properties của background process ApproveFileInDMS
+            myWorker_ItemSellPrice.DoWork += new DoWorkEventHandler(myWorker_ItemSellPrice_DoWork);
+            myWorker_ItemSellPrice.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_ItemSellPrice_RunWorkerCompleted);
+            myWorker_ItemSellPrice.ProgressChanged += new ProgressChangedEventHandler(myWorker_ItemSellPrice_ProgressChanged);
+            myWorker_ItemSellPrice.WorkerReportsProgress = true;
+            myWorker_ItemSellPrice.WorkerSupportsCancellation = true;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void myWorker_ItemSellPrice_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            
+        }
+
+        private void myWorker_ItemSellPrice_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            
+        }
+
+        private void myWorker_ItemSellPrice_DoWork(object sender, DoWorkEventArgs e)
         {
             string log_fileid = "";
-            
-            try
-            {
-                DownloadFileFromFTP();
-                return;
 
+            try
+            { 
                 MySqlConnection connection = new MySqlConnection(connectionString);
 
                 DirectoryInfo info = new DirectoryInfo(@"C:\Profit_Receive\");
@@ -52,7 +70,7 @@ namespace AEON_POP_WinForm
                             string filename = Path.GetFileName(pathtg);
                             if (filename.Length >= 5)
                             {
-                                if (filename.Substring(0,5) == "ITEM_")
+                                if (filename.Substring(0, 5) == "ITEM_")
                                 {
                                     #region SKU
                                     var sql_insert_profit_file = String.Format("INSERT INTO `AEON_POP`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
@@ -568,6 +586,142 @@ namespace AEON_POP_WinForm
                                     #endregion
                                 }
                             }
+                            if (filename.Length >= 14)
+                            {
+                                if (filename.Substring(0, 14) == "ITEMSELLPRICE_")
+                                {
+                                    #region ITEMSELLPRICE
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `AEON_POP`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                     , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
+                                                     , filename
+                                                     , date_now
+                                                     , time_now
+                                                     , "Inprocess");
+                                    connection.Open();
+                                    var cmd_insert_profit_file = new MySqlCommand(sql_insert_profit_file, connection);
+                                    MySqlDataReader rdr_insert_profit_file = cmd_insert_profit_file.ExecuteReader();
+                                    connection.Close();
+
+                                    //get File_ID
+                                    var sql_get_fileID = String.Format("select * from profit_files_log order by FILE_ID desc limit 1");
+                                    connection.Open();
+                                    var cmd_get_fileID = new MySqlCommand(sql_get_fileID, connection);
+                                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                                    MyAdapter.SelectCommand = cmd_get_fileID;
+                                    DataTable dTable_FileID = new DataTable();
+                                    MyAdapter.Fill(dTable_FileID);
+                                    connection.Close();
+
+                                    log_fileid = dTable_FileID.Rows[0][0].ToString();
+
+                                    #region xử lý dữ liệu
+                                    //get dữ liệu hiện tại
+                                    var sql_get_cur_itemsellprice = String.Format(@"SELECT * 
+                                                                                    FROM
+                                                                                    (SELECT *, ROW_NUMBER() OVER(PARTITION BY CONCAT(STORE, SKU) ORDER BY FILE_ID DESC) AS row_num
+                                                                                    FROM AEON_POP.item_sell_price) T0
+                                                                                    WHERE T0.row_num = ""1"";");
+                                    connection.Open();
+                                    var cmd_get_cur_itemsellprice = new MySqlCommand(sql_get_cur_itemsellprice, connection);
+                                    MySqlDataAdapter MyAdapter_cur_itemsellprice = new MySqlDataAdapter();
+                                    MyAdapter_cur_itemsellprice.SelectCommand = cmd_get_cur_itemsellprice;
+                                    DataTable dTable_ItemSellPrice_Cur = new DataTable();
+                                    MyAdapter_cur_itemsellprice.Fill(dTable_ItemSellPrice_Cur);
+                                    connection.Close();
+
+
+                                    //get dữ liệu mới
+                                    DataTable dTable_ItemSellPrice_New = ConvertCSVtoDataTable(pathtg);
+
+                                    //linq xử lý, lọc dữ liệu cần lấy
+                                    var result_table = from table1 in dTable_ItemSellPrice_Cur.AsEnumerable()
+                                                       join table2 in dTable_ItemSellPrice_New.AsEnumerable()
+                                                       on new
+                                                       {
+                                                           con1 = table1["STORE"] == null ? String.Empty : table1["STORE"].ToString(),
+                                                           con2 = table1["SKU"] == null ? String.Empty : table1["SKU"].ToString()
+                                                       }
+                                                       equals new
+                                                       {
+                                                           con1 = table2["STORE"] == null ? String.Empty : table2["STORE"].ToString(),
+                                                           con2 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString()
+                                                       }
+                                                       where ((table1["CURRENT_PRICE"].ToString()) != (table2["CURRENT_PRICE"].ToString())) 
+                                                       select new {
+                                                           STORE = table2 == null || table2["STORE"] == null ? string.Empty : table2["STORE"].ToString(),
+                                                           SKU = table2 == null || table2["SKU"] == null ? string.Empty : table2["SKU"].ToString(),
+                                                           DESCRIPTION = table2 == null || table2["DESCRIPTION"] == null ? string.Empty : table2["DESCRIPTION"].ToString(),
+                                                           CURRENT_PRICE = table2 == null || table2["CURRENT_PRICE"] == null ? string.Empty : table2["CURRENT_PRICE"].ToString(),
+                                                           PROMOTION_FLAG = table2 == null || table2["PROMOTION_FLAG"] == null ? string.Empty : table2["PROMOTION_FLAG"].ToString(),
+                                                           PROMOTION_RETAIL = table2 == null || table2["PROMOTION_RETAIL"] == null ? string.Empty : table2["PROMOTION_RETAIL"].ToString(),
+                                                           MEMBER_RETAIL = table2 == null || table2["MEMBER_RETAIL"] == null ? string.Empty : table2["MEMBER_RETAIL"].ToString(),
+                                                           MEMBER_PROMOTION_FLAG = table2 == null || table2["MEMBER_PROMOTION_FLAG"] == null ? string.Empty : table2["MEMBER_PROMOTION_FLAG"].ToString(),
+                                                           MEMBER_PROMOTION_RETAIL = table2 == null || table2["MEMBER_PROMOTION_RETAIL"] == null ? string.Empty : table2["MEMBER_PROMOTION_RETAIL"].ToString(),
+                                                       };
+                                    #endregion
+
+                                    //insert data to table ITEMSELLPRICE
+                                    var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `AEON_POP`.`item_sell_price`(`STORE`,`SKU`
+                                                                                            ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
+                                                                                            ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
+                                    foreach (var result in result_table)
+                                    {
+                                        //get data
+                                        string STORE = result.STORE;
+                                        string SKU = result.SKU;
+                                        string DESCRIPTION = "";
+                                        string temp_desc = result.DESCRIPTION;
+                                        if (temp_desc.Contains("\""))
+                                        {
+                                            DESCRIPTION = temp_desc.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            DESCRIPTION = result.DESCRIPTION;
+                                        }
+
+                                        string CURRENT_PRICE = result.CURRENT_PRICE;
+                                        string PROMOTION_FLAG = result.PROMOTION_FLAG;
+                                        string PROMOTION_RETAIL = result.PROMOTION_RETAIL;
+                                        string MEMBER_RETAIL = result.MEMBER_RETAIL;
+                                        string MEMBER_PROMOTION_FLAG = result.MEMBER_PROMOTION_FLAG;
+                                        string MEMBER_PROMOTION_RETAIL = result.MEMBER_PROMOTION_RETAIL;
+                                        string FILE_ID = log_fileid;
+
+                                        sql_insert_data_ITEMSELLPRICE += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""),"
+                                                                                    , STORE, SKU, DESCRIPTION, CURRENT_PRICE, PROMOTION_FLAG, PROMOTION_RETAIL, MEMBER_RETAIL
+                                                                                    , MEMBER_PROMOTION_FLAG, MEMBER_PROMOTION_RETAIL, FILE_ID);
+                                    }
+
+                                    connection.Open();
+                                    sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
+                                    var cmd_insert_data_ITEMSELLPRICE = new MySqlCommand(sql_insert_data_ITEMSELLPRICE, connection);
+                                    MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
+                                    connection.Close();
+
+                                    
+                                    //move file to folder backup
+                                    String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+
+
+                                    //update info file to log_file
+                                    var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                         , log_fileid);
+                                    connection.Open();
+                                    var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
+                                    MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                    connection.Close();
+                                    #endregion
+                                }
+                            }
                         }
                     }
                 }
@@ -587,6 +741,43 @@ namespace AEON_POP_WinForm
                 connection.Close();
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        public static DataTable ConvertCSVtoDataTable(string strFilePath)
+        {
+            DataTable dt = new DataTable();
+            using (StreamReader sr = new StreamReader(strFilePath))
+            {
+                //string[] headers = sr.ReadLine().Split(',');
+                dt.Columns.Add("STORE");
+                dt.Columns.Add("SKU");
+                dt.Columns.Add("DESCRIPTION");
+                dt.Columns.Add("CURRENT_PRICE");
+                dt.Columns.Add("PROMOTION_FLAG");
+                dt.Columns.Add("PROMOTION_RETAIL");
+                dt.Columns.Add("MEMBER_RETAIL");
+                dt.Columns.Add("MEMBER_PROMOTION_FLAG");
+                dt.Columns.Add("MEMBER_PROMOTION_RETAIL");
+                while (!sr.EndOfStream)
+                {
+                    string[] rows = sr.ReadLine().Split(',');
+                    DataRow dr = dt.NewRow();
+                    for (int i = 0; i <= 8; i++)
+                    {
+                        dr[i] = rows[i];
+                    }
+                    dt.Rows.Add(dr);
+                }
+
+            }
+            return dt;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DownloadFileFromFTP();
+
+            myWorker_ItemSellPrice.RunWorkerAsync();
         }
 
         private void DownloadFileFromFTP()
@@ -609,7 +800,7 @@ namespace AEON_POP_WinForm
 
                     // Download today's times
                     TransferOptions transferOptions = new TransferOptions();
-                    transferOptions.FileMask = "ITEM_*.csv;MIXMATCH_*.csv" + "|<1D";
+                    transferOptions.FileMask = "ITEM_*.csv;MIXMATCH_*.csv;ITEMSELLPRICE_*.csv" + "|<1D";
                     session.GetFiles("/*", @"C:\Profit_Receive\", false, transferOptions).Check();
                 }
             }
