@@ -634,8 +634,8 @@ namespace AEON_POP_WinForm
                                     DataTable dTable_ItemSellPrice_New = ConvertCSVtoDataTable(pathtg);
 
                                     //linq xử lý, lọc dữ liệu cần lấy
-                                    var result_table = from table1 in dTable_ItemSellPrice_Cur.AsEnumerable()
-                                                       join table2 in dTable_ItemSellPrice_New.AsEnumerable()
+                                    var result_table = from table1 in dTable_ItemSellPrice_New.AsEnumerable()
+                                                       join table2 in dTable_ItemSellPrice_Cur.AsEnumerable()
                                                        on new
                                                        {
                                                            con1 = table1["STORE"] == null ? String.Empty : table1["STORE"].ToString(),
@@ -646,17 +646,20 @@ namespace AEON_POP_WinForm
                                                            con1 = table2["STORE"] == null ? String.Empty : table2["STORE"].ToString(),
                                                            con2 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString()
                                                        }
-                                                       where ((table1["CURRENT_PRICE"].ToString()) != (table2["CURRENT_PRICE"].ToString())) 
-                                                       select new {
-                                                           STORE = table2 == null || table2["STORE"] == null ? string.Empty : table2["STORE"].ToString(),
-                                                           SKU = table2 == null || table2["SKU"] == null ? string.Empty : table2["SKU"].ToString(),
-                                                           DESCRIPTION = table2 == null || table2["DESCRIPTION"] == null ? string.Empty : table2["DESCRIPTION"].ToString(),
-                                                           CURRENT_PRICE = table2 == null || table2["CURRENT_PRICE"] == null ? string.Empty : table2["CURRENT_PRICE"].ToString(),
-                                                           PROMOTION_FLAG = table2 == null || table2["PROMOTION_FLAG"] == null ? string.Empty : table2["PROMOTION_FLAG"].ToString(),
-                                                           PROMOTION_RETAIL = table2 == null || table2["PROMOTION_RETAIL"] == null ? string.Empty : table2["PROMOTION_RETAIL"].ToString(),
-                                                           MEMBER_RETAIL = table2 == null || table2["MEMBER_RETAIL"] == null ? string.Empty : table2["MEMBER_RETAIL"].ToString(),
-                                                           MEMBER_PROMOTION_FLAG = table2 == null || table2["MEMBER_PROMOTION_FLAG"] == null ? string.Empty : table2["MEMBER_PROMOTION_FLAG"].ToString(),
-                                                           MEMBER_PROMOTION_RETAIL = table2 == null || table2["MEMBER_PROMOTION_RETAIL"] == null ? string.Empty : table2["MEMBER_PROMOTION_RETAIL"].ToString(),
+                                                       into _Table3 from table3 in _Table3.DefaultIfEmpty()
+                                                       where (((table3 == null || table3[0] == null ? String.Empty : table3["CURRENT_PRICE"].ToString()) != table1["CURRENT_PRICE"].ToString()) 
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3[0].ToString()) == ""))
+                                                       select new 
+                                                       {
+                                                           STORE = table1 == null || table1["STORE"] == null ? string.Empty : table1["STORE"].ToString(),
+                                                           SKU = table1 == null || table1["SKU"] == null ? string.Empty : table1["SKU"].ToString(),
+                                                           DESCRIPTION = table1 == null || table1["DESCRIPTION"] == null ? string.Empty : table1["DESCRIPTION"].ToString(),
+                                                           CURRENT_PRICE = table1 == null || table1["CURRENT_PRICE"] == null ? string.Empty : table1["CURRENT_PRICE"].ToString(),
+                                                           PROMOTION_FLAG = table1 == null || table1["PROMOTION_FLAG"] == null ? string.Empty : table1["PROMOTION_FLAG"].ToString(),
+                                                           PROMOTION_RETAIL = table1 == null || table1["PROMOTION_RETAIL"] == null ? string.Empty : table1["PROMOTION_RETAIL"].ToString(),
+                                                           MEMBER_RETAIL = table1 == null || table1["MEMBER_RETAIL"] == null ? string.Empty : table1["MEMBER_RETAIL"].ToString(),
+                                                           MEMBER_PROMOTION_FLAG = table1 == null || table1["MEMBER_PROMOTION_FLAG"] == null ? string.Empty : table1["MEMBER_PROMOTION_FLAG"].ToString(),
+                                                           MEMBER_PROMOTION_RETAIL = table1 == null || table1["MEMBER_PROMOTION_RETAIL"] == null ? string.Empty : table1["MEMBER_PROMOTION_RETAIL"].ToString(),
                                                        };
                                     #endregion
 
@@ -693,12 +696,14 @@ namespace AEON_POP_WinForm
                                                                                     , MEMBER_PROMOTION_FLAG, MEMBER_PROMOTION_RETAIL, FILE_ID);
                                     }
 
-                                    connection.Open();
-                                    sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
-                                    var cmd_insert_data_ITEMSELLPRICE = new MySqlCommand(sql_insert_data_ITEMSELLPRICE, connection);
-                                    MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
-                                    connection.Close();
-
+                                    if (result_table.Count() > 0)
+                                    {
+                                        connection.Open();
+                                        sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
+                                        var cmd_insert_data_ITEMSELLPRICE = new MySqlCommand(sql_insert_data_ITEMSELLPRICE, connection);
+                                        MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
+                                        connection.Close();
+                                    }    
                                     
                                     //move file to folder backup
                                     String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";

@@ -18,7 +18,7 @@ namespace AEON_POP_WebService.Models
             Db = db;
         }
 
-        public string SELLING_PRICE_NO { get; set; }
+        public int SELLING_PRICE_NO { get; set; }
         public string STORE { get; set; }
         public string SKU { get; set; }
         public string DESCRIPTION { get; set; }

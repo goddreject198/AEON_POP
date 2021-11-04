@@ -15,31 +15,31 @@ namespace AEON_POP_WebService.Models
         {
             Db = db;
         }
-        public async Task<List<ItemSellingPrice>> FindOneAsync(string tungay, string denngay)
+        public async Task<ItemSellingPrice> FindOneAsync(string store, string sku)
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT T0.* FROM item_selling_price T0 INNER JOIN profit_files_log T1 ON T0.FILE_ID = T1.FILE_ID WHERE STR_TO_DATE(T1.FILE_DATE, '%Y%m%d') BETWEEN @tungay AND @denngay limit 1000";
+            cmd.CommandText = @"SELECT * FROM `item_sell_price` WHERE STORE = @store AND SKU = @sku ORDER BY File_ID DESC limit 1;";
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@tungay",
+                ParameterName = "@store",
                 DbType = DbType.String,
-                Value = tungay,
+                Value = store,
             });
             cmd.Parameters.Add(new MySqlParameter
             {
-                ParameterName = "@denngay",
+                ParameterName = "@sku",
                 DbType = DbType.String,
-                Value = denngay,
+                Value = sku,
             });
-            //var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
-            //return result.Count > 0 ? result[0] : null;
-            return await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            var result = await ReadAllAsync(await cmd.ExecuteReaderAsync());
+            return result.Count > 0 ? result[0] : null;
+            //return await ReadAllAsync(await cmd.ExecuteReaderAsync());
         }
 
         public async Task<List<ItemSellingPrice>> FindAllAsync()
         {
             using var cmd = Db.Connection.CreateCommand();
-            cmd.CommandText = @"SELECT * FROM `item_selling_price`";
+            cmd.CommandText = @"SELECT * FROM `item_sell_price` limit 1000";
             return await ReadAllAsync(await cmd.ExecuteReaderAsync());
         }
 
@@ -52,7 +52,7 @@ namespace AEON_POP_WebService.Models
                 {
                     var post = new ItemSellingPrice(Db)
                     {
-                        SELLING_PRICE_NO = reader.GetString(0),
+                        SELLING_PRICE_NO = reader.GetInt32(0),
                         STORE = reader.GetString(1),
                         SKU = reader.GetString(2),
                         DESCRIPTION = reader.GetString(3),

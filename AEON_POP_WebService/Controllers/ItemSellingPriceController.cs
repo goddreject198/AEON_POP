@@ -22,12 +22,13 @@ namespace AEON_POP_WebService.Controllers
         }
         public AppDb Db { get; }
 
-        [HttpGet("${tungay}${denngay}")]
-        public async Task<IActionResult> GetOne(string tungay, string denngay)
+        [HttpGet("${sku}${store}")]
+        [HttpGet("getone")]
+        public async Task<IActionResult> GetOne(ParameterSKU parameter)
         {
             await Db.Connection.OpenAsync();
             var query = new ItemSellingPriceQuery(Db);
-            var result = await query.FindOneAsync(tungay, denngay);
+            var result = await query.FindOneAsync(parameter.Store, parameter.SKU);
             if (result is null)
                 return new NotFoundResult();
             return new OkObjectResult(result);
@@ -42,6 +43,12 @@ namespace AEON_POP_WebService.Controllers
             if (result is null)
                 return new NotFoundResult();
             return new OkObjectResult(result);
+        }
+
+        public class ParameterSKU
+        {
+            public string Store { get; set; }
+            public string SKU { get; set; }
         }
     }
 }
