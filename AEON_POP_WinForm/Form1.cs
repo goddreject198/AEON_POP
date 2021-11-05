@@ -647,8 +647,14 @@ namespace AEON_POP_WinForm
                                                            con2 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString()
                                                        }
                                                        into _Table3 from table3 in _Table3.DefaultIfEmpty()
-                                                       where (((table3 == null || table3[0] == null ? String.Empty : table3["CURRENT_PRICE"].ToString()) != table1["CURRENT_PRICE"].ToString()) 
-                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3[0].ToString()) == ""))
+                                                       where (((table3 == null || table3[0] == null ? String.Empty : table3[0].ToString()) == "")
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["CURRENT_PRICE"].ToString()) != table1["CURRENT_PRICE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PROMOTION_FLAG"].ToString()) != table1["PROMOTION_FLAG"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PROMOTION_RETAIL"].ToString()) != table1["PROMOTION_RETAIL"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["MEMBER_RETAIL"].ToString()) != table1["MEMBER_RETAIL"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["MEMBER_PROMOTION_FLAG"].ToString()) != table1["MEMBER_PROMOTION_FLAG"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["MEMBER_PROMOTION_RETAIL"].ToString()) != table1["MEMBER_PROMOTION_RETAIL"].ToString())
+                                                                )
                                                        select new 
                                                        {
                                                            STORE = table1 == null || table1["STORE"] == null ? string.Empty : table1["STORE"].ToString(),
