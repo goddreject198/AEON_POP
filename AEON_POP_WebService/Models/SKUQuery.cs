@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Threading.Tasks;
 using MySqlConnector;
 
@@ -52,41 +53,42 @@ namespace AEON_POP_WebService.Models
                 {
                     var post = new SKU(Db)
                     {
-                        SKU_CODE = reader.GetString(0),
-                        ITEM_DESC_VNM = reader.GetString(1),
-                        SKU_TYPE = reader.GetString(2),
-                        PURCHASE_METHOD = reader.GetString(3),
-                        BUSINESS_UNIT = reader.GetString(4),
-                        STORE = reader.GetString(5),
-                        LINE_ID = reader.GetString(6),
-                        DIVISION_ID = reader.GetString(7),
-                        GROUP_ID = reader.GetString(8),
-                        DEPT_ID = reader.GetString(9),
-                        CATEGORY_ID = reader.GetString(10),
-                        SUB_CATEGORY = reader.GetString(11),
-                        COLOUR_SIZE_GRID = reader.GetString(12),
-                        COLOUR = reader.GetString(13),
-                        SIZE_ID = reader.GetString(14),
-                        BARCODE = reader.GetString(15),
-                        POP1_DESC_VNM = reader.GetString(16),
-                        POP2_DESC_VNM = reader.GetString(17),
-                        SELLING_POINT1 = reader.GetString(18),
-                        SELLING_POINT2 = reader.GetString(19),
-                        SELLING_POINT3 = reader.GetString(20),
-                        SELLING_POINT4 = reader.GetString(21),
-                        SELLING_POINT5 = reader.GetString(22),
-                        CURRENT_PRICE = reader.GetString(23),
-                        RETAIL_UOM = reader.GetString(24),
-                        STATUS = reader.GetString(25),
-                        DATE_CREATE = reader.GetString(26),
-                        MODIFIED_DATE = reader.GetString(27),
-                        CLOSING_STOCK_QTY = reader.GetString(28),
-                        CLOSING_STOCK_RETAIL = reader.GetString(29),
-                        FILE_ID = reader.GetString(30),
+                        sku_code = reader.GetString(0),
+                        item_desc_vnm = reader.GetString(1),
+                        sku_type = reader.GetString(2),
+                        purchase_method = reader.GetString(3),
+                        business_unit = reader.GetString(4),
+                        store = reader.GetString(5),
+                        line_id = reader.GetString(6),
+                        division_id = reader.GetString(7),
+                        group_id = reader.GetString(8),
+                        dept_id = reader.GetString(9),
+                        category_id = reader.GetString(10),
+                        sub_category = reader.GetString(11),
+                        colour_size_grid = reader.GetString(12),
+                        colour = reader.GetString(13),
+                        size_id = reader.GetString(14),
+                        barcode = reader.GetString(15),
+                        pop1_desc_vnm = reader.GetString(16),
+                        pop2_desc_vnm = reader.GetString(17),
+                        selling_point1 = reader.GetString(18),
+                        selling_point2 = reader.GetString(19),
+                        selling_point3 = reader.GetString(20),
+                        selling_point4 = reader.GetString(21),
+                        selling_point5 = reader.GetString(22),
+                        current_price = reader.GetString(23),
+                        retail_uom = reader.GetString(24),
+                        status = reader.GetString(25),
+                        date_create = reader.GetString(26),
+                        modified_date = reader.GetString(27),
+                        closing_stock_qty = reader.GetString(28),
+                        closing_stock_retail = reader.GetString(29),
+                        file_id = reader.GetString(30),
                     };
                     posts.Add(post);
                 }
             }
+            
             return posts;
         }
     }

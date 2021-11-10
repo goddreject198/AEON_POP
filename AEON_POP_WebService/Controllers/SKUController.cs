@@ -28,7 +28,7 @@ namespace AEON_POP_WebService.Controllers
         {
             await Db.Connection.OpenAsync();
             var query = new SKUQuery(Db);
-            var result = await query.FindOneAsync(parameter.SKU, parameter.Store);
+            var result = await query.FindOneAsync(parameter.sku, parameter.store);
             if (result is null)
                 return new NotFoundResult();
             return new OkObjectResult(result);
@@ -50,12 +50,12 @@ namespace AEON_POP_WebService.Controllers
         {
             await Db.Connection.OpenAsync();
             var query = new SKUQuery(Db);
-            var result = await query.FindOneAsync(parameter.SKU, parameter.Store);
+            var result = await query.FindOneAsync(parameter.sku, parameter.store);
             if (result is null)
                 return new NotFoundResult();
-            result.P_Sku = parameter.SKU;
-            result.P_Store = parameter.Store;
-            result.P_Status = parameter.Status;
+            result.P_Sku = parameter.sku;
+            result.P_Store = parameter.store;
+            result.P_Status = parameter.status;
 
             await result.UpdateAsync();
             return new OkObjectResult(result);
@@ -63,14 +63,14 @@ namespace AEON_POP_WebService.Controllers
 
         public class ParameterSKU
         {
-            public string SKU { get; set; }
-            public string Store { get; set; }
+            public string sku { get; set; }
+            public string store { get; set; }
         }
         public class ParameterUpdateSKU
         {
-            public string SKU { get; set; }
-            public string Store { get; set; }
-            public string Status { get; set; }
+            public string sku { get; set; }
+            public string store { get; set; }
+            public string status { get; set; }
         }
     }
 }

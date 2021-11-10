@@ -52,17 +52,17 @@ namespace AEON_POP_WebService.Models
                 {
                     var post = new ItemSellingPrice(Db)
                     {
-                        SELLING_PRICE_NO = reader.GetInt32(0),
-                        STORE = reader.GetString(1),
-                        SKU = reader.GetString(2),
-                        DESCRIPTION = reader.GetString(3),
-                        CURRENT_PRICE = reader.GetString(4),
-                        PROMOTION_FLAG = reader.GetString(5),
-                        PROMOTION_RETAIL = reader.GetString(6),
-                        MEMBER_RETAIL = reader.GetString(7),
-                        MEMBER_PROMOTION_FLAG = reader.GetString(8),
-                        MEMBER_PROMOTION_RETAIL = reader.GetString(9),
-                        FILE_ID = reader.GetString(10),
+                        selling_price_no = reader.GetInt32(0),
+                        store = reader.GetString(1),
+                        sku = reader.GetString(2),
+                        description = reader.GetString(3),
+                        current_price = reader.GetString(4),
+                        promotion_flag = reader.GetString(5),
+                        promotion_retail = reader.GetString(6),
+                        member_retail = reader.GetString(7),
+                        member_promotion_flag = reader.GetString(8),
+                        member_promotion_retail = reader.GetString(9),
+                        file_id = reader.GetString(10),
                     };
                     posts.Add(post);
                 }

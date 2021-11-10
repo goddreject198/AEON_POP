@@ -18,17 +18,17 @@ namespace AEON_POP_WebService.Models
             Db = db;
         }
 
-        public int SELLING_PRICE_NO { get; set; }
-        public string STORE { get; set; }
-        public string SKU { get; set; }
-        public string DESCRIPTION { get; set; }
-        public string CURRENT_PRICE { get; set; }
-        public string PROMOTION_FLAG { get; set; }
-        public string PROMOTION_RETAIL { get; set; }
-        public string MEMBER_RETAIL { get; set; }
-        public string MEMBER_PROMOTION_FLAG { get; set; }
-        public string MEMBER_PROMOTION_RETAIL { get; set; }
-        public string FILE_ID { get; set; }
-        
+        public int selling_price_no { get; set; }
+        public string store { get; set; }
+        public string sku { get; set; }
+        public string description { get; set; }
+        public string current_price { get; set; }
+        public string promotion_flag { get; set; }
+        public string promotion_retail { get; set; }
+        public string member_retail { get; set; }
+        public string member_promotion_flag { get; set; }
+        public string member_promotion_retail { get; set; }
+        public string file_id { get; set; }
+
     }
 }
