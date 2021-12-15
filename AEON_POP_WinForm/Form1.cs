@@ -18,7 +18,7 @@ namespace AEON_POP_WinForm
 {
     public partial class Form1 : Form
     {
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "lyngocluan.synology.me", "AEON_POP", "fpt", "w3gXanGvWS=rV>en");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "AEON_POP", "fpt", "fptpop@2021");
 
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
@@ -53,7 +53,7 @@ namespace AEON_POP_WinForm
                 MySqlConnection connection = new MySqlConnection(connectionString);
 
                 DirectoryInfo info = new DirectoryInfo(@"C:\Profit_Receive\");
-                List<string> filesPath = info.GetFiles("*.csv").Where(x => x.CreationTime.Date == DateTime.Today.AddDays(0))
+                List<string> filesPath = info.GetFiles("*.csv")//.Where(x => x.CreationTime.Date == DateTime.Today.AddDays(0))
                                                   .Select(x => x.FullName)
                                                   .ToList();
 
@@ -214,62 +214,128 @@ namespace AEON_POP_WinForm
 
                                     log_fileid = dTable_FileID.Rows[0][0].ToString();
 
-                                    using (var reader = new StreamReader(pathtg))
+                                    #region xử lý dữ liệu
+                                    //get dữ liệu hiện tại
+                                    var sql_get_cur_hamper = String.Format(@"SELECT * 
+												FROM
+												(SELECT *, ROW_NUMBER() OVER(PARTITION BY CONCAT(STORE, SKU, PACK_SKU) ORDER BY FILE_ID DESC) AS row_num
+												FROM AEON_POP.hamper) T0
+												WHERE T0.row_num = ""1"";");
+                                    connection.Open();
+                                    var cmd_get_cur_hamper = new MySqlCommand(sql_get_cur_hamper, connection);
+                                    MySqlDataAdapter MyAdapter_cur_hamper = new MySqlDataAdapter();
+                                    MyAdapter_cur_hamper.SelectCommand = cmd_get_cur_hamper;
+                                    DataTable dTable_Hamper_Cur = new DataTable();
+                                    MyAdapter_cur_hamper.Fill(dTable_Hamper_Cur);
+                                    connection.Close();
+
+                                    //get dữ liệu mới
+                                    DataTable dTable_Hamper_New = ConvertCSVtoDataTable_Hamper(pathtg);
+
+                                    //linq xử lý, lọc dữ liệu cần lấy
+                                    var result_table = from table1 in dTable_Hamper_New.AsEnumerable()
+                                                       join table2 in dTable_Hamper_Cur.AsEnumerable()
+                                                       on new
+                                                       {
+                                                           con1 = table1["STORE"] == null ? String.Empty : table1["STORE"].ToString(),
+                                                           con2 = table1["SKU"] == null ? String.Empty : table1["SKU"].ToString(),
+                                                           con3 = table1["PACK_SKU"] == null ? String.Empty : table1["PACK_SKU"].ToString()
+                                                       }
+                                                       equals new
+                                                       {
+                                                           con1 = table2["STORE"] == null ? String.Empty : table2["STORE"].ToString(),
+                                                           con2 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString(),
+                                                           con3 = table2["PACK_SKU"] == null ? String.Empty : table2["PACK_SKU"].ToString()
+                                                       }
+                                                       into _Table3
+                                                       from table3 in _Table3.DefaultIfEmpty()
+                                                       where (((table3 == null || table3[0] == null ? String.Empty : table3[0].ToString()) == "")
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["DESCRIPTION"].ToString()) != table1["DESCRIPTION"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PACK_TYPE"].ToString()) != table1["PACK_TYPE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["QTY_PER_SKU"].ToString()) != table1["QTY_PER_SKU"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["QTY_UOM"].ToString()) != table1["QTY_UOM"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["DECORATION_FLAG"].ToString()) != table1["DECORATION_FLAG"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["STATUS"].ToString()) != table1["STATUS"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["MODIFIED_DATE"].ToString()) != table1["MODIFIED_DATE"].ToString())
+                                                                )
+                                                       select new
+                                                       {
+                                                           PACK_SKU = table1 == null || table1["PACK_SKU"] == null ? string.Empty : table1["PACK_SKU"].ToString(),
+                                                           DESCRIPTION = table1 == null || table1["DESCRIPTION"] == null ? string.Empty : table1["DESCRIPTION"].ToString(),
+                                                           PACK_TYPE = table1 == null || table1["PACK_TYPE"] == null ? string.Empty : table1["PACK_TYPE"].ToString(),
+                                                           SKU = table1 == null || table1["SKU"] == null ? string.Empty : table1["SKU"].ToString(),
+                                                           QTY_PER_SKU = table1 == null || table1["QTY_PER_SKU"] == null ? string.Empty : table1["QTY_PER_SKU"].ToString(),
+                                                           QTY_UOM = table1 == null || table1["QTY_UOM"] == null ? string.Empty : table1["QTY_UOM"].ToString(),
+                                                           STORE = table1 == null || table1["STORE"] == null ? string.Empty : table1["STORE"].ToString(),
+                                                           DECORATION_FLAG = table1 == null || table1["DECORATION_FLAG"] == null ? string.Empty : table1["DECORATION_FLAG"].ToString(),
+                                                           STATUS = table1 == null || table1["STATUS"] == null ? string.Empty : table1["STATUS"].ToString(),
+                                                           MODIFIED_DATE = table1 == null || table1["MODIFIED_DATE"] == null ? string.Empty : table1["MODIFIED_DATE"].ToString(),
+                                                       };
+                                    #endregion
+
+                                    //insert data to table ITEMSELLPRICE
+                                    var sql_insert_data_Hamper = String.Format(@"INSERT INTO `AEON_POP`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
+                                                                                            ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+
+                                    foreach (var result in result_table)
                                     {
-                                        while (!reader.EndOfStream)
+                                        //get data
+                                        string PACK_SKU = result.PACK_SKU;
+                                        string DESCRIPTION = "";
+                                        string temp_desc = result.DESCRIPTION;
+                                        if (temp_desc.Contains("\""))
                                         {
-                                            var line = reader.ReadLine();
-                                            var values = line.Split(',');
-
-                                            if (!string.IsNullOrEmpty(values[0]))
-                                            {
-                                                //get data
-                                                string PACK_SKU = values[0];
-                                                string DESCRIPTION = values[2];
-                                                string PACK_TYPE = values[3];
-                                                string SKU = values[5];
-                                                string QTY_PER_SKU = values[6];
-                                                string QTY_UOM = values[7];
-                                                string STORE = values[1];
-                                                string DECORATION_FLAG = values[8];
-                                                string STATUS = values[4];
-                                                string MODIFIED_DATE = "";
-                                                string FILE_ID = log_fileid;
-
-                                                //insert data to table SKU
-                                                var sql_insert_data_Hamper = String.Format(@"INSERT INTO `AEON_POP`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
-                                                                                            ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)
-                                                                                        VALUES(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}"");"
-                                                                                        , PACK_SKU, DESCRIPTION, PACK_TYPE, SKU, QTY_PER_SKU, QTY_UOM, STORE, DECORATION_FLAG, STATUS, MODIFIED_DATE, FILE_ID);
-                                                connection.Open();
-                                                var cmd_insert_data_Hamper = new MySqlCommand(sql_insert_data_Hamper, connection);
-                                                MySqlDataReader rdr_insert_data_Hamper = cmd_insert_data_Hamper.ExecuteReader();
-                                                connection.Close();
-                                            }
+                                            DESCRIPTION = temp_desc.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            DESCRIPTION = result.DESCRIPTION;
                                         }
 
-                                        reader.Close();
+                                        string PACK_TYPE = result.PACK_TYPE;
+                                        string SKU = result.SKU;
+                                        string QTY_PER_SKU = result.QTY_PER_SKU;
+                                        string QTY_UOM = result.QTY_UOM;
+                                        string STORE = result.STORE;
+                                        string DECORATION_FLAG = result.DECORATION_FLAG;
+                                        string STATUS = result.STATUS;
+                                        string MODIFIED_DATE = result.MODIFIED_DATE;
+                                        string FILE_ID = log_fileid;
 
-                                        //move file to folder backup
-                                        String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                        bool exist = Directory.Exists(dirBackup);
-                                        if (!exist)
-                                        {
-                                            // Tạo thư mục.
-                                            Directory.CreateDirectory(dirBackup);
-                                        }
-                                        string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
-                                        File.Move(pathtg, dirPathBackup);
+                                        sql_insert_data_Hamper += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}""),"
+                                                                                    , PACK_SKU, DESCRIPTION, PACK_TYPE, SKU, QTY_PER_SKU, QTY_UOM, STORE
+                                                                                    , DECORATION_FLAG, STATUS, MODIFIED_DATE, FILE_ID);
+                                    }
 
-
-                                        //update info file to log_file
-                                        var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
-                                                             , log_fileid);
+                                    if (result_table.Count() > 0)
+                                    {
                                         connection.Open();
-                                        var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
-                                        MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                        sql_insert_data_Hamper = sql_insert_data_Hamper.Substring(0, sql_insert_data_Hamper.Length - 1);
+                                        var cmd_insert_data_Hamper = new MySqlCommand(sql_insert_data_Hamper, connection);
+                                        MySqlDataReader rdr_insert_data_Hamper = cmd_insert_data_Hamper.ExecuteReader();
                                         connection.Close();
                                     }
+
+                                    //move file to folder backup
+                                    String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+
+
+                                    //update info file to log_file
+                                    var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                         , log_fileid);
+                                    connection.Open();
+                                    var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
+                                    MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                    connection.Close();
+                                    
                                     #endregion
                                 }
                             }
@@ -631,7 +697,7 @@ namespace AEON_POP_WinForm
 
 
                                     //get dữ liệu mới
-                                    DataTable dTable_ItemSellPrice_New = ConvertCSVtoDataTable(pathtg);
+                                    DataTable dTable_ItemSellPrice_New = ConvertCSVtoDataTable_ItemSellPrice(pathtg);
 
                                     //linq xử lý, lọc dữ liệu cần lấy
                                     var result_table = from table1 in dTable_ItemSellPrice_New.AsEnumerable()
@@ -754,7 +820,7 @@ namespace AEON_POP_WinForm
             }
         }
 
-        public static DataTable ConvertCSVtoDataTable(string strFilePath)
+        public static DataTable ConvertCSVtoDataTable_ItemSellPrice(string strFilePath)
         {
             DataTable dt = new DataTable();
             using (StreamReader sr = new StreamReader(strFilePath))
@@ -774,6 +840,37 @@ namespace AEON_POP_WinForm
                     string[] rows = sr.ReadLine().Split(',');
                     DataRow dr = dt.NewRow();
                     for (int i = 0; i <= 8; i++)
+                    {
+                        dr[i] = rows[i];
+                    }
+                    dt.Rows.Add(dr);
+                }
+
+            }
+            return dt;
+        }
+
+        public static DataTable ConvertCSVtoDataTable_Hamper(string strFilePath)
+        {
+            DataTable dt = new DataTable();
+            using (StreamReader sr = new StreamReader(strFilePath))
+            {
+                //string[] headers = sr.ReadLine().Split(',');
+                dt.Columns.Add("PACK_SKU");
+                dt.Columns.Add("STORE");
+                dt.Columns.Add("DESCRIPTION");
+                dt.Columns.Add("PACK_TYPE");
+                dt.Columns.Add("STATUS");
+                dt.Columns.Add("SKU");
+                dt.Columns.Add("QTY_PER_SKU");
+                dt.Columns.Add("QTY_UOM");
+                dt.Columns.Add("DECORATION_FLAG");
+                dt.Columns.Add("MODIFIED_DATE");
+                while (!sr.EndOfStream)
+                {
+                    string[] rows = sr.ReadLine().Split(',');
+                    DataRow dr = dt.NewRow();
+                    for (int i = 0; i <= 9; i++)
                     {
                         dr[i] = rows[i];
                     }
