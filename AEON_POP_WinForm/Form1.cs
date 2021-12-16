@@ -18,7 +18,7 @@ namespace AEON_POP_WinForm
 {
     public partial class Form1 : Form
     {
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "AEON_POP", "fpt", "fptpop@2021");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
 
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
@@ -191,7 +191,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 10) == "HAMPERMST_")
                                 {
                                     #region Hamper
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `AEON_POP`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -219,7 +219,7 @@ namespace AEON_POP_WinForm
                                     var sql_get_cur_hamper = String.Format(@"SELECT * 
 												FROM
 												(SELECT *, ROW_NUMBER() OVER(PARTITION BY CONCAT(STORE, SKU, PACK_SKU) ORDER BY FILE_ID DESC) AS row_num
-												FROM AEON_POP.hamper) T0
+												FROM aeon_pop.hamper) T0
 												WHERE T0.row_num = ""1"";");
                                     connection.Open();
                                     var cmd_get_cur_hamper = new MySqlCommand(sql_get_cur_hamper, connection);
@@ -274,7 +274,7 @@ namespace AEON_POP_WinForm
                                     #endregion
 
                                     //insert data to table ITEMSELLPRICE
-                                    var sql_insert_data_Hamper = String.Format(@"INSERT INTO `AEON_POP`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
+                                    var sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
                                                                                             ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
                                     foreach (var result in result_table)
@@ -329,7 +329,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -344,7 +344,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 13) == "ITEMPRICECHG_")
                                 {
                                     #region ItemPriceChange
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `AEON_POP`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -367,76 +367,152 @@ namespace AEON_POP_WinForm
 
                                     log_fileid = dTable_FileID.Rows[0][0].ToString();
 
-                                    using (var reader = new StreamReader(pathtg))
-                                    {
-                                        while (!reader.EndOfStream)
-                                        {
-                                            var line = reader.ReadLine();
-                                            var values = line.Split(',');
+                                    #region xử lý dữ liệu
+                                    //get dữ liệu hiện tại
+                                    var sql_get_cur_itempricechange = String.Format(@"SELECT * 
+												FROM
+												(SELECT *, ROW_NUMBER() OVER(PARTITION BY CONCAT(STORE, PRICE_CHANGE_NO, SKU) ORDER BY FILE_ID DESC) AS row_num
+												FROM aeon_pop.pricechange) T0
+												WHERE T0.row_num = ""1"";");
+                                    connection.Open();
+                                    var cmd_get_cur_itempricechange = new MySqlCommand(sql_get_cur_itempricechange, connection);
+                                    MySqlDataAdapter MyAdapter_cur_itempricechange = new MySqlDataAdapter();
+                                    MyAdapter_cur_itempricechange.SelectCommand = cmd_get_cur_itempricechange;
+                                    DataTable dTable_ItemPriceChange_Cur = new DataTable();
+                                    MyAdapter_cur_itempricechange.Fill(dTable_ItemPriceChange_Cur);
+                                    connection.Close();
 
-                                            if (!string.IsNullOrEmpty(values[0]))
-                                            {
-                                                //get data
-                                                string PRICE_CHANGE_NO = values[0];
-                                                string DEPARTMENT = values[5];
-                                                string TRANS_TYPE = values[2];
-                                                string REASON = values[3];
-                                                string EVENT_ID = values[13];
-                                                string PRICE_CHANGE_TYPE = values[12];
-                                                string PRICE_CHANGE_TYPE_VALUE = "";
-                                                string PROMOTION_TYPE = values[15];
-                                                string START_DATE = values[6];
-                                                string DAILY_START_TIME = values[8];
-                                                string END_DATE = values[7];
-                                                string DAILY_END_TIME = values[9];
-                                                string STATUS = values[11];
-                                                string STORE = values[16];
-                                                string SKU = values[17];
-                                                string LAST_SELL_PRICE = values[18];
-                                                string LAST_SELL_UNIT = values[19];
-                                                string NEW_SELL_PRICE = values[20];
-                                                string CREATED_DATE = values[1];
-                                                string MODIFIED_DATE = "";
-                                                string FILE_ID = log_fileid;
+                                    //get dữ liệu mới
+                                    DataTable dTable_ItemPriceChange_New = ConvertCSVtoDataTable_ItemPriceChange(pathtg);
 
-                                                //insert data to table SKU
-                                                var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `AEON_POP`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                    //linq xử lý, lọc dữ liệu cần lấy
+                                    var result_table = from table1 in dTable_ItemPriceChange_New.AsEnumerable()
+                                                       join table2 in dTable_ItemPriceChange_Cur.AsEnumerable()
+                                                       on new
+                                                       {
+                                                           con1 = table1["STORE"] == null ? String.Empty : table1["STORE"].ToString(),
+                                                           con2 = table1["PRICE_CHANGE_NO"] == null ? String.Empty : table1["PRICE_CHANGE_NO"].ToString(),
+                                                           con3 = table1["SKU"] == null ? String.Empty : table1["SKU"].ToString()
+                                                       }
+                                                       equals new
+                                                       {
+                                                           con1 = table2["STORE"] == null ? String.Empty : table2["STORE"].ToString(),
+                                                           con2 = table2["PRICE_CHANGE_NO"] == null ? String.Empty : table2["PRICE_CHANGE_NO"].ToString(),
+                                                           con3 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString()
+                                                       }
+                                                       into _Table3
+                                                       from table3 in _Table3.DefaultIfEmpty()
+                                                       where (((table3 == null || table3[0] == null ? String.Empty : table3[0].ToString()) == "")
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["DEPARTMENT"].ToString()) != table1["DEPARTMENT"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["TRANS_TYPE"].ToString()) != table1["TRANS_TYPE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["REASON"].ToString()) != table1["REASON"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["EVENT_ID"].ToString()) != table1["EVENT_ID"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PRICE_CHANGE_TYPE"].ToString()) != table1["PRICE_CHANGE_TYPE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PRICE_CHANGE_TYPE_VALUE"].ToString()) != table1["PRICE_CHANGE_TYPE_VALUE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PROMOTION_TYPE"].ToString()) != table1["PROMOTION_TYPE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["START_DATE"].ToString()) != table1["START_DATE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["DAILY_START_TIME"].ToString()) != table1["DAILY_START_TIME"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["END_DATE"].ToString()) != table1["END_DATE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["DAILY_END_TIME"].ToString()) != table1["DAILY_END_TIME"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["STATUS"].ToString()) != table1["STATUS"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["LAST_SELL_PRICE"].ToString()) != table1["LAST_SELL_PRICE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["LAST_SELL_UNIT"].ToString()) != table1["LAST_SELL_UNIT"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["NEW_SELL_PRICE"].ToString()) != table1["NEW_SELL_PRICE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["CREATED_DATE"].ToString()) != table1["CREATED_DATE"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["MODIFIED_DATE"].ToString()) != table1["MODIFIED_DATE"].ToString())
+                                                                 )
+                                                       select new
+                                                       {
+                                                           PRICE_CHANGE_NO = table1 == null || table1["PRICE_CHANGE_NO"] == null ? string.Empty : table1["PRICE_CHANGE_NO"].ToString(),
+                                                           DEPARTMENT = table1 == null || table1["DEPARTMENT"] == null ? string.Empty : table1["DEPARTMENT"].ToString(),
+                                                           TRANS_TYPE = table1 == null || table1["TRANS_TYPE"] == null ? string.Empty : table1["TRANS_TYPE"].ToString(),
+                                                           REASON = table1 == null || table1["REASON"] == null ? string.Empty : table1["REASON"].ToString(),
+                                                           EVENT_ID = table1 == null || table1["EVENT_ID"] == null ? string.Empty : table1["EVENT_ID"].ToString(),
+                                                           PRICE_CHANGE_TYPE = table1 == null || table1["PRICE_CHANGE_TYPE"] == null ? string.Empty : table1["PRICE_CHANGE_TYPE"].ToString(),
+                                                           PRICE_CHANGE_TYPE_VALUE = table1 == null || table1["PRICE_CHANGE_TYPE_VALUE"] == null ? string.Empty : table1["PRICE_CHANGE_TYPE_VALUE"].ToString(),
+                                                           PROMOTION_TYPE = table1 == null || table1["PROMOTION_TYPE"] == null ? string.Empty : table1["PROMOTION_TYPE"].ToString(),
+                                                           START_DATE = table1 == null || table1["START_DATE"] == null ? string.Empty : table1["START_DATE"].ToString(),
+                                                           DAILY_START_TIME = table1 == null || table1["DAILY_START_TIME"] == null ? string.Empty : table1["DAILY_START_TIME"].ToString(),
+                                                           END_DATE = table1 == null || table1["END_DATE"] == null ? string.Empty : table1["END_DATE"].ToString(),
+                                                           DAILY_END_TIME = table1 == null || table1["DAILY_END_TIME"] == null ? string.Empty : table1["DAILY_END_TIME"].ToString(),
+                                                           STATUS = table1 == null || table1["STATUS"] == null ? string.Empty : table1["STATUS"].ToString(),
+                                                           STORE = table1 == null || table1["STORE"] == null ? string.Empty : table1["STORE"].ToString(),
+                                                           SKU = table1 == null || table1["SKU"] == null ? string.Empty : table1["SKU"].ToString(),
+                                                           LAST_SELL_PRICE = table1 == null || table1["LAST_SELL_PRICE"] == null ? string.Empty : table1["LAST_SELL_PRICE"].ToString(),
+                                                           LAST_SELL_UNIT = table1 == null || table1["LAST_SELL_UNIT"] == null ? string.Empty : table1["LAST_SELL_UNIT"].ToString(),
+                                                           NEW_SELL_PRICE = table1 == null || table1["NEW_SELL_PRICE"] == null ? string.Empty : table1["NEW_SELL_PRICE"].ToString(),
+                                                           CREATED_DATE = table1 == null || table1["CREATED_DATE"] == null ? string.Empty : table1["CREATED_DATE"].ToString(),
+                                                           MODIFIED_DATE = table1 == null || table1["MODIFIED_DATE"] == null ? string.Empty : table1["MODIFIED_DATE"].ToString(),
+                                                       };
+                                    #endregion
+
+                                    //insert data to table 
+                                    var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
-                                                                                            ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)
-                                                                                        VALUES(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""
-                                                                                                ,""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}""
-                                                                                                ,""{20}"");"
-                                                                                        , PRICE_CHANGE_NO, DEPARTMENT, TRANS_TYPE, REASON, EVENT_ID, PRICE_CHANGE_TYPE, PRICE_CHANGE_TYPE_VALUE, PROMOTION_TYPE, START_DATE, DAILY_START_TIME
-                                                                                        , END_DATE, DAILY_END_TIME, STATUS, STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE, CREATED_DATE, MODIFIED_DATE, FILE_ID);
-                                                connection.Open();
-                                                var cmd_insert_data_ItemPriceChange = new MySqlCommand(sql_insert_data_ItemPriceChange, connection);
-                                                MySqlDataReader rdr_insert_data_ItemPriceChange = cmd_insert_data_ItemPriceChange.ExecuteReader();
-                                                connection.Close();
-                                            }
-                                        }
+                                                                                            ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
+                                                                                            ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                    foreach (var result in result_table)
+                                    {
+                                        //get data
+                                        string PRICE_CHANGE_NO = result.PRICE_CHANGE_NO;
+                                        string DEPARTMENT = result.DEPARTMENT;
+                                        string TRANS_TYPE = result.TRANS_TYPE;
+                                        string REASON = result.REASON;
+                                        string EVENT_ID = result.EVENT_ID;
+                                        string PRICE_CHANGE_TYPE = result.PRICE_CHANGE_TYPE;
+                                        string PRICE_CHANGE_TYPE_VALUE = result.PRICE_CHANGE_TYPE_VALUE;
+                                        string PROMOTION_TYPE = result.PROMOTION_TYPE;
+                                        string START_DATE = result.START_DATE;
+                                        string DAILY_START_TIME = result.DAILY_START_TIME;
+                                        string END_DATE = result.END_DATE;
+                                        string DAILY_END_TIME = result.DAILY_END_TIME;
+                                        string STATUS = result.STATUS;
+                                        string STORE = result.STORE;
+                                        string SKU = result.SKU;
+                                        string LAST_SELL_PRICE = result.LAST_SELL_PRICE;
+                                        string LAST_SELL_UNIT = result.LAST_SELL_UNIT;
+                                        string NEW_SELL_PRICE = result.NEW_SELL_PRICE;
+                                        string CREATED_DATE = result.CREATED_DATE;
+                                        string MODIFIED_DATE = result.MODIFIED_DATE;
 
-                                        reader.Close();
+                                        string FILE_ID = log_fileid;
 
-                                        //move file to folder backup
-                                        String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                        bool exist = Directory.Exists(dirBackup);
-                                        if (!exist)
-                                        {
-                                            // Tạo thư mục.
-                                            Directory.CreateDirectory(dirBackup);
-                                        }
-                                        string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
-                                        File.Move(pathtg, dirPathBackup);
+                                        sql_insert_data_ItemPriceChange += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}""
+                                                                                                    ,""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}""),"
+                                                                                    , PRICE_CHANGE_NO, DEPARTMENT, TRANS_TYPE, REASON, EVENT_ID, PRICE_CHANGE_TYPE, PRICE_CHANGE_TYPE_VALUE, PROMOTION_TYPE
+                                                                                    , START_DATE, DAILY_START_TIME, END_DATE, DAILY_END_TIME, STATUS, STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE
+                                                                                    , CREATED_DATE, MODIFIED_DATE, FILE_ID);
+                                    }
 
-
-                                        //update info file to log_file
-                                        var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
-                                                             , log_fileid);
+                                    if (result_table.Count() > 0)
+                                    {
                                         connection.Open();
-                                        var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
-                                        MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                        sql_insert_data_ItemPriceChange = sql_insert_data_ItemPriceChange.Substring(0, sql_insert_data_ItemPriceChange.Length - 1);
+                                        var cmd_insert_data_ItemPriceChange = new MySqlCommand(sql_insert_data_ItemPriceChange, connection);
+                                        MySqlDataReader rdr_insert_data_ItemPriceChange = cmd_insert_data_ItemPriceChange.ExecuteReader();
                                         connection.Close();
                                     }
+
+                                    //move file to folder backup
+                                    String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+
+
+                                    //update info file to log_file
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                         , log_fileid);
+                                    connection.Open();
+                                    var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
+                                    MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                    connection.Close();
+                                    
                                     #endregion
                                 }
                             }
@@ -809,7 +885,7 @@ namespace AEON_POP_WinForm
             {
                 MySqlConnection connection = new MySqlConnection(connectionString);
                 //update info file to log_file
-                var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"{0}\" WHERE `FILE_ID` = '{1}';"
+                var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"{0}\" WHERE `FILE_ID` = '{1}';"
                                                             , ex.Message
                                                             , log_fileid);
                 connection.Open();
@@ -874,6 +950,61 @@ namespace AEON_POP_WinForm
                     {
                         dr[i] = rows[i];
                     }
+                    dt.Rows.Add(dr);
+                }
+
+            }
+            return dt;
+        }
+        public static DataTable ConvertCSVtoDataTable_ItemPriceChange(string strFilePath)
+        {
+            DataTable dt = new DataTable();
+            using (StreamReader sr = new StreamReader(strFilePath))
+            {
+                //string[] headers = sr.ReadLine().Split(',');
+                dt.Columns.Add("PRICE_CHANGE_NO");
+                dt.Columns.Add("CREATED_DATE");
+                dt.Columns.Add("TRANS_TYPE");
+                dt.Columns.Add("REASON");
+                //dt.Columns.Add("CREATED_BY");
+                dt.Columns.Add("DEPARTMENT");
+                dt.Columns.Add("START_DATE");
+                dt.Columns.Add("END_DATE");
+                dt.Columns.Add("DAILY_START_TIME");
+                dt.Columns.Add("DAILY_END_TIME");
+                //dt.Columns.Add("REFERENCE");
+                dt.Columns.Add("STATUS");
+                dt.Columns.Add("PRICE_CHANGE_TYPE");
+                dt.Columns.Add("EVENT_ID");
+                //dt.Columns.Add("MEMBER_DISC_CODE");
+                dt.Columns.Add("PROMOTION_TYPE");
+                dt.Columns.Add("STORE");
+                dt.Columns.Add("SKU");
+                dt.Columns.Add("LAST_SELL_PRICE");
+                dt.Columns.Add("LAST_SELL_UNIT");
+                dt.Columns.Add("NEW_SELL_PRICE");
+                //dt.Columns.Add("PROMOTION_MARGIN");
+                //dt.Columns.Add("SUPPLIER_BEARING");
+                //dt.Columns.Add("EXPORT_DATE");
+                dt.Columns.Add("PRICE_CHANGE_TYPE_VALUE");
+                dt.Columns.Add("MODIFIED_DATE");
+
+
+                while (!sr.EndOfStream)
+                {
+                    string[] rows = sr.ReadLine().Split(',');
+                    DataRow dr = dt.NewRow();
+                    int temp = 0;
+                    for (int i = 0; i <= 25; i++)
+                    {
+                        if (i != 4 && i != 10 && i != 14 && i != 21 && i != 22 && i != 23)
+                        {
+                            dr[temp] = rows[i];
+                            temp++;
+                        }
+                        
+                    }
+                    temp = 0;
                     dt.Rows.Add(dr);
                 }
 
