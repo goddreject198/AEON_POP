@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30320.27
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AEON_GetFile_WinForm", "AEON_GetFile_WinForm.csproj", "{A4C7FA98-8AF4-48E2-92D9-B0A8C5419CE6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A4C7FA98-8AF4-48E2-92D9-B0A8C5419CE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4C7FA98-8AF4-48E2-92D9-B0A8C5419CE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4C7FA98-8AF4-48E2-92D9-B0A8C5419CE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4C7FA98-8AF4-48E2-92D9-B0A8C5419CE6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F25761DE-A852-4F6F-B20C-EAAC1785E534}
+	EndGlobalSection
+EndGlobal
