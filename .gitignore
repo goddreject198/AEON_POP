@@ -720,3 +720,12 @@ AEON_POP3rdParty_WindowsService/packages/System.Runtime.CompilerServices.Unsafe.
 AEON_POP3rdParty_WindowsService/packages/System.Runtime.CompilerServices.Unsafe.5.0.0/ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.xml
 AEON_POP3rdParty_WindowsService/packages/System.Runtime.CompilerServices.Unsafe.5.0.0/ref/netstandard2.1/System.Runtime.CompilerServices.Unsafe.dll
 AEON_POP3rdParty_WindowsService/packages/System.Runtime.CompilerServices.Unsafe.5.0.0/ref/netstandard2.1/System.Runtime.CompilerServices.Unsafe.xml
+AEON_POP_WinForm/.vs/AEON_POP_WinForm/v17/.suo
+AEON_POP_WinForm/obj/Debug/AEON_POP_WinForm.csproj.AssemblyReference.cache
+AEON_POP_WinForm/packages/WinSCP.5.19.6/.signature.p7s
+AEON_POP_WinForm/packages/WinSCP.5.19.6/WinSCP.5.19.6.nupkg
+AEON_POP_WinForm/packages/WinSCP.5.19.6/winscp64.png
+AEON_POP_WinForm/packages/WinSCP.5.19.6/build/WinSCP.targets
+AEON_POP_WinForm/packages/WinSCP.5.19.6/lib/net40/WinSCPnet.dll
+AEON_POP_WinForm/packages/WinSCP.5.19.6/lib/netstandard2.0/WinSCPnet.dll
+AEON_POP_WinForm/packages/WinSCP.5.19.6/tools/WinSCP.exe
