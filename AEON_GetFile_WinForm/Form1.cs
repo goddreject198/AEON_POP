@@ -55,53 +55,106 @@ namespace AEON_GetFile_WinForm
                 log.Info("myWorker_GetFile3rdParty_RunWorkerBegin");
 
                 int minute_now = DateTime.Now.Minute;
-                DirectoryInfo info = new DirectoryInfo(string.Format(@"C:\NFS\production\vnm\download\fpt_bi\pop_system\"));
-                List<string> filesPath = info.GetFiles("*.csv").Where(x => x.LastWriteTime.Date == DateTime.Today.AddDays(0)
-                                                                                        && x.LastWriteTime.Hour == DateTime.Now.Hour
-                                                                                        && (x.LastWriteTime.Minute == minute_now
-                                                                                         || x.LastWriteTime.Minute == minute_now - 1
-                                                                                         || x.LastWriteTime.Minute == minute_now - 2
-                                                                                         || x.LastWriteTime.Minute == minute_now - 3
-                                                                                         || x.LastWriteTime.Minute == minute_now - 4))
+                //DirectoryInfo info = new DirectoryInfo(string.Format(@"C:\NFS\production\vnm\download\fpt_bi\pop_system\"));
+                //DirectoryInfo info = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFSUAT\vnmuat\download\fpt_bi\pop_system\"));
+                //List<string> filesPath = info.GetFiles("*.csv").Where(x => x.LastWriteTime.Date == DateTime.Today.AddDays(0)
+                //                                                                        && x.LastWriteTime.Hour == DateTime.Now.Hour
+                //                                                                        && (x.LastWriteTime.Minute == minute_now
+                //                                                                         || x.LastWriteTime.Minute == minute_now - 1
+                //                                                                         || x.LastWriteTime.Minute == minute_now - 2
+                //                                                                         || x.LastWriteTime.Minute == minute_now - 3
+                //                                                                         || x.LastWriteTime.Minute == minute_now - 4))
+                //                              .Select(x => x.FullName)
+                //                              .ToList();
+                DateTime max_time_pop = DateTime.MinValue;
+                if (File.Exists(@"C:\FPTGetFile\Log\MaxTime_Pop.csv"))
+                {
+                    using (var reader = new StreamReader(@"C:\FPTGetFile\Log\MaxTime_Pop.csv"))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            var values = line.Split(',');
+
+                            string max_time = values[1].ToString();
+                            log.Info(max_time);
+                            DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_pop);
+                        }
+                    }
+                }
+                if (max_time_pop == DateTime.MinValue)
+                {
+                    log.Info(max_time_pop.ToString());
+                    return;
+                }
+                log.Info(max_time_pop.ToString());
+
+                DirectoryInfo info = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFSUAT\vnmuat\download\fpt_bi\pop_system\"));
+                List<string> filesPath = info.GetFiles("*.csv")
+                                                //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
+                                                .Where(x => x.LastWriteTime > max_time_pop)
+                                                .OrderByDescending(x => x.LastWriteTime)
                                               .Select(x => x.FullName)
                                               .ToList();
-
-                var host = "139.180.214.252";
-                var port = 22;
-                var username = "fptsftpuser";
-                var password = "Fptsftp*2021";
-
-                using (var client = new SftpClient(host, port, username, password))
+                if (filesPath.Count > 0)
                 {
-                    client.Connect();
-                    if (client.IsConnected)
-                    {
-                        log.Info("UploadFile_POP3rdParty Connected to FPT Cloud");
+                    var host = "139.180.214.252";
+                    var port = 22;
+                    var username = "fptsftpuser";
+                    var password = "Fptsftp*2021";
 
-                        foreach (string pathtg in filesPath)
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
                         {
-                            using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                            log.Info("UploadFile_POP3rdParty Connected to FPT Cloud");
+
+                            int maxtime_pos = 0;
+                            foreach (string pathtg in filesPath)
                             {
-                                try
+                                if (maxtime_pos == 0)
                                 {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/POP_3rdParty");
-                                    client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                    log.Info(string.Format("GetFilePOP3rdParty: UploadFile successfully: {0}", pathtg));
+                                    log.Info(String.Format("last time pos: {0}", File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss")));
+                                    string filename = string.Format("MaxTime_Pop.csv");
+                                    //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
+                                    //{
+                                    //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
+                                    //}
+                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Log\" + filename), false, Encoding.Unicode);
+                                    sw.Write(pathtg + ",");
+                                    sw.Write(File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss"));
+                                    sw.WriteLine();
+                                    sw.Close();
                                 }
-                                catch (Exception ex)
+                                maxtime_pos++;
+                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
                                 {
-                                    log.Error(string.Format("GetFilePOP3rdParty: UploadFile Exception: {0}", ex.Message));
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/POP_3rdParty");
+                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                        log.Info(string.Format("GetFilePOP3rdParty: UploadFile successfully: {0}", pathtg));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.Error(string.Format("GetFilePOP3rdParty: UploadFile Exception: {0}", ex.Message));
+                                    }
                                 }
                             }
                         }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty can not connected to FPT Cloud");
+                        }
                     }
-                    else
-                    {
-                        log.Error("UploadFile_POP3rdParty can not connected to FPT Cloud");
-                    }
-                }
-                log.Info("UploadFile_POP3rdParty done!");
+                    log.Info("UploadFile_POP3rdParty done!");
+                }    
+                else
+                {
+                    log.Info("UploadFile_POP3rdParty: service get no file!");
+                }    
             }
             catch (Exception ex)
             {
@@ -148,79 +201,198 @@ namespace AEON_GetFile_WinForm
             try
             {
                 int minute_now = DateTime.Now.Minute;
-                DirectoryInfo info_download = new DirectoryInfo(string.Format(@"C:\NFS\production\vnm\download\pos\{0}\backup\{1}\{2}\{3}\", i, DateTime.Now.ToString("yyyy"), DateTime.Now.ToString("MM"), DateTime.Now.ToString("dd")));
-                List<string> filesPath_download = info_download.GetFiles("*.*").Where(x => x.LastWriteTime.Hour == DateTime.Now.Hour
-                                                                                        && (x.LastWriteTime.Minute == minute_now
-                                                                                         || x.LastWriteTime.Minute == minute_now - 1
-                                                                                         || x.LastWriteTime.Minute == minute_now - 2
-                                                                                         || x.LastWriteTime.Minute == minute_now - 3
-                                                                                         || x.LastWriteTime.Minute == minute_now - 4))
-                                              .Select(x => x.FullName)
-                                              .ToList();
-
-                DirectoryInfo info_upload = new DirectoryInfo(string.Format(@"C:\NFS\production\vnm\upload\pos\{0}\backup\", i));
-                List<string> filesPath_upload = info_upload.GetFiles("*.*").Where(x => x.LastWriteTime.Date == DateTime.Today.AddDays(0) 
-                                                                                        && x.LastWriteTime.Hour == DateTime.Now.Hour 
-                                                                                        && (x.LastWriteTime.Minute == minute_now
-                                                                                         || x.LastWriteTime.Minute == minute_now - 1
-                                                                                         || x.LastWriteTime.Minute == minute_now - 2
-                                                                                         || x.LastWriteTime.Minute == minute_now - 3
-                                                                                         || x.LastWriteTime.Minute == minute_now - 4))
-                                              .Select(x => x.FullName)
-                                              .ToList();
-
-                var host = "139.180.214.252";
-                var port = 22;
-                var username = "fptsftpuser";
-                var password = "Fptsftp*2021";
-
-                using (var client = new SftpClient(host, port, username, password))
+                DateTime max_time_cx_download = DateTime.MinValue;
+                if (File.Exists(@"C:\FPTGetFile\Log\MaxTime_Cx_Download.csv"))
                 {
-                    client.Connect();
-                    if (client.IsConnected)
+                    using (var reader = new StreamReader(@"C:\FPTGetFile\Log\MaxTime_Cx_Download.csv"))
                     {
-                        log.Info("UploadFile_Cx Connected to FPT Cloud, Store: " + i);
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            var values = line.Split(',');
 
-                        foreach (string pathtg in filesPath_download)
-                        {
-                            using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                            string store = values[0].ToString();
+                            string max_time = values[2].ToString();
+
+                            if (store == i)
                             {
-                                try
-                                {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/SAP_Cx/" + i);
-                                    client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                    log.Info(string.Format("GetFileCx: UploadFile successfully: {0}", pathtg));
-                                }
-                                catch (Exception ex)
-                                {
-                                    log.Error(string.Format("GetFileCx: UploadFile Exception: {0}", ex.Message));
-                                }
-                            }
+                                DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_cx_download);
+                            }    
                         }
-                        foreach (string pathtg in filesPath_upload)
-                        {
-                            using (var fileStream = new FileStream(pathtg, FileMode.Open))
-                            {
-                                try
-                                {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/SAP_Cx/" + i);
-                                    client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                    log.Info(string.Format("GetFileCx: UploadFile successfully: {0}", pathtg));
-                                }
-                                catch (Exception ex)
-                                {
-                                    log.Error(string.Format("GetFileCx: UploadFile Exception: {0}", ex.Message));
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        log.Error("UploadFile_Cx can not connected to FPT Cloud, Store: " + i);
                     }
                 }
+                if (max_time_cx_download != DateTime.MinValue)
+                {
+                    DirectoryInfo info_download = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFS\production\vnm\download\pos\{0}\backup\{1}\{2}\{3}\", i, DateTime.Now.ToString("yyyy"), DateTime.Now.ToString("MM"), DateTime.Now.ToString("dd")));
+                    //List<string> filesPath_download = info_download.GetFiles("*.*").Where(x => x.LastWriteTime.Hour == DateTime.Now.Hour
+                    //                                                                        && (x.LastWriteTime.Minute == minute_now
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 1
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 2
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 3
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 4))
+                    //                              .Select(x => x.FullName)
+                    //                              .ToList();
+                    List<string> filesPath_download = info_download.GetFiles("*.*")
+                                                //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
+                                                .Where(x => x.LastWriteTime > max_time_cx_download)
+                                                .OrderByDescending(x => x.LastWriteTime)
+                                                  .Select(x => x.FullName)
+                                                  .ToList();
+
+                    var host = "139.180.214.252";
+                    var port = 22;
+                    var username = "fptsftpuser";
+                    var password = "Fptsftp*2021";
+
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("UploadFile_Cx Connected to FPT Cloud, Store: " + i);
+
+                            int maxtime_download = 0;
+                            foreach (string pathtg in filesPath_download)
+                            {
+                                if (maxtime_download == 0)
+                                {
+                                    log.Info(String.Format("last time download store {0}: {1}", i, File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss")));
+                                    string filename = string.Format("MaxTime_Cx_Download.csv");
+                                    //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
+                                    //{
+                                    //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
+                                    //}
+                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Log\" + filename), true, Encoding.Unicode);
+                                    sw.Write(i + ",");
+                                    sw.Write(pathtg + ",");
+                                    sw.Write(File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss"));
+                                    sw.WriteLine();
+                                    sw.Close();
+                                }
+                                maxtime_download++;
+                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                {
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/SAP_Cx/" + i);
+                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                        log.Info(string.Format("GetFileCx: UploadFile successfully: {0}", pathtg));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.Error(string.Format("GetFileCx: UploadFile Exception: {0}", ex.Message));
+                                    }
+                                }
+
+                            }
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_Cx can not connected to FPT Cloud, Store: " + i);
+                        }
+                    }
+                }
+
+                DateTime max_time_cx_upload = DateTime.MinValue;
+                if (File.Exists(@"C:\FPTGetFile\Log\MaxTime_Cx_Upload.csv"))
+                {
+                    using (var reader = new StreamReader(@"C:\FPTGetFile\Log\MaxTime_Cx_Upload.csv"))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            var values = line.Split(',');
+
+                            string store = values[0].ToString();
+                            string max_time = values[2].ToString();
+
+                            if (store == i)
+                            {
+                                DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_cx_upload);
+                            }
+                        }
+                    }
+                }
+                if (max_time_cx_upload != DateTime.MinValue)
+                {
+                    DirectoryInfo info_upload = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\", i));
+                    //List<string> filesPath_upload = info_upload.GetFiles("*.*").Where(x => x.LastWriteTime.Date == DateTime.Today.AddDays(0) 
+                    //                                                                        && x.LastWriteTime.Hour == DateTime.Now.Hour 
+                    //                                                                        && (x.LastWriteTime.Minute == minute_now
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 1
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 2
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 3
+                    //                                                                         || x.LastWriteTime.Minute == minute_now - 4))
+                    //                              .Select(x => x.FullName)
+                    //                              .ToList();
+                    List<string> filesPath_upload = info_upload.GetFiles("*.*")
+                                                    //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
+                                                    .Where(x => x.LastWriteTime > max_time_cx_upload)
+                                                    .OrderByDescending(x => x.LastWriteTime)
+                                                    .Select(x => x.FullName)
+                                                  .ToList();
+
+                    var host = "139.180.214.252";
+                    var port = 22;
+                    var username = "fptsftpuser";
+                    var password = "Fptsftp*2021";
+
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("UploadFile_Cx Connected to FPT Cloud, Store: " + i);
+
+                            int maxtime_upload = 0;
+                            foreach (string pathtg in filesPath_upload)
+                            {
+                                if (maxtime_upload == 0)
+                                {
+                                    log.Info(String.Format("last time upload store {0}: {1}", i, File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss")));
+                                    string filename = string.Format("MaxTime_Cx_Upload.csv");
+                                    //check file, nếu có file cũ thì xóa
+                                    //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
+                                    //{
+                                    //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
+                                    //}    
+                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Log\" + filename), true, Encoding.Unicode);
+                                    sw.Write(i + ",");
+                                    sw.Write(pathtg + ",");
+                                    sw.Write(File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss"));
+                                    sw.WriteLine();
+                                    sw.Close();
+                                }
+                                maxtime_upload++;
+                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                {
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/SAP_Cx/" + i);
+                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                        log.Info(string.Format("GetFileCx: UploadFile successfully: {0}", pathtg));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.Error(string.Format("GetFileCx: UploadFile Exception: {0}", ex.Message));
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_Cx can not connected to FPT Cloud, Store: " + i);
+                        }
+                    }
+                }
+
+                
+
+                
+
+                
                 log.Info("UploadFile_Cx done! Store: " + i);
             }
             catch (Exception ex)
@@ -235,7 +407,7 @@ namespace AEON_GetFile_WinForm
             {
                 myWorker_GetFile3rdParty.RunWorkerAsync();
 
-                myWorker_GetFileCx.RunWorkerAsync();
+                //myWorker_GetFileCx.RunWorkerAsync();
             }
             catch (Exception ex)
             {
