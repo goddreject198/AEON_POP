@@ -729,3 +729,16 @@ AEON_POP_WinForm/packages/WinSCP.5.19.6/build/WinSCP.targets
 AEON_POP_WinForm/packages/WinSCP.5.19.6/lib/net40/WinSCPnet.dll
 AEON_POP_WinForm/packages/WinSCP.5.19.6/lib/netstandard2.0/WinSCPnet.dll
 AEON_POP_WinForm/packages/WinSCP.5.19.6/tools/WinSCP.exe
+AEON_GetFile_WinForm/.vs/AEON_GetFile_WinForm/v17/.suo
+AEON_GetFile_WinForm/obj/Debug/AEON_GetFile_WinForm.csproj.AssemblyReference.cache
+AEON_POP_WinForm/.vs/ProjectSettings.json
+AEON_POP_WinForm/.vs/slnx.sqlite
+AEON_POP_WinForm/.vs/VSWorkspaceState.json
+AEON_POP_WinForm/obj/Release/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+AEON_POP_WinForm/obj/Release/AEON_POP_WinForm.csproj.AssemblyReference.cache
+AEON_POP_WinForm/obj/x64/Debug/AEON_POP_WinForm.csproj.AssemblyReference.cache
+AEON_POP_WinForm/obj/x64/Debug/AEON_POP_WinForm.csproj.SuggestedBindingRedirects.cache
+AEON_POP_WinForm/obj/x64/Release/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+AEON_POP_WinForm/obj/x64/Release/AEON_POP_WinForm.csproj.AssemblyReference.cache
+AEON_POP3rdParty_WindowsService/.vs/AEON_POP3rdParty_WindowsService/v17/.suo
+AEON_POP3rdParty_WindowsService/obj/Debug/AEON_POP3rdParty_WindowsService.csproj.AssemblyReference.cache

@@ -1077,8 +1077,11 @@ namespace AEON_POP_WinForm
                                     var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `AEON_POP`.`item_sell_price`(`STORE`,`SKU`
                                                                                             ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
                                                                                             ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
+
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string STORE = result.STORE;
                                         string SKU = result.SKU;
@@ -1104,6 +1107,20 @@ namespace AEON_POP_WinForm
                                         sql_insert_data_ITEMSELLPRICE += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""),"
                                                                                     , STORE, SKU, DESCRIPTION, CURRENT_PRICE, PROMOTION_FLAG, PROMOTION_RETAIL, MEMBER_RETAIL
                                                                                     , MEMBER_PROMOTION_FLAG, MEMBER_PROMOTION_RETAIL, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
+                                            var cmd_insert_data_ITEMSELLPRICE = new MySqlCommand(sql_insert_data_ITEMSELLPRICE, connection);
+                                            MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `AEON_POP`.`item_sell_price`(`STORE`,`SKU`
+                                                                                            ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
+                                                                                            ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
                                     if (result_table.Count() > 0)
