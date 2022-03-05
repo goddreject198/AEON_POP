@@ -250,8 +250,10 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                     ,`SELLING_POINT1`,`SELLING_POINT2`,`SELLING_POINT3`,`SELLING_POINT4`,`SELLING_POINT5`
                                                                                     ,`RETAIL_UOM`,`STATUS`,`DATE_CREATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string SKU_CODE = result.SKU_CODE;
                                         string ITEM_DESC_VNM = "";
@@ -308,9 +310,27 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                     , COLOUR, SIZE_ID, POP1_DESC_VNM, POP2_DESC_VNM, POP3_DESC_VNM, SELLING_POINT1
                                                                                     , SELLING_POINT2, SELLING_POINT3, SELLING_POINT4, SELLING_POINT5, RETAIL_UOM, STATUS
                                                                                     , DATE_CREATE, MODIFIED_DATE, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
+                                            var cmd_insert_data_SKU = new MySqlCommand(sql_insert_data_SKU, connection);
+                                            MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku`
+                                                                                    (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
+                                                                                    ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
+                                                                                    ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
+                                                                                    ,`COLOUR_SIZE_GRID`,`COLOUR`,`SIZE_ID`,`POP1_DESC_VNM`,`POP2_DESC_VNM`,`POP3_DESC_VNM`
+                                                                                    ,`SELLING_POINT1`,`SELLING_POINT2`,`SELLING_POINT3`,`SELLING_POINT4`,`SELLING_POINT5`
+                                                                                    ,`RETAIL_UOM`,`STATUS`,`DATE_CREATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
@@ -436,8 +456,10 @@ namespace AEON_POP3rdParty_WindowsService
                                     var sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
                                                                                             ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string PACK_SKU = result.PACK_SKU;
                                         string DESCRIPTION = "";
@@ -464,9 +486,22 @@ namespace AEON_POP3rdParty_WindowsService
                                         sql_insert_data_Hamper += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}""),"
                                                                                     , PACK_SKU, DESCRIPTION, PACK_TYPE, SKU, QTY_PER_SKU, QTY_UOM, STORE
                                                                                     , DECORATION_FLAG, STATUS, MODIFIED_DATE, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_Hamper = sql_insert_data_Hamper.Substring(0, sql_insert_data_Hamper.Length - 1);
+                                            var cmd_insert_data_Hamper = new MySqlCommand(sql_insert_data_Hamper, connection);
+                                            MySqlDataReader rdr_insert_data_Hamper = cmd_insert_data_Hamper.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
+                                                                                            ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_Hamper = sql_insert_data_Hamper.Substring(0, sql_insert_data_Hamper.Length - 1);
@@ -615,8 +650,11 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string PRICE_CHANGE_NO = result.PRICE_CHANGE_NO;
                                         string DEPARTMENT = result.DEPARTMENT;
@@ -646,9 +684,24 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                     , PRICE_CHANGE_NO, DEPARTMENT, TRANS_TYPE, REASON, EVENT_ID, PRICE_CHANGE_TYPE, PRICE_CHANGE_TYPE_VALUE, PROMOTION_TYPE
                                                                                     , START_DATE, DAILY_START_TIME, END_DATE, DAILY_END_TIME, STATUS, STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE
                                                                                     , CREATED_DATE, MODIFIED_DATE, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_ItemPriceChange = sql_insert_data_ItemPriceChange.Substring(0, sql_insert_data_ItemPriceChange.Length - 1);
+                                            var cmd_insert_data_ItemPriceChange = new MySqlCommand(sql_insert_data_ItemPriceChange, connection);
+                                            MySqlDataReader rdr_insert_data_ItemPriceChange = cmd_insert_data_ItemPriceChange.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                                                                            ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
+                                                                                            ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
+                                                                                            ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_ItemPriceChange = sql_insert_data_ItemPriceChange.Substring(0, sql_insert_data_ItemPriceChange.Length - 1);
@@ -803,8 +856,10 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                                 ,`START_DATE`,`START_TIME`,`END_DATE`,`END_TIME`,`TTL_PROMO_QTY`,`TTL_PROMO_PRICE`,`PLU_COUNT`,`EVENT_ID`,`STORE`
                                                                                                 ,`SKU`,`SEQ`,`NORMAL_PRICE`,`SELL_UOM`,`PROMO_QTY`,`FOC_QTY`,`PROMO_PRICE`,`FOC_SKU`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string PROMO_NO = result.PROMO_NO;
                                         string PROMO_TYPE = result.PROMO_TYPE;
@@ -847,9 +902,23 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                     , PROMO_NO, PROMO_TYPE, PROMO_DESC, STATUS, MAX_OR_PARTIAL, START_DATE, START_TIME, END_DATE, END_TIME
                                                                                     , TTL_PROMO_QTY, TTL_PROMO_PRICE, PLU_COUNT, EVENT_ID, STORE, SKU, SEQ, NORMAL_PRICE, SELL_UOM, PROMO_QTY
                                                                                     , FOC_QTY, PROMO_PRICE, FOC_SKU, MODIFIED_DATE, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_MixMatch = sql_insert_data_MixMatch.Substring(0, sql_insert_data_MixMatch.Length - 1);
+                                            var cmd_insert_data_MixMatch = new MySqlCommand(sql_insert_data_MixMatch, connection);
+                                            MySqlDataReader rdr_insert_data_MixMatch = cmd_insert_data_MixMatch.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
+                                                                                                ,`START_DATE`,`START_TIME`,`END_DATE`,`END_TIME`,`TTL_PROMO_QTY`,`TTL_PROMO_PRICE`,`PLU_COUNT`,`EVENT_ID`,`STORE`
+                                                                                                ,`SKU`,`SEQ`,`NORMAL_PRICE`,`SELL_UOM`,`PROMO_QTY`,`FOC_QTY`,`PROMO_PRICE`,`FOC_SKU`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_MixMatch = sql_insert_data_MixMatch.Substring(0, sql_insert_data_MixMatch.Length - 1);
@@ -990,8 +1059,10 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                             ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
                                                                                             ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string PRICE_CHANGE_NO = result.PRICE_CHANGE_NO;
                                         string TRANS_TYPE = result.TRANS_TYPE;
@@ -1017,9 +1088,23 @@ namespace AEON_POP3rdParty_WindowsService
                                                                                     , PRICE_CHANGE_NO, TRANS_TYPE, START_DATE, START_TIME, END_DATE, END_TIME, CATEGORY
                                                                                     , STORE, EVENT_ID, EXCLUDE_SEASON_ID, PRICE_CHANGE_TYPE, PRICE_CHANGE_TYPE_VALUE, REASON
                                                                                     , PROMOTION_TYPE, STATUS, CREATED_DATE, MODIFIED_DATE, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_GroupPriceChange = sql_insert_data_GroupPriceChange.Substring(0, sql_insert_data_GroupPriceChange.Length - 1);
+                                            var cmd_insert_data_GroupPriceChange = new MySqlCommand(sql_insert_data_GroupPriceChange, connection);
+                                            MySqlDataReader rdr_insert_data_GroupPriceChange = cmd_insert_data_GroupPriceChange.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
+                                                                                            ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
+                                                                                            ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_GroupPriceChange = sql_insert_data_GroupPriceChange.Substring(0, sql_insert_data_GroupPriceChange.Length - 1);
@@ -1144,8 +1229,11 @@ namespace AEON_POP3rdParty_WindowsService
                                     var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `AEON_POP`.`item_sell_price`(`STORE`,`SKU`
                                                                                             ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
                                                                                             ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
+
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string STORE = result.STORE;
                                         string SKU = result.SKU;
@@ -1171,9 +1259,23 @@ namespace AEON_POP3rdParty_WindowsService
                                         sql_insert_data_ITEMSELLPRICE += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""),"
                                                                                     , STORE, SKU, DESCRIPTION, CURRENT_PRICE, PROMOTION_FLAG, PROMOTION_RETAIL, MEMBER_RETAIL
                                                                                     , MEMBER_PROMOTION_FLAG, MEMBER_PROMOTION_RETAIL, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
+                                            var cmd_insert_data_ITEMSELLPRICE = new MySqlCommand(sql_insert_data_ITEMSELLPRICE, connection);
+                                            MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `AEON_POP`.`item_sell_price`(`STORE`,`SKU`
+                                                                                            ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
+                                                                                            ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
@@ -1290,8 +1392,11 @@ namespace AEON_POP3rdParty_WindowsService
                                     //insert data to table
                                     var sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop`.`barcode`(`BUSINESS_UNIT`,`SKU`
                                                                                             ,`BARCODE`,`IN_HOUSE_FLAG`,`PRIMARY_FLAG`,`FILE_ID`)VALUES");
+
+                                    int line = 0;
                                     foreach (var result in result_table)
                                     {
+                                        line++;
                                         //get data
                                         string BUSINESS_UNIT = result.BUSINESS_UNIT;
                                         string SKU = result.SKU;
@@ -1302,6 +1407,19 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         sql_insert_data_BarCode += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}""),"
                                                                                     , BUSINESS_UNIT, SKU, BARCODE, IN_HOUSE_FLAG, PRIMARY_FLAG, FILE_ID);
+
+                                        if (line == 1000)
+                                        {
+                                            connection.Open();
+                                            sql_insert_data_BarCode = sql_insert_data_BarCode.Substring(0, sql_insert_data_BarCode.Length - 1);
+                                            var cmd_insert_data_BarCode = new MySqlCommand(sql_insert_data_BarCode, connection);
+                                            MySqlDataReader rdr_insert_data_BarCode = cmd_insert_data_BarCode.ExecuteReader();
+                                            connection.Close();
+
+                                            sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop`.`barcode`(`BUSINESS_UNIT`,`SKU`
+                                                                                            ,`BARCODE`,`IN_HOUSE_FLAG`,`PRIMARY_FLAG`,`FILE_ID`)VALUES");
+                                            line = 0;
+                                        }
                                     }
 
                                     if (result_table.Count() > 0)
@@ -1486,7 +1604,7 @@ namespace AEON_POP3rdParty_WindowsService
                 MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
                 connection.Close();
                 //MessageBox.Show(ex.Message);
-                log.Error(string.Format("myWorker_RunWorker Exception: {0}", ex.Message));
+                log.Error(string.Format("myWorker_RunWorker Exception: FileID - {0}, Exception: {1}", log_fileid, ex.Message));
             }
         }
 

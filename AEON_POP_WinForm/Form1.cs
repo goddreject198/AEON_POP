@@ -1123,7 +1123,7 @@ namespace AEON_POP_WinForm
                                         }
                                     }
 
-                                    if (result_table.Count() > 0)
+                                    if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
                                         sql_insert_data_ITEMSELLPRICE = sql_insert_data_ITEMSELLPRICE.Substring(0, sql_insert_data_ITEMSELLPRICE.Length - 1);
