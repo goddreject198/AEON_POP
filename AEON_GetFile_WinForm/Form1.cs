@@ -67,9 +67,9 @@ namespace AEON_GetFile_WinForm
                 //                              .Select(x => x.FullName)
                 //                              .ToList();
                 DateTime max_time_pop = DateTime.MinValue;
-                if (File.Exists(@"C:\FPTGetFile\Log\MaxTime_Pop.csv"))
+                if (File.Exists(@"C:\FPTGetFile\Config\MaxTime_Pop.csv"))
                 {
-                    using (var reader = new StreamReader(@"C:\FPTGetFile\Log\MaxTime_Pop.csv"))
+                    using (var reader = new StreamReader(@"C:\FPTGetFile\Config\MaxTime_Pop.csv"))
                     {
                         while (!reader.EndOfStream)
                         {
@@ -88,11 +88,12 @@ namespace AEON_GetFile_WinForm
                     return;
                 }
                 log.Info(max_time_pop.ToString());
+                TimeSpan duration = new TimeSpan(0, 0, 0, 1);
 
                 DirectoryInfo info = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFSUAT\vnmuat\download\fpt_bi\pop_system\"));
                 List<string> filesPath = info.GetFiles("*.csv")
                                                 //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                                                .Where(x => x.LastWriteTime > max_time_pop)
+                                                .Where(x => x.LastWriteTime >= max_time_pop.Add(duration))
                                                 .OrderByDescending(x => x.LastWriteTime)
                                               .Select(x => x.FullName)
                                               .ToList();
@@ -113,17 +114,18 @@ namespace AEON_GetFile_WinForm
                             int maxtime_pos = 0;
                             foreach (string pathtg in filesPath)
                             {
+                                string lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
                                 if (maxtime_pos == 0)
                                 {
-                                    log.Info(String.Format("last time pos: {0}", File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss")));
+                                    log.Info(String.Format("last time pos: {0}", lastwritetime));
                                     string filename = string.Format("MaxTime_Pop.csv");
                                     //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
                                     //{
                                     //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
                                     //}
-                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Log\" + filename), false, Encoding.Unicode);
+                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false, Encoding.Unicode);
                                     sw.Write(pathtg + ",");
-                                    sw.Write(File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss"));
+                                    sw.Write(lastwritetime);
                                     sw.WriteLine();
                                     sw.Close();
                                 }
@@ -201,28 +203,27 @@ namespace AEON_GetFile_WinForm
             try
             {
                 int minute_now = DateTime.Now.Minute;
+                
                 DateTime max_time_cx_download = DateTime.MinValue;
-                if (File.Exists(@"C:\FPTGetFile\Log\MaxTime_Cx_Download.csv"))
+                string directory_download = string.Format(@"C:\FPTGetFile\Config\MaxTime_Cx_Download_{0}.csv", i);
+                if (File.Exists(directory_download))
                 {
-                    using (var reader = new StreamReader(@"C:\FPTGetFile\Log\MaxTime_Cx_Download.csv"))
+                    using (var reader = new StreamReader(directory_download))
                     {
                         while (!reader.EndOfStream)
                         {
                             var line = reader.ReadLine();
                             var values = line.Split(',');
 
-                            string store = values[0].ToString();
-                            string max_time = values[2].ToString();
+                            string max_time = values[1].ToString();
 
-                            if (store == i)
-                            {
-                                DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_cx_download);
-                            }    
+                            DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_cx_download);  
                         }
                     }
                 }
                 if (max_time_cx_download != DateTime.MinValue)
                 {
+                    log.Info(string.Format("max time download store: {0}, {1}", i, max_time_cx_download.ToString()));
                     DirectoryInfo info_download = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFS\production\vnm\download\pos\{0}\backup\{1}\{2}\{3}\", i, DateTime.Now.ToString("yyyy"), DateTime.Now.ToString("MM"), DateTime.Now.ToString("dd")));
                     //List<string> filesPath_download = info_download.GetFiles("*.*").Where(x => x.LastWriteTime.Hour == DateTime.Now.Hour
                     //                                                                        && (x.LastWriteTime.Minute == minute_now
@@ -232,9 +233,10 @@ namespace AEON_GetFile_WinForm
                     //                                                                         || x.LastWriteTime.Minute == minute_now - 4))
                     //                              .Select(x => x.FullName)
                     //                              .ToList();
+                    TimeSpan duration = new TimeSpan(0, 0, 0, 1);
                     List<string> filesPath_download = info_download.GetFiles("*.*")
                                                 //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                                                .Where(x => x.LastWriteTime > max_time_cx_download)
+                                                .Where(x => x.LastWriteTime >= max_time_cx_download.Add(duration))
                                                 .OrderByDescending(x => x.LastWriteTime)
                                                   .Select(x => x.FullName)
                                                   .ToList();
@@ -256,16 +258,15 @@ namespace AEON_GetFile_WinForm
                             {
                                 if (maxtime_download == 0)
                                 {
-                                    log.Info(String.Format("last time download store {0}: {1}", i, File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss")));
-                                    string filename = string.Format("MaxTime_Cx_Download.csv");
+                                    log.Info(String.Format("last time download store {0}: {1}", i, File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss")));
+                                    string filename = string.Format("MaxTime_Cx_Download_{0}.csv", i);
                                     //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
                                     //{
                                     //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
                                     //}
-                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Log\" + filename), true, Encoding.Unicode);
-                                    sw.Write(i + ",");
+                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false, Encoding.Unicode);
                                     sw.Write(pathtg + ",");
-                                    sw.Write(File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss"));
+                                    sw.Write(File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss"));
                                     sw.WriteLine();
                                     sw.Close();
                                 }
@@ -277,11 +278,11 @@ namespace AEON_GetFile_WinForm
                                         client.BufferSize = 4 * 1024; // bypass Payload error large files
                                         client.ChangeDirectory("/SAP_Cx/" + i);
                                         client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                        log.Info(string.Format("GetFileCx: UploadFile successfully: {0}", pathtg));
+                                        log.Info(string.Format("GetFileCx: UploadFile successfully store: {0}, {1}", i, pathtg));
                                     }
                                     catch (Exception ex)
                                     {
-                                        log.Error(string.Format("GetFileCx: UploadFile Exception: {0}", ex.Message));
+                                        log.Error(string.Format("GetFileCx: UploadFile Exception store: {0}, {1}", i, ex.Message));
                                     }
                                 }
 
@@ -293,29 +294,28 @@ namespace AEON_GetFile_WinForm
                         }
                     }
                 }
-
+                
+                
                 DateTime max_time_cx_upload = DateTime.MinValue;
-                if (File.Exists(@"C:\FPTGetFile\Log\MaxTime_Cx_Upload.csv"))
+                string directory_upload = string.Format(@"C:\FPTGetFile\Config\MaxTime_Cx_Upload_{0}.csv", i);
+                if (File.Exists(directory_upload))
                 {
-                    using (var reader = new StreamReader(@"C:\FPTGetFile\Log\MaxTime_Cx_Upload.csv"))
+                    using (var reader = new StreamReader(directory_upload))
                     {
                         while (!reader.EndOfStream)
                         {
                             var line = reader.ReadLine();
                             var values = line.Split(',');
 
-                            string store = values[0].ToString();
-                            string max_time = values[2].ToString();
+                            string max_time = values[1].ToString();
 
-                            if (store == i)
-                            {
-                                DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_cx_upload);
-                            }
+                            DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_cx_upload);
                         }
                     }
                 }
                 if (max_time_cx_upload != DateTime.MinValue)
                 {
+                    log.Info(string.Format("max time upload store: {0}, {1}", i, max_time_cx_upload.ToString()));
                     DirectoryInfo info_upload = new DirectoryInfo(string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\", i));
                     //List<string> filesPath_upload = info_upload.GetFiles("*.*").Where(x => x.LastWriteTime.Date == DateTime.Today.AddDays(0) 
                     //                                                                        && x.LastWriteTime.Hour == DateTime.Now.Hour 
@@ -326,9 +326,10 @@ namespace AEON_GetFile_WinForm
                     //                                                                         || x.LastWriteTime.Minute == minute_now - 4))
                     //                              .Select(x => x.FullName)
                     //                              .ToList();
+                    TimeSpan duration = new TimeSpan(0, 0, 0, 1);
                     List<string> filesPath_upload = info_upload.GetFiles("*.*")
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                                                    .Where(x => x.LastWriteTime > max_time_cx_upload)
+                                                    .Where(x => x.LastWriteTime >= max_time_cx_upload.Add(duration))
                                                     .OrderByDescending(x => x.LastWriteTime)
                                                     .Select(x => x.FullName)
                                                   .ToList();
@@ -350,17 +351,16 @@ namespace AEON_GetFile_WinForm
                             {
                                 if (maxtime_upload == 0)
                                 {
-                                    log.Info(String.Format("last time upload store {0}: {1}", i, File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss")));
-                                    string filename = string.Format("MaxTime_Cx_Upload.csv");
+                                    log.Info(String.Format("last time upload store {0}: {1}", i, File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss")));
+                                    string filename = string.Format("MaxTime_Cx_Upload_{0}.csv", i);
                                     //check file, nếu có file cũ thì xóa
                                     //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
                                     //{
                                     //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
                                     //}    
-                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Log\" + filename), true, Encoding.Unicode);
-                                    sw.Write(i + ",");
+                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false, Encoding.Unicode);
                                     sw.Write(pathtg + ",");
-                                    sw.Write(File.GetCreationTime(pathtg).ToString("yyyyMMddHHmmss"));
+                                    sw.Write(File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss"));
                                     sw.WriteLine();
                                     sw.Close();
                                 }
@@ -387,11 +387,6 @@ namespace AEON_GetFile_WinForm
                         }
                     }
                 }
-
-                
-
-                
-
                 
                 log.Info("UploadFile_Cx done! Store: " + i);
             }
@@ -407,7 +402,7 @@ namespace AEON_GetFile_WinForm
             {
                 myWorker_GetFile3rdParty.RunWorkerAsync();
 
-                //myWorker_GetFileCx.RunWorkerAsync();
+                myWorker_GetFileCx.RunWorkerAsync();
             }
             catch (Exception ex)
             {

@@ -13,6 +13,7 @@ using System.IO;
 using System.Net;
 using System.Collections;
 using System.Timers;
+using System.Threading;
 
 namespace AEON_POP3rdParty_WindowsService
 {
@@ -28,6 +29,8 @@ namespace AEON_POP3rdParty_WindowsService
 
         private string Folder_in = System.Configuration.ConfigurationManager.AppSettings.Get("Folder_in");
 
+        private bool check_backgroundworker_running = false;
+
         public Service1()
         {
             InitializeComponent();
@@ -37,6 +40,8 @@ namespace AEON_POP3rdParty_WindowsService
             myWorker_ItemSellPrice.ProgressChanged += new ProgressChangedEventHandler(myWorker_ItemSellPrice_ProgressChanged);
             myWorker_ItemSellPrice.WorkerReportsProgress = true;
             myWorker_ItemSellPrice.WorkerSupportsCancellation = true;
+
+            myWorker_ItemSellPrice.RunWorkerAsync();
         }
 
         protected override void OnStart(string[] args)
@@ -62,7 +67,8 @@ namespace AEON_POP3rdParty_WindowsService
 
         private void timer_Tick(object sender, ElapsedEventArgs args)
         {
-            if (args.SignalTime.Minute % 3 == 0)
+            //if (args.SignalTime.Minute % 3 == 0 && check_backgroundworker_running == false)
+            if (check_backgroundworker_running == false)
             {
                 try
                 {
@@ -83,11 +89,14 @@ namespace AEON_POP3rdParty_WindowsService
         private void myWorker_ItemSellPrice_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             log.Info("myWorker_RunWorkerCompleted!");
+            check_backgroundworker_running = false;
         }
 
         private void myWorker_ItemSellPrice_DoWork(object sender, DoWorkEventArgs e)
         {
             log.Info("myWorker_RunWorkerBeginning!");
+            check_backgroundworker_running = true;
+
             string log_fileid = "";
 
             try
@@ -136,7 +145,7 @@ namespace AEON_POP3rdParty_WindowsService
                                     MyAdapter.Fill(dTable_FileID);
                                     connection.Close();
 
-                                    log_fileid = dTable_FileID.Rows[0][0].ToString();
+                                    log_fileid = dTable_FileID.Rows[0][0].ToString();   
 
                                     #region xử lý dữ liệu
                                     //get dữ liệu hiện tại
@@ -256,6 +265,10 @@ namespace AEON_POP3rdParty_WindowsService
                                         line++;
                                         //get data
                                         string SKU_CODE = result.SKU_CODE;
+                                        //string ITEM_DESC_VNM = result.ITEM_DESC_VNM;
+                                        //string PACK_ITEM = result.PACK_ITEM;
+                                        //string PERISH_ITEM = result.PERISH_ITEM;
+
                                         string ITEM_DESC_VNM = "";
                                         string temp_desc = result.ITEM_DESC_VNM;
                                         if (temp_desc.Contains("\""))
@@ -267,15 +280,111 @@ namespace AEON_POP3rdParty_WindowsService
                                             ITEM_DESC_VNM = result.ITEM_DESC_VNM;
                                         }
 
-                                        string PACK_ITEM = result.PACK_ITEM;
-                                        string PERISH_ITEM = result.PERISH_ITEM;
-                                        string NON_INVENTORY = result.NON_INVENTORY;
-                                        string NON_PLU = result.NON_PLU;
-                                        string MOMMY_ITEM = result.MOMMY_ITEM;
-                                        string FOOD_ITEM = result.FOOD_ITEM;
-                                        string MEMBER_DISC_ITEM = result.MEMBER_DISC_ITEM;
-                                        string SUPER_SAVER_ITEM = result.SUPER_SAVER_ITEM;
-                                        string AUTO_REPLENISH_ITEM = result.AUTO_REPLENISH_ITEM;
+                                        string PACK_ITEM = "";
+                                        string temp_pack_item = result.PACK_ITEM;
+                                        if (temp_pack_item.Contains("\""))
+                                        {
+                                            PACK_ITEM = temp_pack_item.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            PACK_ITEM = result.PACK_ITEM;
+                                        }
+
+                                        string PERISH_ITEM = "";
+                                        string temp_perish_item = result.PERISH_ITEM;
+                                        if (temp_perish_item.Contains("\""))
+                                        {
+                                            PERISH_ITEM = temp_perish_item.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            PERISH_ITEM = result.PERISH_ITEM;
+                                        }
+
+                                        string NON_INVENTORY = "";
+                                        string temp_NON_INVENTORY = result.NON_INVENTORY;
+                                        if (temp_NON_INVENTORY.Contains("\""))
+                                        {
+                                            NON_INVENTORY = temp_NON_INVENTORY.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            NON_INVENTORY = result.NON_INVENTORY;
+                                        }
+                                        //string NON_INVENTORY = result.NON_INVENTORY;
+
+                                        string NON_PLU = "";
+                                        string temp_NON_PLU = result.NON_PLU;
+                                        if (temp_NON_PLU.Contains("\""))
+                                        {
+                                            NON_PLU = temp_NON_PLU.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            NON_PLU = result.NON_PLU;
+                                        }
+                                        //string NON_PLU = result.NON_PLU;
+
+                                        string MOMMY_ITEM = "";
+                                        string temp_MOMMY_ITEM = result.MOMMY_ITEM;
+                                        if (temp_MOMMY_ITEM.Contains("\""))
+                                        {
+                                            MOMMY_ITEM = temp_MOMMY_ITEM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            MOMMY_ITEM = result.MOMMY_ITEM;
+                                        }
+                                        //string MOMMY_ITEM = result.MOMMY_ITEM;
+
+                                        string FOOD_ITEM = "";
+                                        string temp_FOOD_ITEM = result.FOOD_ITEM;
+                                        if (temp_FOOD_ITEM.Contains("\""))
+                                        {
+                                            FOOD_ITEM = temp_FOOD_ITEM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            FOOD_ITEM = result.FOOD_ITEM;
+                                        }
+                                        //string FOOD_ITEM = result.FOOD_ITEM;
+
+                                        string MEMBER_DISC_ITEM = "";
+                                        string temp_MEMBER_DISC_ITEM = result.MEMBER_DISC_ITEM;
+                                        if (temp_MEMBER_DISC_ITEM.Contains("\""))
+                                        {
+                                            MEMBER_DISC_ITEM = temp_MEMBER_DISC_ITEM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            MEMBER_DISC_ITEM = result.MEMBER_DISC_ITEM;
+                                        }
+                                        //string MEMBER_DISC_ITEM = result.MEMBER_DISC_ITEM;
+
+                                        string SUPER_SAVER_ITEM = "";
+                                        string temp_SUPER_SAVER_ITEM = result.SUPER_SAVER_ITEM;
+                                        if (temp_SUPER_SAVER_ITEM.Contains("\""))
+                                        {
+                                            SUPER_SAVER_ITEM = temp_SUPER_SAVER_ITEM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            SUPER_SAVER_ITEM = result.SUPER_SAVER_ITEM;
+                                        }
+                                        //string SUPER_SAVER_ITEM = result.SUPER_SAVER_ITEM;
+
+                                        string AUTO_REPLENISH_ITEM = "";
+                                        string temp_AUTO_REPLENISH_ITEM = result.AUTO_REPLENISH_ITEM;
+                                        if (temp_AUTO_REPLENISH_ITEM.Contains("\""))
+                                        {
+                                            AUTO_REPLENISH_ITEM = temp_AUTO_REPLENISH_ITEM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            AUTO_REPLENISH_ITEM = result.AUTO_REPLENISH_ITEM;
+                                        }
+                                        //string AUTO_REPLENISH_ITEM = result.AUTO_REPLENISH_ITEM;
                                         string PURCHASE_METHOD = result.PURCHASE_METHOD;
                                         string LINE_ID = result.LINE_ID;
                                         string DIVISION_ID = result.DIVISION_ID;
@@ -286,19 +395,53 @@ namespace AEON_POP3rdParty_WindowsService
                                         string COLOUR_SIZE_GRID = result.COLOUR_SIZE_GRID;
                                         string COLOUR = result.COLOUR;
                                         string SIZE_ID = result.SIZE_ID;
-                                        string POP1_DESC_VNM = result.POP1_DESC_VNM;
-                                        string POP2_DESC_VNM = result.POP2_DESC_VNM;
-                                        string POP3_DESC_VNM = result.POP3_DESC_VNM;
+
+                                        string POP1_DESC_VNM = "";
+                                        string temp_POP1_DESC_VNM = result.POP1_DESC_VNM;
+                                        if (temp_POP1_DESC_VNM.Contains("\""))
+                                        {
+                                            POP1_DESC_VNM = temp_POP1_DESC_VNM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            POP1_DESC_VNM = result.POP1_DESC_VNM;
+                                        }
+                                        //string POP1_DESC_VNM = result.POP1_DESC_VNM;
+                                        string POP2_DESC_VNM = "";
+                                        string temp_POP2_DESC_VNM = result.POP2_DESC_VNM;
+                                        if (temp_POP2_DESC_VNM.Contains("\""))
+                                        {
+                                            POP2_DESC_VNM = temp_POP2_DESC_VNM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            POP2_DESC_VNM = result.POP2_DESC_VNM;
+                                        }
+                                        //string POP2_DESC_VNM = result.POP2_DESC_VNM;
+                                        string POP3_DESC_VNM = "";
+                                        string temp_POP3_DESC_VNM = result.POP3_DESC_VNM;
+                                        if (temp_POP3_DESC_VNM.Contains("\""))
+                                        {
+                                            POP3_DESC_VNM = temp_POP3_DESC_VNM.Replace("\"", "\"\"");
+                                        }
+                                        else
+                                        {
+                                            POP3_DESC_VNM = result.POP3_DESC_VNM;
+                                        }
+                                        //string POP3_DESC_VNM = result.POP3_DESC_VNM;
                                         string SELLING_POINT1 = result.SELLING_POINT1;
                                         string SELLING_POINT2 = result.SELLING_POINT2;
                                         string SELLING_POINT3 = result.SELLING_POINT3;
                                         string SELLING_POINT4 = result.SELLING_POINT4;
                                         string SELLING_POINT5 = result.SELLING_POINT5;
                                         string RETAIL_UOM = result.RETAIL_UOM;
+
+
                                         string STATUS = result.STATUS;
                                         string DATE_CREATE = result.DATE_CREATE;
                                         string MODIFIED_DATE = result.MODIFIED_DATE;
                                         string FILE_ID = log_fileid;
+
 
                                         sql_insert_data_SKU += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""
                                                                                 ,""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}""
@@ -314,10 +457,17 @@ namespace AEON_POP3rdParty_WindowsService
                                         if (line == 1000)
                                         {
                                             connection.Open();
+                                            MySqlCommand comm_sql_insert_data_SKU = connection.CreateCommand();
                                             sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
-                                            var cmd_insert_data_SKU = new MySqlCommand(sql_insert_data_SKU, connection);
-                                            MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
+                                            comm_sql_insert_data_SKU.CommandText = sql_insert_data_SKU;
+                                            comm_sql_insert_data_SKU.ExecuteNonQuery();
                                             connection.Close();
+
+                                            //connection.Open();
+                                            //sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
+                                            //var cmd_insert_data_SKU = new MySqlCommand(sql_insert_data_SKU, connection);
+                                            //MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
+                                            //connection.Close();
 
                                             sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku`
                                                                                     (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
@@ -333,10 +483,17 @@ namespace AEON_POP3rdParty_WindowsService
                                     if (result_table.Count() > 0 && line != 0)
                                     {
                                         connection.Open();
+                                        MySqlCommand comm_sql_insert_data_SKU = connection.CreateCommand();
                                         sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
-                                        var cmd_insert_data_SKU = new MySqlCommand(sql_insert_data_SKU, connection);
-                                        MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
+                                        comm_sql_insert_data_SKU.CommandText = sql_insert_data_SKU;
+                                        comm_sql_insert_data_SKU.ExecuteNonQuery();
                                         connection.Close();
+
+                                        //connection.Open();
+                                        //sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
+                                        //var cmd_insert_data_SKU = new MySqlCommand(sql_insert_data_SKU, connection);
+                                        //MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
+                                        //connection.Close();
                                     }
 
                                     //move file to folder backup
@@ -1589,8 +1746,6 @@ namespace AEON_POP3rdParty_WindowsService
                         }
                     }
                 }
-
-                
             }
             catch (Exception ex)
             {
@@ -1606,6 +1761,7 @@ namespace AEON_POP3rdParty_WindowsService
                 //MessageBox.Show(ex.Message);
                 log.Error(string.Format("myWorker_RunWorker Exception: FileID - {0}, Exception: {1}", log_fileid, ex.Message));
             }
+
         }
 
         public static DataTable ConvertCSVtoDataTable_ItemSellPrice(string strFilePath)
@@ -1633,7 +1789,6 @@ namespace AEON_POP3rdParty_WindowsService
                     }
                     dt.Rows.Add(dr);
                 }
-
             }
             return dt;
         }
