@@ -1617,7 +1617,7 @@ namespace AEON_POP3rdParty_WindowsService
                             }
                             if (filename.Length >= 10)
                             {
-                                if (filename.Substring(0, 10) == "ITEMSUPPp_")//ITEMSUPPL_ bỏ
+                                if (filename.Substring(0, 10) == "ITEMSUPPL_")//ITEMSUPPL_ bỏ
                                 {
 
                                     #region ITEM_SUPPLIER_CONTRACT
@@ -1668,57 +1668,59 @@ namespace AEON_POP3rdParty_WindowsService
                                                        join table2 in dTable_Contract_Cur.AsEnumerable()
                                                        on new
                                                        {
-                                                           con1 = table1["SKU"] == null ? String.Empty : table1["SKU"].ToString()
+                                                           con1 = table1["SKU"] == null ? String.Empty : table1["SKU"].ToString(),
+                                                           con2 = table1["STORE"] == null ? String.Empty : table1["STORE"].ToString(),
+
                                                        }
                                                        equals new
                                                        {
-                                                           con1 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString()
+                                                           con1 = table2["SKU"] == null ? String.Empty : table2["SKU"].ToString(),
+                                                           con2 = table2["STORE"] == null ? String.Empty : table2["STORE"].ToString(),
                                                        }
                                                        into _Table3
                                                        from table3 in _Table3.DefaultIfEmpty()
                                                        where (((table3 == null || table3[0] == null ? String.Empty : table3[0].ToString()) == "")
-                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["IN_HOUSE_FLAG"].ToString()) != table1["IN_HOUSE_FLAG"].ToString())
-                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["PRIMARY_FLAG"].ToString()) != table1["PRIMARY_FLAG"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["SUPPLIER"].ToString()) != table1["SUPPLIER"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["CONTRACT_NO"].ToString()) != table1["CONTRACT_NO"].ToString())
+                                                                || ((table3 == null || table3[0] == null ? String.Empty : table3["DEFAULT_STORE"].ToString()) != table1["DEFAULT_STORE"].ToString())
                                                                 )
                                                        select new
                                                        {
-                                                           BUSINESS_UNIT = table1 == null || table1["BUSINESS_UNIT"] == null ? string.Empty : table1["BUSINESS_UNIT"].ToString(),
                                                            SKU = table1 == null || table1["SKU"] == null ? string.Empty : table1["SKU"].ToString(),
-                                                           BARCODE = table1 == null || table1["BARCODE"] == null ? string.Empty : table1["BARCODE"].ToString(),
-                                                           IN_HOUSE_FLAG = table1 == null || table1["IN_HOUSE_FLAG"] == null ? string.Empty : table1["IN_HOUSE_FLAG"].ToString(),
-                                                           PRIMARY_FLAG = table1 == null || table1["PRIMARY_FLAG"] == null ? string.Empty : table1["PRIMARY_FLAG"].ToString(),
+                                                           SUPPLIER = table1 == null || table1["SUPPLIER"] == null ? string.Empty : table1["SUPPLIER"].ToString(),
+                                                           CONTRACT_NO = table1 == null || table1["CONTRACT_NO"] == null ? string.Empty : table1["CONTRACT_NO"].ToString(),
+                                                           STORE = table1 == null || table1["STORE"] == null ? string.Empty : table1["STORE"].ToString(),
+                                                           DEFAULT_STORE = table1 == null || table1["DEFAULT_STORE"] == null ? string.Empty : table1["DEFAULT_STORE"].ToString(),
                                                        };
                                     #endregion
 
                                     //insert data to table
-                                    var sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop`.`barcode`(`BUSINESS_UNIT`,`SKU`
-                                                                                            ,`BARCODE`,`IN_HOUSE_FLAG`,`PRIMARY_FLAG`,`FILE_ID`)VALUES");
+                                    var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
                                     foreach (var result in result_table)
                                     {
                                         //get data
-                                        string BUSINESS_UNIT = result.BUSINESS_UNIT;
                                         string SKU = result.SKU;
-                                        string BARCODE = result.BARCODE;
-                                        string IN_HOUSE_FLAG = result.IN_HOUSE_FLAG;
-                                        string PRIMARY_FLAG = result.PRIMARY_FLAG;
+                                        string SUPPLIER = result.SUPPLIER;
+                                        string CONTRACT_NO = result.CONTRACT_NO;
+                                        string STORE = result.STORE;
+                                        string DEFAULT_STORE = result.DEFAULT_STORE;
                                         string FILE_ID = log_fileid;
 
-                                        sql_insert_data_BarCode += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}""),"
-                                                                                    , BUSINESS_UNIT, SKU, BARCODE, IN_HOUSE_FLAG, PRIMARY_FLAG, FILE_ID);
+                                        sql_insert_data_item_supplier_contract += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}""),"
+                                                                                    , SKU, SUPPLIER, CONTRACT_NO, STORE, DEFAULT_STORE, FILE_ID);
                                     }
 
                                     if (result_table.Count() > 0)
                                     {
                                         connection.Open();
-                                        sql_insert_data_BarCode = sql_insert_data_BarCode.Substring(0, sql_insert_data_BarCode.Length - 1);
-                                        var cmd_insert_data_BarCode = new MySqlCommand(sql_insert_data_BarCode, connection);
+                                        sql_insert_data_item_supplier_contract = sql_insert_data_item_supplier_contract.Substring(0, sql_insert_data_item_supplier_contract.Length - 1);
+                                        var cmd_insert_data_BarCode = new MySqlCommand(sql_insert_data_item_supplier_contract, connection);
                                         MySqlDataReader rdr_insert_data_BarCode = cmd_insert_data_BarCode.ExecuteReader();
                                         connection.Close();
                                     }
 
                                     //move file to folder backup
-                                    //String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                    String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
                                     bool exist = Directory.Exists(dirBackup);
                                     if (!exist)
                                     {
@@ -1727,10 +1729,6 @@ namespace AEON_POP3rdParty_WindowsService
                                     }
                                     string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
                                     File.Move(pathtg, dirPathBackup);
-                                    if (File.Exists(dirPathBackup))
-                                    {
-                                        log.Info(string.Format("ITEMSUPPp_: Move file to backup successfully! {0}", dirPathBackup));
-                                    }
 
 
                                     //update info file to log_file
