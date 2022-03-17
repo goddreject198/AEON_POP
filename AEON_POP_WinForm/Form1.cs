@@ -1450,7 +1450,7 @@ namespace AEON_POP_WinForm
                             }
                             if (filename.Length >= 10)
                             {
-                                if (filename.Substring(0, 10) == "ITEMSUPPL_")//ITEMSUPPL_ bỏ
+                                if (filename.Substring(0, 10) == "ITEMSUPPL_")//ITEMSUPPL_ 
                                 {
                                     
                                     #region ITEM_SUPPLIER_CONTRACT

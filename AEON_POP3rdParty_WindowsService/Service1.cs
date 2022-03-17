@@ -97,6 +97,7 @@ namespace AEON_POP3rdParty_WindowsService
             log.Info("myWorker_RunWorkerBeginning!");
             check_backgroundworker_running = true;
 
+            string file_name = "";
             string log_fileid = "";
 
             try
@@ -119,6 +120,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                             //insert info file to table PROFIT_FILES
                             string filename = Path.GetFileName(pathtg);
+                            file_name = filename;
                             if (filename.Length >= 5)
                             {
                                 if (filename.Substring(0, 5) == "ITEM_")
@@ -1757,7 +1759,7 @@ namespace AEON_POP3rdParty_WindowsService
                 MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
                 connection.Close();
                 //MessageBox.Show(ex.Message);
-                log.Error(string.Format("myWorker_RunWorker Exception: FileID - {0}, Exception: {1}", log_fileid, ex.Message));
+                log.Error(string.Format("myWorker_RunWorker Exception: FileName - {0}, FileID - {1}, Exception: {2}",file_name, log_fileid, ex.Message));
             }
 
         }
