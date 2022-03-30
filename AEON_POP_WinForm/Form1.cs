@@ -649,6 +649,7 @@ namespace AEON_POP_WinForm
                                     log_fileid = dTable_FileID.Rows[0][0].ToString();
 
                                     #region xử lý dữ liệu
+
                                     //get dữ liệu hiện tại
                                     var sql_get_cur_itempricechange = String.Format(@"SELECT * 
 												FROM
@@ -659,6 +660,7 @@ namespace AEON_POP_WinForm
                                     var cmd_get_cur_itempricechange = new MySqlCommand(sql_get_cur_itempricechange, connection);
                                     MySqlDataAdapter MyAdapter_cur_itempricechange = new MySqlDataAdapter();
                                     MyAdapter_cur_itempricechange.SelectCommand = cmd_get_cur_itempricechange;
+                                    MyAdapter_cur_itempricechange.SelectCommand.CommandTimeout = 300;
                                     DataTable dTable_ItemPriceChange_Cur = new DataTable();
                                     MyAdapter_cur_itempricechange.Fill(dTable_ItemPriceChange_Cur);
                                     connection.Close();
@@ -1667,6 +1669,7 @@ namespace AEON_POP_WinForm
         }
         public static DataTable ConvertCSVtoDataTable_ItemPriceChange(string strFilePath)
         {
+            DataSet odataSet = new DataSet();
             DataTable dt = new DataTable();
             using (StreamReader sr = new StreamReader(strFilePath))
             {
@@ -1702,19 +1705,43 @@ namespace AEON_POP_WinForm
                 while (!sr.EndOfStream)
                 {
                     string[] rows = sr.ReadLine().Split(',');
-                    DataRow dr = dt.NewRow();
-                    int temp = 0;
-                    for (int i = 0; i <= 25; i++)
+                    string store = rows[16].ToString();
+                    if (odataSet.Tables.Contains(store))
                     {
-                        //if (i != 4 && i != 10 && i != 14 && i != 21 && i != 22 && i != 23)
-                        //{
-                        //    dr[temp] = rows[i];
-                        //    temp++;
-                        //}
-                        dr[i] = rows[i];
-                    }
-                    temp = 0;
-                    dt.Rows.Add(dr);
+                        DataRow dr = dt.NewRow();
+                        for (int i = 0; i <= 25; i++)
+                        {
+                            dr[i] = rows[i];
+                        }
+                        //dt.Rows.Add(dr);
+                        odataSet.Tables[store].Rows.Add(dr);
+                    } 
+                    else
+                    {
+                        dt.TableName = store;
+                        odataSet.Tables.Add(dt);
+                        DataRow dr = dt.NewRow();
+                        for (int i = 0; i <= 25; i++)
+                        {
+                            dr[i] = rows[i];
+                        }
+                        //dt.Rows.Add(dr);
+                        odataSet.Tables[store].Rows.Add(dr);
+                    }    
+
+                    //DataRow dr = dt.NewRow();
+                    //int temp = 0;
+                    //for (int i = 0; i <= 25; i++)
+                    //{
+                    //    //if (i != 4 && i != 10 && i != 14 && i != 21 && i != 22 && i != 23)
+                    //    //{
+                    //    //    dr[temp] = rows[i];
+                    //    //    temp++;
+                    //    //}
+                    //    dr[i] = rows[i];
+                    //}
+                    //temp = 0;
+                    //dt.Rows.Add(dr);
                 }
 
             }

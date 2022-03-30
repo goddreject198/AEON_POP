@@ -89,14 +89,13 @@ namespace AEON_POP3rdParty_WindowsService
         private void myWorker_ItemSellPrice_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             log.Info("myWorker_RunWorkerCompleted!");
-            check_backgroundworker_running = false;
+            //check_backgroundworker_running = false;
         }
 
         private void myWorker_ItemSellPrice_DoWork(object sender, DoWorkEventArgs e)
         {
             log.Info("myWorker_RunWorkerBeginning!");
             check_backgroundworker_running = true;
-
             string file_name = "";
             string log_fileid = "";
 
@@ -1761,7 +1760,10 @@ namespace AEON_POP3rdParty_WindowsService
                 //MessageBox.Show(ex.Message);
                 log.Error(string.Format("myWorker_RunWorker Exception: FileName - {0}, FileID - {1}, Exception: {2}",file_name, log_fileid, ex.Message));
             }
-
+            finally
+            {
+                check_backgroundworker_running = false;
+            }
         }
 
         public static DataTable ConvertCSVtoDataTable_ItemSellPrice(string strFilePath)
