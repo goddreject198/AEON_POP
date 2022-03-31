@@ -47,7 +47,7 @@ namespace AEON_POP_WinForm
         private void myWorker_ItemSellPrice_DoWork(object sender, DoWorkEventArgs e)
         {
             string log_fileid = "";
-
+            int lolllllll = 0;
             try
             { 
                 MySqlConnection connection = new MySqlConnection(connectionString);
@@ -110,7 +110,7 @@ namespace AEON_POP_WinForm
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\","").Split(',');
                                             line++;
 
                                             //get data
@@ -232,16 +232,123 @@ namespace AEON_POP_WinForm
                                                 AUTO_REPLENISH_ITEM = rows[47].ToString();
                                             }
                                             //string AUTO_REPLENISH_ITEM = result.AUTO_REPLENISH_ITEM;
-                                            string PURCHASE_METHOD = rows[29].ToString();
-                                            string LINE_ID = rows[23].ToString();
-                                            string DIVISION_ID = rows[22].ToString();
-                                            string GROUP_ID = rows[24].ToString();
-                                            string DEPT_ID = rows[17].ToString();
-                                            string CATEGORY_ID = rows[19].ToString();
-                                            string SUB_CATEGORY = rows[58].ToString();
-                                            string COLOUR_SIZE_GRID = rows[26].ToString();
-                                            string COLOUR = rows[27].ToString();
-                                            string SIZE_ID = rows[28].ToString();
+
+                                            string PURCHASE_METHOD = "";
+                                            string temp_PURCHASE_METHOD = rows[29].ToString();
+                                            if (temp_PURCHASE_METHOD.Contains("\""))
+                                            {
+                                                PURCHASE_METHOD = temp_PURCHASE_METHOD.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                PURCHASE_METHOD = rows[29].ToString();
+                                            }
+                                            //string PURCHASE_METHOD = rows[29].ToString();
+
+                                            string LINE_ID = "";
+                                            string temp_LINE_ID = rows[23].ToString();
+                                            if (temp_LINE_ID.Contains("\""))
+                                            {
+                                                LINE_ID = temp_LINE_ID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                LINE_ID = rows[23].ToString();
+                                            }
+                                            //string LINE_ID = rows[23].ToString();
+
+                                            string DIVISION_ID = "";
+                                            string temp_DIVISION_ID = rows[22].ToString();
+                                            if (temp_DIVISION_ID.Contains("\""))
+                                            {
+                                                DIVISION_ID = temp_DIVISION_ID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                DIVISION_ID = rows[22].ToString();
+                                            }
+                                            //string DIVISION_ID = rows[22].ToString();
+
+                                            string GROUP_ID = "";
+                                            string temp_GROUP_ID = rows[24].ToString();
+                                            if (temp_GROUP_ID.Contains("\""))
+                                            {
+                                                GROUP_ID = temp_GROUP_ID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                GROUP_ID = rows[24].ToString();
+                                            }
+                                            //string GROUP_ID = rows[24].ToString();
+
+                                            string DEPT_ID = "";
+                                            string temp_DEPT_ID = rows[17].ToString();
+                                            if (temp_DEPT_ID.Contains("\""))
+                                            {
+                                                DEPT_ID = temp_DEPT_ID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                DEPT_ID = rows[17].ToString();
+                                            }
+                                            //string DEPT_ID = rows[17].ToString();
+
+                                            string CATEGORY_ID = "";
+                                            string temp_CATEGORY_ID = rows[19].ToString();
+                                            if (temp_CATEGORY_ID.Contains("\""))
+                                            {
+                                                CATEGORY_ID = temp_CATEGORY_ID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                CATEGORY_ID = rows[19].ToString();
+                                            }
+                                            //string CATEGORY_ID = rows[19].ToString();
+
+                                            string SUB_CATEGORY = "";
+                                            string temp_SUB_CATEGORY = rows[58].ToString();
+                                            if (temp_SUB_CATEGORY.Contains("\""))
+                                            {
+                                                SUB_CATEGORY = temp_SUB_CATEGORY.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SUB_CATEGORY = rows[58].ToString();
+                                            }
+                                            //string SUB_CATEGORY = rows[58].ToString();
+                                            string COLOUR_SIZE_GRID = "";
+                                            string temp_COLOUR_SIZE_GRID = rows[26].ToString();
+                                            if (temp_COLOUR_SIZE_GRID.Contains("\""))
+                                            {
+                                                COLOUR_SIZE_GRID = temp_COLOUR_SIZE_GRID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                COLOUR_SIZE_GRID = rows[26].ToString();
+                                            }
+                                            //string COLOUR_SIZE_GRID = rows[26].ToString();
+                                            string COLOUR = "";
+                                            string temp_COLOUR = rows[27].ToString();
+                                            if (temp_COLOUR.Contains("\""))
+                                            {
+                                                COLOUR = temp_COLOUR.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                COLOUR = rows[27].ToString();
+                                            }
+                                            //string COLOUR = rows[27].ToString();
+                                            string SIZE_ID = "";
+                                            string temp_SIZE_ID = rows[28].ToString();
+                                            if (temp_SIZE_ID.Contains("\""))
+                                            {
+                                                SIZE_ID = temp_SIZE_ID.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SIZE_ID = rows[28].ToString();
+                                            }
+                                            //string SIZE_ID = rows[28].ToString();
 
                                             string POP1_DESC_VNM = "";
                                             string temp_POP1_DESC_VNM = rows[14].ToString();
@@ -276,24 +383,90 @@ namespace AEON_POP_WinForm
                                                 POP3_DESC_VNM = rows[84].ToString();
                                             }
                                             //string POP3_DESC_VNM = result.POP3_DESC_VNM;
-                                            string SELLING_POINT1 = rows[85].ToString();
-                                            string SELLING_POINT2 = rows[86].ToString();
-                                            string SELLING_POINT3 = rows[87].ToString();
-                                            string SELLING_POINT4 = rows[88].ToString();
-                                            string SELLING_POINT5 = rows[89].ToString();
-                                            string RETAIL_UOM = rows[62].ToString();
+                                            string SELLING_POINT1 = "";
+                                            string temp_SELLING_POINT1 = rows[85].ToString();
+                                            if (temp_SELLING_POINT1.Contains("\""))
+                                            {
+                                                SELLING_POINT1 = temp_SELLING_POINT1.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT1 = rows[85].ToString();
+                                            }
+                                            //string SELLING_POINT1 = rows[85].ToString();
+                                            string SELLING_POINT2 = "";
+                                            string temp_SELLING_POINT2 = rows[86].ToString();
+                                            if (temp_SELLING_POINT2.Contains("\""))
+                                            {
+                                                SELLING_POINT2 = temp_SELLING_POINT2.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT2 = rows[86].ToString();
+                                            }
+                                            //string SELLING_POINT2 = rows[86].ToString();
+                                            string SELLING_POINT3 = "";
+                                            string temp_SELLING_POINT3 = rows[87].ToString();
+                                            if (temp_SELLING_POINT3.Contains("\""))
+                                            {
+                                                SELLING_POINT3 = temp_SELLING_POINT3.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT3 = rows[87].ToString();
+                                            }
+                                            //string SELLING_POINT3 = rows[87].ToString();
+                                            string SELLING_POINT4 = "";
+                                            string temp_SELLING_POINT4 = rows[88].ToString();
+                                            if (temp_SELLING_POINT4.Contains("\""))
+                                            {
+                                                SELLING_POINT4 = temp_SELLING_POINT4.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT4 = rows[88].ToString();
+                                            }
+                                            //string SELLING_POINT4 = rows[88].ToString();
+                                            string SELLING_POINT5 = "";
+                                            string temp_SELLING_POINT5 = rows[89].ToString();
+                                            if (temp_SELLING_POINT5.Contains("\""))
+                                            {
+                                                SELLING_POINT5 = temp_SELLING_POINT5.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT5 = rows[89].ToString();
+                                            }
+                                            //string SELLING_POINT5 = rows[89].ToString();
+                                            string RETAIL_UOM = "";
+                                            string temp_RETAIL_UOM = rows[62].ToString();
+                                            if (temp_RETAIL_UOM.Contains("\""))
+                                            {
+                                                RETAIL_UOM = temp_RETAIL_UOM.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                RETAIL_UOM = rows[62].ToString();
+                                            }
+                                            //string RETAIL_UOM = rows[62].ToString();
 
-
-                                            string STATUS = rows[56].ToString();
+                                            string STATUS = "";
+                                            string temp_STATUS = rows[56].ToString();
+                                            if (temp_STATUS.Contains("\""))
+                                            {
+                                                STATUS = temp_STATUS.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                STATUS = rows[56].ToString();
+                                            }
+                                            //string STATUS = rows[56].ToString();
                                             string DATE_CREATE = rows[1].ToString();
                                             string MODIFIED_DATE = rows[83].ToString();
                                             string FILE_ID = log_fileid;
 
 
-                                            sql_insert_data_SKU += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""
-                                                                                ,""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}""
-                                                                                ,""{20}"",""{21}"",""{22}"",""{23}"",""{24}"",""{25}"",""{26}"",""{27}"",""{28}"",""{29}""
-                                                                                ,""{30}"",""{31}"",""{32}"",""{33}""),"
+                                            sql_insert_data_SKU += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}"",""{21}"",""{22}"",""{23}"",""{24}"",""{25}"",""{26}"",""{27}"",""{28}"",""{29}"",""{30}"",""{31}"",""{32}"",""{33}""),"
                                                                                         , SKU_CODE, ITEM_DESC_VNM, PACK_ITEM, PERISH_ITEM, NON_INVENTORY, NON_PLU, MOMMY_ITEM
                                                                                         , FOOD_ITEM, MEMBER_DISC_ITEM, SUPER_SAVER_ITEM, AUTO_REPLENISH_ITEM, PURCHASE_METHOD
                                                                                         , LINE_ID, DIVISION_ID, GROUP_ID, DEPT_ID, CATEGORY_ID, SUB_CATEGORY, COLOUR_SIZE_GRID
@@ -301,13 +474,13 @@ namespace AEON_POP_WinForm
                                                                                         , SELLING_POINT2, SELLING_POINT3, SELLING_POINT4, SELLING_POINT5, RETAIL_UOM, STATUS
                                                                                         , DATE_CREATE, MODIFIED_DATE, FILE_ID);
 
-                                            if (line == 1000)
+                                            if (line == 1)
                                             {
                                                 connection.Open();
                                                 MySqlCommand comm_sql_insert_data_SKU = connection.CreateCommand();
                                                 sql_insert_data_SKU = sql_insert_data_SKU.Substring(0, sql_insert_data_SKU.Length - 1);
                                                 comm_sql_insert_data_SKU.CommandText = sql_insert_data_SKU;
-                                                comm_sql_insert_data_SKU.ExecuteNonQuery();
+                                                int kq = comm_sql_insert_data_SKU.ExecuteNonQuery();
                                                 connection.Close();
 
                                                 //connection.Open();

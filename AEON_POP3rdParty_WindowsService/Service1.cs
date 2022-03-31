@@ -41,7 +41,7 @@ namespace AEON_POP3rdParty_WindowsService
             myWorker_ItemSellPrice.WorkerReportsProgress = true;
             myWorker_ItemSellPrice.WorkerSupportsCancellation = true;
 
-            myWorker_ItemSellPrice.RunWorkerAsync();
+            //myWorker_ItemSellPrice.RunWorkerAsync();
         }
 
         protected override void OnStart(string[] args)
@@ -68,6 +68,7 @@ namespace AEON_POP3rdParty_WindowsService
         private void timer_Tick(object sender, ElapsedEventArgs args)
         {
             //if (args.SignalTime.Minute % 3 == 0 && check_backgroundworker_running == false)
+            log.Info("check_backgroundworker_running: " + check_backgroundworker_running);
             if (check_backgroundworker_running == false)
             {
                 try
@@ -161,7 +162,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -445,7 +446,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -558,7 +559,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -675,7 +676,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -804,7 +805,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -916,7 +917,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -1026,7 +1027,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
@@ -1119,7 +1120,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                         while (!sr.EndOfStream)
                                         {
-                                            string[] rows = sr.ReadLine().Split(',');
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
                                             line++;
 
                                             //get data
