@@ -18,7 +18,8 @@ namespace AEON_POP_WinForm
 {
     public partial class Form1 : Form
     {
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
+        //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop", "root", "qs0123123");
 
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
@@ -100,7 +101,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku`
+                                        var sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku_temp`
                                                                                     (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
                                                                                     ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
                                                                                     ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
@@ -474,7 +475,7 @@ namespace AEON_POP_WinForm
                                                                                         , SELLING_POINT2, SELLING_POINT3, SELLING_POINT4, SELLING_POINT5, RETAIL_UOM, STATUS
                                                                                         , DATE_CREATE, MODIFIED_DATE, FILE_ID);
 
-                                            if (line == 1)
+                                            if (line == 100)
                                             {
                                                 connection.Open();
                                                 MySqlCommand comm_sql_insert_data_SKU = connection.CreateCommand();
@@ -489,7 +490,7 @@ namespace AEON_POP_WinForm
                                                 //MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
                                                 //connection.Close();
 
-                                                sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku`
+                                                sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku_temp`
                                                                                     (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
                                                                                     ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
                                                                                     ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
@@ -1218,7 +1219,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table hamper
-                                        var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                        var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
@@ -1267,7 +1268,7 @@ namespace AEON_POP_WinForm
                                                 connection.Close();
 
 
-                                                sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                                sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
