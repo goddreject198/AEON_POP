@@ -9,30 +9,98 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Linq;
 using System.Net;
 using WinSCP;
 using System.Collections;
+using RestSharp;
 
 namespace AEON_POP_WinForm
 {
     public partial class Form1 : Form
     {
-        //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop", "root", "qs0123123");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
+        //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop", "root", "qs0123123");
 
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
+        private BackgroundWorker myWorker_PostDataToMobile = new BackgroundWorker();
 
         public Form1()
         {
             InitializeComponent();
-            //khai báo properties của background process ApproveFileInDMS
+            //khai báo properties của background process 
             myWorker_ItemSellPrice.DoWork += new DoWorkEventHandler(myWorker_ItemSellPrice_DoWork);
             myWorker_ItemSellPrice.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_ItemSellPrice_RunWorkerCompleted);
             myWorker_ItemSellPrice.ProgressChanged += new ProgressChangedEventHandler(myWorker_ItemSellPrice_ProgressChanged);
             myWorker_ItemSellPrice.WorkerReportsProgress = true;
             myWorker_ItemSellPrice.WorkerSupportsCancellation = true;
+            //khai báo properties của background process 
+            myWorker_PostDataToMobile.DoWork += new DoWorkEventHandler(myWorker_PostDataToMobile_DoWork);
+            myWorker_PostDataToMobile.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PostDataToMobile_RunWorkerCompleted);
+            myWorker_PostDataToMobile.ProgressChanged += new ProgressChangedEventHandler(myWorker_PostDataToMobile_ProgressChanged);
+            myWorker_PostDataToMobile.WorkerReportsProgress = true;
+            myWorker_PostDataToMobile.WorkerSupportsCancellation = true;
+        }
+
+        private void myWorker_PostDataToMobile_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PostDataToMobile_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PostDataToMobile_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                MySqlConnection connection = new MySqlConnection(connectionString);
+                var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.sku_code_temp;");
+                connection.Open();
+                var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
+                MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                MyAdapter.SelectCommand = cmd_get_fileID;
+                DataTable dTable_SKUCode = new DataTable();
+                MyAdapter.Fill(dTable_SKUCode);
+                connection.Close();
+
+                var client = new RestClient("http://45.77.34.122/thirdparty/sku/downloadtomobile");
+                client.Timeout = -1;
+                var request = new RestRequest(Method.POST);
+                request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                request.AddHeader("Content-Type", "application/json");
+
+                string body = "{\"skus\": [";
+                string sku_code = "";
+                for (int i = 0; i < dTable_SKUCode.Rows.Count; i++)
+                {
+                    sku_code += "\"" + dTable_SKUCode.Rows[i][0].ToString() + "\",";
+                }
+                sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                body += sku_code + "]}";
+
+                request.AddParameter("application/json", body, ParameterType.RequestBody);
+                IRestResponse response = client.Execute(request);
+                MessageBox.Show(response.StatusCode + ": " + response.Content);
+
+                if (response.IsSuccessful)
+                {
+                    var sql_delete_sku_code = String.Format("DELETE FROM `aeon_pop`.`sku_code_temp` WHERE SKU_CODE IN ({0});" , sku_code);
+                    connection.Open();
+                    MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                    comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                    int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                    connection.Close();
+
+                    MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                }    
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void myWorker_ItemSellPrice_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -48,7 +116,6 @@ namespace AEON_POP_WinForm
         private void myWorker_ItemSellPrice_DoWork(object sender, DoWorkEventArgs e)
         {
             string log_fileid = "";
-            int lolllllll = 0;
             try
             { 
                 MySqlConnection connection = new MySqlConnection(connectionString);
@@ -3246,6 +3313,18 @@ namespace AEON_POP_WinForm
                     transferOptions.FileMask = "ITEM_*.csv;MIXMATCH_*.csv;ITEMSELLPRICE_*.csv" + "|<1D";
                     session.GetFiles("/*", @"C:\Profit_Receive\", false, transferOptions).Check();
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                myWorker_PostDataToMobile.RunWorkerAsync();
             }
             catch (Exception ex)
             {

@@ -14,6 +14,7 @@ using System.Net;
 using System.Collections;
 using System.Timers;
 using System.Threading;
+using RestSharp;
 
 namespace AEON_POP3rdParty_WindowsService
 {
@@ -22,6 +23,7 @@ namespace AEON_POP3rdParty_WindowsService
         private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
+        private BackgroundWorker myWorker_PostDataToMobile = new BackgroundWorker();
 
         public static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         // tạo 1 biến Timer private
@@ -30,6 +32,7 @@ namespace AEON_POP3rdParty_WindowsService
         private string Folder_in = System.Configuration.ConfigurationManager.AppSettings.Get("Folder_in");
 
         private bool check_backgroundworker_running = false;
+        private bool check_backgroundworker_PostDataToMobile_running = false;
 
         public Service1()
         {
@@ -40,6 +43,12 @@ namespace AEON_POP3rdParty_WindowsService
             myWorker_ItemSellPrice.ProgressChanged += new ProgressChangedEventHandler(myWorker_ItemSellPrice_ProgressChanged);
             myWorker_ItemSellPrice.WorkerReportsProgress = true;
             myWorker_ItemSellPrice.WorkerSupportsCancellation = true;
+            //khai báo properties của background process 
+            myWorker_PostDataToMobile.DoWork += new DoWorkEventHandler(myWorker_PostDataToMobile_DoWork);
+            myWorker_PostDataToMobile.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PostDataToMobile_RunWorkerCompleted);
+            myWorker_PostDataToMobile.ProgressChanged += new ProgressChangedEventHandler(myWorker_PostDataToMobile_ProgressChanged);
+            myWorker_PostDataToMobile.WorkerReportsProgress = true;
+            myWorker_PostDataToMobile.WorkerSupportsCancellation = true;
 
             //myWorker_ItemSellPrice.RunWorkerAsync();
         }
@@ -80,6 +89,17 @@ namespace AEON_POP3rdParty_WindowsService
                     log.Error(String.Format("Can not run backgroud_worker: myWorker_ItemSellPrice!|{0}", e.Message));
                 }
             }
+            if (check_backgroundworker_PostDataToMobile_running == false)
+            {
+                try
+                {
+                    myWorker_PostDataToMobile.RunWorkerAsync();
+                }
+                catch (Exception e)
+                {
+                    log.Error(String.Format("Can not run backgroud_worker: myWorker_PostDataToMobile!|{0}", e.Message));
+                }
+            }    
         }
 
         private void myWorker_ItemSellPrice_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -89,7 +109,7 @@ namespace AEON_POP3rdParty_WindowsService
 
         private void myWorker_ItemSellPrice_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            log.Info("myWorker_RunWorkerCompleted!");
+            log.Info("myWorker_ItemSellPrice_RunWorkerCompleted!");
             //check_backgroundworker_running = false;
         }
 
@@ -1198,6 +1218,119 @@ namespace AEON_POP3rdParty_WindowsService
             finally
             {
                 check_backgroundworker_running = false;
+            }
+        }
+
+        private void myWorker_PostDataToMobile_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PostDataToMobile_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            log.Info("myWorker_PostDataToMobile_RunWorkerCompleted!");
+        }
+
+        private void myWorker_PostDataToMobile_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                log.Info("myWorker_PostDataToMobile_DoWork!");
+                check_backgroundworker_PostDataToMobile_running = true;
+
+                MySqlConnection connection = new MySqlConnection(connectionString);
+                var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.sku_code_temp limit 2000;");
+                connection.Open();
+                var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
+                MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                MyAdapter.SelectCommand = cmd_get_fileID;
+                DataTable dTable_SKUCode = new DataTable();
+                MyAdapter.Fill(dTable_SKUCode);
+                connection.Close();
+
+                var client = new RestClient("http://45.77.34.122/thirdparty/sku/downloadtomobile");
+                client.Timeout = -1;
+                var request = new RestRequest(Method.POST);
+                request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                request.AddHeader("Content-Type", "application/json");
+
+                string body = "{\"skus\": [";
+                string sku_code = "";
+                int dem = 0;
+                for (int i = 0; i < dTable_SKUCode.Rows.Count; i++)
+                {
+                    dem++;
+                    sku_code += "\"" + dTable_SKUCode.Rows[i][0].ToString() + "\",";
+
+                    if (dem == 100)
+                    {
+                        sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                        body += sku_code + "]}";
+
+                        request.AddParameter("application/json", body, ParameterType.RequestBody);
+                        log.InfoFormat("PostDataToMobile: Json body: {0}", body);
+                        IRestResponse response = client.Execute(request);
+                        //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                        log.InfoFormat("PostDataToMobile: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                        if (response.IsSuccessful)
+                        {
+                            var sql_delete_sku_code = String.Format("DELETE FROM `aeon_pop`.`sku_code_temp` WHERE SKU_CODE IN ({0});", sku_code);
+                            connection.Open();
+                            MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                            comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                            int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                            connection.Close();
+
+                            //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                            log.InfoFormat("PostDataToMobile: Clear sku: {0} - {1}", sql_delete_sku_code, kq);
+                        }
+
+                        body = "{\"skus\": [";
+                        sku_code = "";
+
+                        request.Parameters.Clear();
+                        request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                        request.AddHeader("Content-Type", "application/json");
+
+                        dem = 0;
+                    }    
+                }
+
+                if (dem > 0)
+                {
+                    sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                    body += sku_code + "]}";
+
+                    request.AddParameter("application/json", body, ParameterType.RequestBody);
+                    log.InfoFormat("PostDataToMobile: Json body: {0}", body);
+                    IRestResponse response = client.Execute(request);
+                    //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                    log.InfoFormat("PostDataToMobile: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                    if (response.IsSuccessful)
+                    {
+                        var sql_delete_sku_code = String.Format("DELETE FROM `aeon_pop`.`sku_code_temp` WHERE SKU_CODE IN ({0});", sku_code);
+                        connection.Open();
+                        MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                        comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                        int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                        connection.Close();
+
+                        //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                        log.InfoFormat("PostDataToMobile: Clear sku: {0} - {1}", sql_delete_sku_code, kq);
+                    }
+                }    
+                
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("PostDataToMobile: Exception: {0}", ex.Message);
+            }
+            finally
+            {
+                check_backgroundworker_PostDataToMobile_running = false;
             }
         }
     }
