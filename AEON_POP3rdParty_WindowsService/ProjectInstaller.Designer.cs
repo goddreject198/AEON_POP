@@ -39,7 +39,7 @@
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.ServiceName = "AEON_POP3rdParty_WindowsServicex64";
+            this.serviceInstaller1.ServiceName = "AEON_POP3rdParty_WindowsServicex64_PRD";
             // 
             // ProjectInstaller
             // 
