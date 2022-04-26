@@ -177,7 +177,7 @@ namespace AEON_GetFile_WinForm
                 }
                 else
                 {
-                    log.Info(string.Format("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom));
+                    log.Info(string.Format("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom_PRD));
                 }
 
                 DateTime max_time_pop_master = DateTime.MinValue;
@@ -206,7 +206,7 @@ namespace AEON_GetFile_WinForm
 
                 //check day before
                 {
-                    DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + max_time_pop_master.AddDays(-1).ToString("ddMMyyyy")));
+                    DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
                     List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
@@ -272,13 +272,13 @@ namespace AEON_GetFile_WinForm
                     }
                     else
                     {
-                        log.Info(string.Format("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2));
+                        log.Info(string.Format("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2_PRD));
                     }
                 }
 
                 //check current day
                 {
-                    DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + max_time_pop_master.ToString("ddMMyyyy")));
+                    DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
                     List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
@@ -342,7 +342,7 @@ namespace AEON_GetFile_WinForm
                     }
                     else
                     {
-                        log.Info(string.Format("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2));
+                        log.Info(string.Format("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2_PRD));
                     }
                 }
 
