@@ -1241,7 +1241,7 @@ namespace AEON_POP3rdParty_WindowsService
                 check_backgroundworker_PostDataToMobile_running = true;
 
                 MySqlConnection connection = new MySqlConnection(connectionString);
-                var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.sku_code_temp limit 2000;");
+                var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop_prd.sku_code_temp limit 2000;");
                 connection.Open();
                 var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
                 MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
