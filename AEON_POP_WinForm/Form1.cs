@@ -174,7 +174,7 @@ namespace AEON_POP_WinForm
                                                                                     ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
                                                                                     ,`COLOUR_SIZE_GRID`,`COLOUR`,`SIZE_ID`,`POP1_DESC_VNM`,`POP2_DESC_VNM`,`POP3_DESC_VNM`
                                                                                     ,`SELLING_POINT1`,`SELLING_POINT2`,`SELLING_POINT3`,`SELLING_POINT4`,`SELLING_POINT5`
-                                                                                    ,`RETAIL_UOM`,`STATUS`,`DATE_CREATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                                                                    ,`RETAIL_UOM`,`STATUS`,`ACTIVED`,`DELETED`,`DATE_CREATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
                                         {
@@ -529,17 +529,20 @@ namespace AEON_POP_WinForm
                                                 STATUS = rows[56].ToString();
                                             }
                                             //string STATUS = rows[56].ToString();
+                                            string ACTIVED = rows[49].ToString();
+                                            string DELETED = rows[56].ToString();
+
                                             string DATE_CREATE = rows[1].ToString();
                                             string MODIFIED_DATE = rows[83].ToString();
                                             string FILE_ID = log_fileid;
 
 
-                                            sql_insert_data_SKU += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}"",""{21}"",""{22}"",""{23}"",""{24}"",""{25}"",""{26}"",""{27}"",""{28}"",""{29}"",""{30}"",""{31}"",""{32}"",""{33}""),"
+                                            sql_insert_data_SKU += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}"",""{21}"",""{22}"",""{23}"",""{24}"",""{25}"",""{26}"",""{27}"",""{28}"",""{29}"",""{30}"",""{31}"",""{32}"",""{33}"",""{34}"",""{35}""),"
                                                                                         , SKU_CODE, ITEM_DESC_VNM, PACK_ITEM, PERISH_ITEM, NON_INVENTORY, NON_PLU, MOMMY_ITEM
                                                                                         , FOOD_ITEM, MEMBER_DISC_ITEM, SUPER_SAVER_ITEM, AUTO_REPLENISH_ITEM, PURCHASE_METHOD
                                                                                         , LINE_ID, DIVISION_ID, GROUP_ID, DEPT_ID, CATEGORY_ID, SUB_CATEGORY, COLOUR_SIZE_GRID
                                                                                         , COLOUR, SIZE_ID, POP1_DESC_VNM, POP2_DESC_VNM, POP3_DESC_VNM, SELLING_POINT1
-                                                                                        , SELLING_POINT2, SELLING_POINT3, SELLING_POINT4, SELLING_POINT5, RETAIL_UOM, STATUS
+                                                                                        , SELLING_POINT2, SELLING_POINT3, SELLING_POINT4, SELLING_POINT5, RETAIL_UOM, STATUS, ACTIVED, DELETED
                                                                                         , DATE_CREATE, MODIFIED_DATE, FILE_ID);
 
                                             if (line == 100)
@@ -563,7 +566,7 @@ namespace AEON_POP_WinForm
                                                                                     ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
                                                                                     ,`COLOUR_SIZE_GRID`,`COLOUR`,`SIZE_ID`,`POP1_DESC_VNM`,`POP2_DESC_VNM`,`POP3_DESC_VNM`
                                                                                     ,`SELLING_POINT1`,`SELLING_POINT2`,`SELLING_POINT3`,`SELLING_POINT4`,`SELLING_POINT5`
-                                                                                    ,`RETAIL_UOM`,`STATUS`,`DATE_CREATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
+                                                                                    ,`RETAIL_UOM`,`STATUS`,`ACTIVED`,`DELETED`,`DATE_CREATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
                                         }

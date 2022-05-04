@@ -221,7 +221,7 @@ namespace AEON_POP_3rdParty_GetFileService
                 //check day before
                 {
                     DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
-                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv"))
+                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv")).Union(info_master.GetFiles("SUPPLIER_*.csv")).Union(info_master.GetFiles("SUPPLCONTRACT_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
                                                     .OrderByDescending(x => x.LastWriteTime)
@@ -291,7 +291,7 @@ namespace AEON_POP_3rdParty_GetFileService
                 //check current day
                 {
                     DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
-                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv"))
+                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv")).Union(info_master.GetFiles("SUPPLIER_*.csv")).Union(info_master.GetFiles("SUPPLCONTRACT_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
                                                     .OrderByDescending(x => x.LastWriteTime)
