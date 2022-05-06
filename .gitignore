@@ -1620,3 +1620,5 @@ AEON_POP3rdParty_WindowsService_PRD/packages/System.Runtime.CompilerServices.Uns
 AEON_POP3rdParty_WindowsService_PRD/packages/System.Runtime.CompilerServices.Unsafe.5.0.0/ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.xml
 AEON_POP3rdParty_WindowsService_PRD/packages/System.Runtime.CompilerServices.Unsafe.5.0.0/ref/netstandard2.1/System.Runtime.CompilerServices.Unsafe.dll
 AEON_POP3rdParty_WindowsService_PRD/packages/System.Runtime.CompilerServices.Unsafe.5.0.0/ref/netstandard2.1/System.Runtime.CompilerServices.Unsafe.xml
+AEON_POP3rdParty_WindowsService/obj/x64/Debug/.NETFramework,Version=v4.7.2.AssemblyAttributes.cs
+AEON_POP3rdParty_WindowsService/obj/x64/Debug/AEON_POP3rdParty_WindowsService.csproj.AssemblyReference.cache
