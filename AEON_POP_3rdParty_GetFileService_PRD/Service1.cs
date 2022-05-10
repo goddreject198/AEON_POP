@@ -221,7 +221,16 @@ namespace AEON_POP_3rdParty_GetFileService
                 //check day before
                 {
                     DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
-                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv")).Union(info_master.GetFiles("SUPPLIER_*.csv")).Union(info_master.GetFiles("SUPPLCONTRACT_*.csv"))
+                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv")
+                                                    .Union(info_master.GetFiles("ITEMSUPPL_*.csv"))
+                                                    .Union(info_master.GetFiles("SUPPLIER_*.csv"))
+                                                    .Union(info_master.GetFiles("STORE_*.csv"))
+                                                    .Union(info_master.GetFiles("LINE_*.csv"))
+                                                    .Union(info_master.GetFiles("DIVISION_*.csv"))
+                                                    .Union(info_master.GetFiles("GROUP_*.csv"))
+                                                    .Union(info_master.GetFiles("DEPT_*.csv"))
+                                                    .Union(info_master.GetFiles("CATEGORY_*.csv"))
+                                                    .Union(info_master.GetFiles("SCATEGORY_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
                                                     .OrderByDescending(x => x.LastWriteTime)
@@ -291,7 +300,16 @@ namespace AEON_POP_3rdParty_GetFileService
                 //check current day
                 {
                     DirectoryInfo info_master = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
-                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv").Union(info_master.GetFiles("ITEMSUPPL_*.csv")).Union(info_master.GetFiles("SUPPLIER_*.csv")).Union(info_master.GetFiles("SUPPLCONTRACT_*.csv"))
+                    List<string> filesPath_master = info_master.GetFiles("ITEMBARCODE_*.csv")
+                                                    .Union(info_master.GetFiles("ITEMSUPPL_*.csv"))
+                                                    .Union(info_master.GetFiles("SUPPLIER_*.csv"))
+                                                    .Union(info_master.GetFiles("STORE_*.csv"))
+                                                    .Union(info_master.GetFiles("LINE_*.csv"))
+                                                    .Union(info_master.GetFiles("DIVISION_*.csv"))
+                                                    .Union(info_master.GetFiles("GROUP_*.csv"))
+                                                    .Union(info_master.GetFiles("DEPT_*.csv"))
+                                                    .Union(info_master.GetFiles("CATEGORY_*.csv"))
+                                                    .Union(info_master.GetFiles("SCATEGORY_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
                                                     .OrderByDescending(x => x.LastWriteTime)
