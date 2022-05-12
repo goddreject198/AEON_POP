@@ -21,7 +21,7 @@ namespace AEON_POP3rdParty_WindowsService
     public partial class Service1 : ServiceBase
     {
         //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop_prd", "fpt", "fptpop@2021");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop_prd", "fpt", "fptpop@2021");
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
         private BackgroundWorker myWorker_PostDataToMobile = new BackgroundWorker();
@@ -124,6 +124,9 @@ namespace AEON_POP3rdParty_WindowsService
             try
             {
                 MySqlConnection connection = new MySqlConnection(connectionString);
+
+                NetworkDrive nd = new NetworkDrive();
+                nd.MapNetworkDrive(@"\\10.0.0.5\sambashare", "Z:", "fptsftpuser", "Fptsftp*2021");
 
                 DirectoryInfo info = new DirectoryInfo(Folder_in);
                 List<string> filesPath = info.GetFiles("*.csv")//.Where(x => x.CreationTime.Date == DateTime.Today.AddDays(0))

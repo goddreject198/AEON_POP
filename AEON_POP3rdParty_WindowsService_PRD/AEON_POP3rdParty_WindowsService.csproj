@@ -138,6 +138,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NetworkDrive.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -27,10 +27,10 @@ namespace AEON_POP_3rdParty_GetFileService
         private string DirectoryFrom_PRD = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom_PRD");
         private string FileConfig2_PRD = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfig2_PRD");
         private string DirectoryFrom2_PRD = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom2_PRD");
-        private string FPTHost = System.Configuration.ConfigurationManager.AppSettings.Get("FPTHost");
-        private string FPTPort = System.Configuration.ConfigurationManager.AppSettings.Get("FPTPort");
-        private string FPTUser = System.Configuration.ConfigurationManager.AppSettings.Get("FPTUser");
-        private string FPTPwd = System.Configuration.ConfigurationManager.AppSettings.Get("FPTPwd");
+        private string AzureHost = System.Configuration.ConfigurationManager.AppSettings.Get("AzureHost");
+        private string AzurePort = System.Configuration.ConfigurationManager.AppSettings.Get("AzurePort");
+        private string AzureUser = System.Configuration.ConfigurationManager.AppSettings.Get("AzureUser");
+        private string AzurePwd = System.Configuration.ConfigurationManager.AppSettings.Get("AzurePwd");
 
         public Service1()
         {
@@ -135,17 +135,17 @@ namespace AEON_POP_3rdParty_GetFileService
                     //var port = 22;
                     //var username = "fptsftpuser";
                     //var password = "Fptsftp*2021";
-                    var host = FPTHost;
-                    var port = Convert.ToInt32(FPTPort);
-                    var username = FPTUser;
-                    var password = FPTPwd;
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
 
                     using (var client = new SftpClient(host, port, username, password))
                     {
                         client.Connect();
                         if (client.IsConnected)
                         {
-                            log.Info("UploadFile_POP3rdParty_PRD Connected to FPT Cloud");
+                            log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
 
                             int maxtime_pos = 0;
                             foreach (string pathtg in filesPath)
@@ -171,7 +171,7 @@ namespace AEON_POP_3rdParty_GetFileService
                                     try
                                     {
                                         client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                        client.ChangeDirectory("/POP_3rdParty_PRD");
+                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
                                         client.UploadFile(fileStream, Path.GetFileName(pathtg));
                                         log.Info(string.Format("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", pathtg));
                                     }
@@ -184,7 +184,7 @@ namespace AEON_POP_3rdParty_GetFileService
                         }
                         else
                         {
-                            log.Error("UploadFile_POP3rdParty_PRD can not connected to FPT Cloud");
+                            log.Error("UploadFile_POP3rdParty_PRD can not connected to AEON Azure");
                         }
                     }
                     log.Info("UploadFile_POP3rdParty_PRD done!");
@@ -238,17 +238,17 @@ namespace AEON_POP_3rdParty_GetFileService
                                                   .ToList();
                     if (filesPath_master.Count > 0)
                     {
-                        var host = FPTHost;
-                        var port = Convert.ToInt32(FPTPort);
-                        var username = FPTUser;
-                        var password = FPTPwd;
+                        var host = AzureHost;
+                        var port = Convert.ToInt32(AzurePort);
+                        var username = AzureUser;
+                        var password = AzurePwd;
 
                         using (var client = new SftpClient(host, port, username, password))
                         {
                             client.Connect();
                             if (client.IsConnected)
                             {
-                                log.Info("UploadFile_POP3rdParty_master Connected to FPT Cloud");
+                                log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
 
                                 int maxtime_pos = 0;
                                 foreach (string pathtg in filesPath_master)
@@ -274,7 +274,7 @@ namespace AEON_POP_3rdParty_GetFileService
                                         try
                                         {
                                             client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                            client.ChangeDirectory("/POP_3rdParty_PRD");
+                                            client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
                                             client.UploadFile(fileStream, Path.GetFileName(pathtg));
                                             log.Info(string.Format("GetFilePOP3rdParty: UploadFile_master_PRD successfully: {0}", pathtg));
                                         }
@@ -287,7 +287,7 @@ namespace AEON_POP_3rdParty_GetFileService
                             }
                             else
                             {
-                                log.Error("UploadFile_POP3rdParty_master_PRD can not connected to FPT Cloud");
+                                log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
                             }
                         }
                     }
@@ -317,17 +317,17 @@ namespace AEON_POP_3rdParty_GetFileService
                                                   .ToList();
                     if (filesPath_master.Count > 0)
                     {
-                        var host = FPTHost;
-                        var port = Convert.ToInt32(FPTPort);
-                        var username = FPTUser;
-                        var password = FPTPwd;
+                        var host = AzureHost;
+                        var port = Convert.ToInt32(AzurePort);
+                        var username = AzureUser;
+                        var password = AzurePwd;
 
                         using (var client = new SftpClient(host, port, username, password))
                         {
                             client.Connect();
                             if (client.IsConnected)
                             {
-                                log.Info("UploadFile_POP3rdParty_master Connected to FPT Cloud");
+                                log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
 
                                 int maxtime_pos = 0;
                                 foreach (string pathtg in filesPath_master)
@@ -353,7 +353,7 @@ namespace AEON_POP_3rdParty_GetFileService
                                         try
                                         {
                                             client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                            client.ChangeDirectory("/POP_3rdParty_PRD");
+                                            client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
                                             client.UploadFile(fileStream, Path.GetFileName(pathtg));
                                             log.Info(string.Format("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}", pathtg));
                                         }
@@ -366,7 +366,7 @@ namespace AEON_POP_3rdParty_GetFileService
                             }
                             else
                             {
-                                log.Error("UploadFile_POP3rdParty_master_PRD can not connected to FPT Cloud");
+                                log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
                             }
                         }
                     }
