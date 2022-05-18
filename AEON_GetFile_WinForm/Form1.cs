@@ -22,6 +22,8 @@ namespace AEON_GetFile_WinForm
         private BackgroundWorker myWorker_GetFile3rdParty = new BackgroundWorker();
         private BackgroundWorker myWorker_GetFile3rdParty_PRD = new BackgroundWorker();
         private BackgroundWorker myWorker_GetFile3rdParty_Azure = new BackgroundWorker();
+        private BackgroundWorker myWorker_PutFileCx_Pos = new BackgroundWorker();
+        private BackgroundWorker myWorker_PutFileCx_BI = new BackgroundWorker();
 
         private string FileConfig = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfig");
         private string DirectoryFrom = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom");
@@ -70,6 +72,150 @@ namespace AEON_GetFile_WinForm
             myWorker_GetFile3rdParty_Azure.ProgressChanged += new ProgressChangedEventHandler(myWorker_GetFile3rdParty_Azure_ProgressChanged);
             myWorker_GetFile3rdParty_Azure.WorkerReportsProgress = true;
             myWorker_GetFile3rdParty_Azure.WorkerSupportsCancellation = true;
+
+            myWorker_PutFileCx_Pos.DoWork += new DoWorkEventHandler(myWorker_PutFileCx_Pos_DoWork);
+            myWorker_PutFileCx_Pos.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PutFileCx_Pos_RunWorkerCompleted);
+            myWorker_PutFileCx_Pos.ProgressChanged += new ProgressChangedEventHandler(myWorker_PutFileCx_Pos_ProgressChanged);
+            myWorker_PutFileCx_Pos.WorkerReportsProgress = true;
+            myWorker_PutFileCx_Pos.WorkerSupportsCancellation = true;
+
+            myWorker_PutFileCx_BI.DoWork += new DoWorkEventHandler(myWorker_PutFileCx_BI_DoWork);
+            myWorker_PutFileCx_BI.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PutFileCx_BI_RunWorkerCompleted);
+            myWorker_PutFileCx_BI.ProgressChanged += new ProgressChangedEventHandler(myWorker_PutFileCx_BI_ProgressChanged);
+            myWorker_PutFileCx_BI.WorkerReportsProgress = true;
+            myWorker_PutFileCx_BI.WorkerSupportsCancellation = true;
+        }
+
+        private void myWorker_PutFileCx_BI_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PutFileCx_BI_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            log.Info("myWorker_PutFileCx_BI_RunWorkerCompleted");
+        }
+
+        private void myWorker_PutFileCx_BI_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                log.Info("myWorker_PutFileCx_Pos_DoWork");
+
+                var host = FPTHost;
+                var port = Convert.ToInt32(FPTPort);
+                var username = FPTUser;
+                var password = FPTPwd;
+
+                PutFileCx_BI(host, port, username, password);
+
+                log.Info("myWorker_PutFileCx_Pos_DoWork done!");
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("myWorker_PutFileCx_Pos_DoWork - Exception: {0}", ex.Message);
+            }
+        }
+
+        private static void PutFileCx_BI(string host, int port, string username, string password)
+        {
+            using (var client = new SftpClient(host, port, username, password))
+            {
+                client.Connect();
+                if (client.IsConnected)
+                {
+                    log.Info("PutFileCx_BI Connected to FPT Cloud");
+
+                    var filesList = client.ListDirectory("/SAP_Cx/Cx_Out/BI");
+                    foreach (var file in filesList)
+                    {
+                        var remoteFileName = file.Name;
+                        if (!remoteFileName.StartsWith("backup"))
+                        {
+                            //download file
+                            using (Stream file1 = File.OpenWrite(@"C:\profit\vnm\download\bi\" + remoteFileName))
+                            {
+                                client.DownloadFile($"/SAP_Cx/Cx_Out/BI/{remoteFileName}", file1);
+                            }
+
+                            if (File.Exists(@"C:\profit\vnm\download\bi\" + remoteFileName))
+                                log.InfoFormat("PutFileCx_BI: download file successfully: {0}", @"C:\profit\vnm\download\bi\" + remoteFileName);
+                            else
+                                log.ErrorFormat("PutFileCx_BI: download file failed: {0}", @"C:\profit\vnm\download\bi\" + remoteFileName);
+                        }
+                    }
+                }
+                else
+                {
+                    log.Error("PutFileCx_BI can not connected to FPT Cloud");
+                }
+            }
+        }
+
+        private void myWorker_PutFileCx_Pos_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PutFileCx_Pos_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            log.Info("myWorker_PutFileCx_Pos_RunWorkerCompleted");
+        }
+
+        private void myWorker_PutFileCx_Pos_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                log.Info("myWorker_PutFileCx_Pos_DoWork");
+
+                var host = FPTHost;
+                var port = Convert.ToInt32(FPTPort);
+                var username = FPTUser;
+                var password = FPTPwd;
+
+                PutFileCx_Pos(host, port, username, password);
+
+                log.Info("myWorker_PutFileCx_Pos_DoWork done!");
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("myWorker_PutFileCx_Pos_DoWork - Exception: {0}", ex.Message);
+            }
+        }
+
+        private static void PutFileCx_Pos(string host, int port, string username, string password)
+        {
+            using (var client = new SftpClient(host, port, username, password))
+            {
+                client.Connect();
+                if (client.IsConnected)
+                {
+                    log.Info("PutFileCx_Pos Connected to FPT Cloud");
+
+                    var filesList = client.ListDirectory("/SAP_Cx/Cx_Out/POS");
+                    foreach (var file in filesList)
+                    {
+                        var remoteFileName = file.Name;
+                        if (!remoteFileName.StartsWith("Waiting"))
+                        {
+                            //download file
+                            using (Stream file1 = File.OpenWrite(@"C:\profit\vnm\download\pos\" + remoteFileName))
+                            {
+                                client.DownloadFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", file1);
+                            }
+
+                            if (File.Exists(@"C:\profit\vnm\download\pos\" + remoteFileName))
+                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}", @"C:\profit\vnm\download\pos\" + remoteFileName);
+                            else
+                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}", @"C:\profit\vnm\download\pos\" + remoteFileName);
+                        }
+                    }
+                }
+                else
+                {
+                    log.Error("PutFileCx_Pos can not connected to FPT Cloud");
+                }
+            }
         }
 
         private void myWorker_GetFile3rdParty_Azure_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -1288,5 +1434,28 @@ namespace AEON_GetFile_WinForm
             }
         }
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                myWorker_PutFileCx_Pos.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                myWorker_PutFileCx_BI.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }
