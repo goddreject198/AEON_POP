@@ -144,6 +144,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                             //insert info file to table PROFIT_FILES
                             string filename = Path.GetFileName(pathtg);
+                            file_name = filename;
                             if (filename.Length >= 6)
                             {
                                 if (filename.Substring(0, 6) == "STORE_")
@@ -2467,10 +2468,10 @@ namespace AEON_POP3rdParty_WindowsService
                 MyAdapter.Fill(dTable_SKUCode);
                 connection.Close();
 
-                var client = new RestClient("http://45.77.34.122/thirdparty/sku/downloadtomobile");
+                var client = new RestClient("http://10.0.0.5/thirdparty/sku/downloadtomobile");
                 client.Timeout = -1;
                 var request = new RestRequest(Method.POST);
-                request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                request.AddHeader("Authorization", "fc0cc038-dd29-4b02-b448-b713d19cafdd");
                 request.AddHeader("Content-Type", "application/json");
 
                 string body = "{\"skus\": [";
@@ -2509,7 +2510,7 @@ namespace AEON_POP3rdParty_WindowsService
                         sku_code = "";
 
                         request.Parameters.Clear();
-                        request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                        request.AddHeader("Authorization", "fc0cc038-dd29-4b02-b448-b713d19cafdd");
                         request.AddHeader("Content-Type", "application/json");
 
                         dem = 0;
