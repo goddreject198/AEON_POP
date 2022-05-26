@@ -98,6 +98,7 @@ namespace AEON_POP_3rdParty_GetFileService
                 check_backgroundworker_running = true;
 
                 DateTime max_time_pop = DateTime.MinValue;
+                string last_filename_pop = "";
                 if (File.Exists(FileConfig_PRD))
                 {
                     using (var reader = new StreamReader(FileConfig_PRD))
@@ -107,6 +108,7 @@ namespace AEON_POP_3rdParty_GetFileService
                             var line = reader.ReadLine();
                             var values = line.Split(',');
 
+                            last_filename_pop = values[0].ToString();
                             string max_time = values[1].ToString();
                             log.InfoFormat("MaxTime_Pop_PRD: " + max_time);
                             DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_pop);
@@ -119,75 +121,83 @@ namespace AEON_POP_3rdParty_GetFileService
                     return;
                 }
                 log.Info("MaxTime_Pop_PRD: " + max_time_pop.ToString());
-                TimeSpan duration = new TimeSpan(0, 0, 0, 1);
+                TimeSpan duration = new TimeSpan(0, 0, 0, 0, 1);
 
 
                 DirectoryInfo info = new DirectoryInfo(DirectoryFrom_PRD);
                 List<string> filesPath = info.GetFiles("*.csv")
                                                 //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                                                .Where(x => x.LastWriteTime >= max_time_pop.Add(duration))
+                                                //.Where(x => x.LastWriteTime >= max_time_pop.Add(duration))
+                                                .Where(x => x.LastWriteTime >= max_time_pop)
                                                 .OrderByDescending(x => x.LastWriteTime)
                                               .Select(x => x.FullName)
                                               .ToList();
                 if (filesPath.Count > 0)
                 {
-                    //var host = "139.180.214.252";
-                    //var port = 22;
-                    //var username = "fptsftpuser";
-                    //var password = "Fptsftp*2021";
-                    var host = AzureHost;
-                    var port = Convert.ToInt32(AzurePort);
-                    var username = AzureUser;
-                    var password = AzurePwd;
-
-                    using (var client = new SftpClient(host, port, username, password))
+                    if (filesPath.Count == 1 && Path.GetFileName(filesPath[0]).ToString() == last_filename_pop)
                     {
-                        client.Connect();
-                        if (client.IsConnected)
-                        {
-                            log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
+                        log.Info("UploadFile_POP3rdParty_PRD get file old!");
+                    }
+                    else
+                    {
+                        //var host = "139.180.214.252";
+                        //var port = 22;
+                        //var username = "fptsftpuser";
+                        //var password = "Fptsftp*2021";
+                        var host = AzureHost;
+                        var port = Convert.ToInt32(AzurePort);
+                        var username = AzureUser;
+                        var password = AzurePwd;
 
-                            int maxtime_pos = 0;
-                            foreach (string pathtg in filesPath)
+                        using (var client = new SftpClient(host, port, username, password))
+                        {
+                            client.Connect();
+                            if (client.IsConnected)
                             {
-                                string lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
-                                if (maxtime_pos == 0)
+                                log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
+
+                                int maxtime_pos = 0;
+                                foreach (string pathtg in filesPath)
                                 {
-                                    log.Info(String.Format("last time pos PRD: {0}", lastwritetime));
-                                    string filename = string.Format("MaxTime_Pop_PRD.csv");
-                                    //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
-                                    //{
-                                    //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
-                                    //}
-                                    StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false, Encoding.Unicode);
-                                    sw.Write(pathtg + ",");
-                                    sw.Write(lastwritetime);
-                                    sw.WriteLine();
-                                    sw.Close();
-                                }
-                                maxtime_pos++;
-                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
-                                {
-                                    try
+                                    string lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
+                                    if (maxtime_pos == 0)
                                     {
-                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                        log.Info(string.Format("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", pathtg));
+                                        log.Info(String.Format("last time pos PRD: {0}", lastwritetime));
+                                        string filename = string.Format("MaxTime_Pop_PRD.csv");
+                                        //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
+                                        //{
+                                        //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
+                                        //}
+                                        StreamWriter sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false, Encoding.Unicode);
+                                        sw.Write(pathtg + ",");
+                                        sw.Write(lastwritetime);
+                                        sw.WriteLine();
+                                        sw.Close();
                                     }
-                                    catch (Exception ex)
+                                    maxtime_pos++;
+                                    using (var fileStream = new FileStream(pathtg, FileMode.Open))
                                     {
-                                        log.Error(string.Format("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message));
+                                        try
+                                        {
+                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                            client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                            client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                            log.Info(string.Format("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", pathtg));
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.Error(string.Format("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message));
+                                        }
                                     }
                                 }
                             }
+                            else
+                            {
+                                log.Error("UploadFile_POP3rdParty_PRD can not connected to AEON Azure");
+                            }
                         }
-                        else
-                        {
-                            log.Error("UploadFile_POP3rdParty_PRD can not connected to AEON Azure");
-                        }
+                        log.Info("UploadFile_POP3rdParty_PRD done!");
                     }
-                    log.Info("UploadFile_POP3rdParty_PRD done!");
                 }
                 else
                 {
@@ -205,14 +215,14 @@ namespace AEON_POP_3rdParty_GetFileService
                             var values = line.Split(',');
 
                             string max_time = values[1].ToString();
-                            log.Info(max_time);
+                            log.Info("MaxTime_Pop_PRD_Master: " + max_time);
                             DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_pop_master);
                         }
                     }
                 }
                 if (max_time_pop_master == DateTime.MinValue)
                 {
-                    log.Info(max_time_pop_master.ToString());
+                    log.Info("MaxTime_Pop_PRD_Master: " + max_time_pop_master.ToString());
                     return;
                 }
                 log.Info(max_time_pop_master.ToString());
@@ -233,6 +243,7 @@ namespace AEON_POP_3rdParty_GetFileService
                                                     .Union(info_master.GetFiles("SCATEGORY_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
+                                                    //.Where(x => x.LastWriteTime >= max_time_pop_master)
                                                     .OrderByDescending(x => x.LastWriteTime)
                                                   .Select(x => x.FullName)
                                                   .ToList();
@@ -312,6 +323,7 @@ namespace AEON_POP_3rdParty_GetFileService
                                                     .Union(info_master.GetFiles("SCATEGORY_*.csv"))
                                                     //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
                                                     .Where(x => x.LastWriteTime >= max_time_pop_master.Add(duration_master))
+                                                    //.Where(x => x.LastWriteTime >= max_time_pop_master)
                                                     .OrderByDescending(x => x.LastWriteTime)
                                                   .Select(x => x.FullName)
                                                   .ToList();
