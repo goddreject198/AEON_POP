@@ -196,18 +196,52 @@ namespace AEON_GetFile_WinForm
                     foreach (var file in filesList)
                     {
                         var remoteFileName = file.Name;
-                        if (!remoteFileName.StartsWith("Waiting"))
+                        if (!remoteFileName.StartsWith("backup") && remoteFileName.StartsWith("M"))
                         {
                             //download file
-                            using (Stream file1 = File.OpenWrite(@"C:\profit\vnm\download\pos\" + remoteFileName))
+                            using (Stream file1 = File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
                             {
                                 client.DownloadFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", file1);
                             }
 
-                            if (File.Exists(@"C:\profit\vnm\download\pos\" + remoteFileName))
-                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}", @"C:\profit\vnm\download\pos\" + remoteFileName);
+                            if (File.Exists(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
+                            {
+                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}", @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
+
+                                //move file backup on server
+                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                if (!client.Exists($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}"))
+                                {
+                                    client.CreateDirectory($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}");
+                                }
+                                client.RenameFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", $"/SAP_Cx/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                            }
                             else
-                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}", @"C:\profit\vnm\download\pos\" + remoteFileName);
+                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}", @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
+                        }
+                        else if (!remoteFileName.StartsWith("backup") && !remoteFileName.StartsWith("M"))
+                        {
+                            var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) + Path.GetExtension(remoteFileName).Substring(1,3); 
+                            //download file
+                            using (Stream file1 = File.OpenWrite($@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                            {
+                                client.DownloadFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", file1);
+                            }
+
+                            if (File.Exists($@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                            {
+                                log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+
+                                //move file backup on server
+                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                if (!client.Exists($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}"))
+                                {
+                                    client.CreateDirectory($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}");
+                                }
+                                client.RenameFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", $"/SAP_Cx/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                            }
+                            else
+                                log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
                         }
                     }
                 }
@@ -1481,48 +1515,5 @@ namespace AEON_GetFile_WinForm
             }
         }
 
-        private void button7_Click(object sender, EventArgs e)
-        {
-            DateTime max_time_pop = DateTime.MinValue;
-            if (File.Exists(@"C:\FPTGetFile\Config\MaxTime_Pop.csv"))
-            {
-                using (var reader = new StreamReader(@"C:\FPTGetFile\Config\MaxTime_Pop.csv"))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        var line = reader.ReadLine();
-                        var values = line.Split(',');
-
-                        string max_time = values[1].ToString();
-                        log.Info(max_time);
-                        DateTime.TryParseExact(max_time, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out max_time_pop);
-                    }
-                }
-            }
-            if (max_time_pop == DateTime.MinValue)
-            {
-                log.Info(max_time_pop.ToString());
-                return;
-            }
-            log.Info(max_time_pop.ToString());
-            TimeSpan duration = new TimeSpan(0, 0, 0, 0, 887);
-            //max_time_pop = max_time_pop.Add(duration);
-
-            DirectoryInfo info = new DirectoryInfo(string.Format(@"C:\profit\vnm\download\fpt_bi\pop_system\"));
-            List<string> filesPath = info.GetFiles("*.csv")
-                //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                //.Where(x => x.LastWriteTime >= max_time_pop.Add(duration))\
-                .Where(x => x.LastWriteTime >= max_time_pop)
-                .OrderByDescending(x => x.LastWriteTime)
-                .Select(x => x.FullName)
-                .ToList();
-            if (filesPath.Count > 0)
-            {
-                foreach (string pathtg in filesPath)
-                {
-                    Console.WriteLine(pathtg + ":" + File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmssfff"));
-                }
-            }
-        }
     }
 }
