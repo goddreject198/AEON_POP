@@ -20,7 +20,7 @@ namespace AEON_POP_WinForm
     {
         //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
         //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop_prd", "fpt", "fptpop@2021");
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop_prd", "root", "qs0123123");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop", "root", "qs0123123");
 
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
@@ -88,7 +88,7 @@ namespace AEON_POP_WinForm
 
                 if (response.IsSuccessful)
                 {
-                    var sql_delete_sku_code = String.Format("DELETE FROM `aeon_pop_prd`.`sku_code_temp` WHERE SKU_CODE IN ({0});" , sku_code);
+                    var sql_delete_sku_code = String.Format("DELETE FROM `aeon_pop`.`sku_code_temp` WHERE SKU_CODE IN ({0});" , sku_code);
                     connection.Open();
                     MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
                     comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
@@ -144,7 +144,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 6) == "STORE_")
                                 {
                                     #region STORE_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -171,7 +171,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_Store = String.Format(@"INSERT INTO `aeon_pop_prd`.`store_temp`
+                                        var sql_insert_data_Store = String.Format(@"INSERT INTO `aeon_pop`.`store_temp`
                                                                                     (`STORE_ID`,`STORE_NAME`,`STORE_BU`,`STORE_TAX_REG`,`STORE_DATE_OPEN`,`STORE_REGION`,`DELETED`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -212,7 +212,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data_Store.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_Store = String.Format(@"INSERT INTO `aeon_pop_prd`.`store_temp`
+                                                sql_insert_data_Store = String.Format(@"INSERT INTO `aeon_pop`.`store_temp`
                                                                                     (`STORE_ID`,`STORE_NAME`,`STORE_BU`,`STORE_TAX_REG`,`STORE_DATE_OPEN`,`STORE_REGION`,`DELETED`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -240,7 +240,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -254,7 +254,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 5) == "LINE_")
                                 {
                                     #region LINE_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -281,7 +281,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_Line = String.Format(@"INSERT INTO `aeon_pop_prd`.`line_temp`
+                                        var sql_insert_data_Line = String.Format(@"INSERT INTO `aeon_pop`.`line_temp`
                                                                                     (`LINE_ID`,`LINE_NAME`,`DELETED`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -318,7 +318,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data_Store.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_Line = String.Format(@"INSERT INTO `aeon_pop_prd`.`line_temp`
+                                                sql_insert_data_Line = String.Format(@"INSERT INTO `aeon_pop`.`line_temp`
                                                                                     (`LINE_ID`,`LINE_NAME`,`DELETED`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -346,7 +346,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -360,7 +360,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 9) == "DIVISION_")
                                 {
                                     #region DIVISION_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -387,7 +387,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_Division = String.Format(@"INSERT INTO `aeon_pop_prd`.`division_temp`
+                                        var sql_insert_data_Division = String.Format(@"INSERT INTO `aeon_pop`.`division_temp`
                                                                                     (`DIV_ID`,`DIV_NAME`,`LINE_ID`,`DELETED`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -425,7 +425,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data_Store.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_Division = String.Format(@"INSERT INTO `aeon_pop_prd`.`division_temp`
+                                                sql_insert_data_Division = String.Format(@"INSERT INTO `aeon_pop`.`division_temp`
                                                                                     (`DIV_ID`,`DIV_NAME`,`LINE_ID`,`DELETED`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -453,7 +453,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -467,7 +467,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 6) == "GROUP_")
                                 {
                                     #region GROUP_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -494,7 +494,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_Group = String.Format(@"INSERT INTO `aeon_pop_prd`.`group_temp`
+                                        var sql_insert_data_Group = String.Format(@"INSERT INTO `aeon_pop`.`group_temp`
                                                                                     (`GROUP_ID`,`GROUP_NAME`,`DIV_ID`,`DELETED`,`LINE_ID`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -533,7 +533,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_Group = String.Format(@"INSERT INTO `aeon_pop_prd`.`group_temp`
+                                                sql_insert_data_Group = String.Format(@"INSERT INTO `aeon_pop`.`group_temp`
                                                                                     (`GROUP_ID`,`GROUP_NAME`,`DIV_ID`,`DELETED`,`LINE_ID`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -561,7 +561,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -575,7 +575,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 5) == "DEPT_")
                                 {
                                     #region DEPT_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -602,7 +602,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_Dept = String.Format(@"INSERT INTO `aeon_pop_prd`.`department_temp`
+                                        var sql_insert_data_Dept = String.Format(@"INSERT INTO `aeon_pop`.`department_temp`
                                                                                     (`DEPT_ID`,`DEPT_NAME`,`GROUP_ID`,`DELETED`,`DEPT_TYPE`,`PERISHABLE`,`COSTING_METHOD`,`MATERIAL_FLAG`,`REBATE_TYPE`
                                                                                     ,`ORDER_CHKLST_CTRL`,`PREFIX`,`EXPIRY_DATE_CTRL`,`PRINT_ORDER_BOOK`,`CDO_DEPT`,`MOMMY_CARD_DEPT`,`FOOD_CARD_DEPT`,`AUTO_REPLENISH_DEPT`
                                                                                     ,`SCHEMATIC_DEPT`,`PRINT_REMARK_IN_PO`,`PRINT_REMARK_IN_OC`,`DLOAD_PO_REMARK_TO_EDI`,`INDICATION_IN_ORD_CHKLST`,`DIV_ID`,`LINE_ID`,`FILE_ID`)VALUES");
@@ -666,7 +666,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_Dept = String.Format(@"INSERT INTO `aeon_pop_prd`.`department_temp`
+                                                sql_insert_data_Dept = String.Format(@"INSERT INTO `aeon_pop`.`department_temp`
                                                                                     (`DEPT_ID`,`DEPT_NAME`,`GROUP_ID`,`DELETED`,`DEPT_TYPE`,`PERISHABLE`,`COSTING_METHOD`,`MATERIAL_FLAG`,`REBATE_TYPE`
                                                                                     ,`ORDER_CHKLST_CTRL`,`PREFIX`,`EXPIRY_DATE_CTRL`,`PRINT_ORDER_BOOK`,`CDO_DEPT`,`MOMMY_CARD_DEPT`,`FOOD_CARD_DEPT`,`AUTO_REPLENISH_DEPT`
                                                                                     ,`SCHEMATIC_DEPT`,`PRINT_REMARK_IN_PO`,`PRINT_REMARK_IN_OC`,`DLOAD_PO_REMARK_TO_EDI`,`INDICATION_IN_ORD_CHKLST`,`DIV_ID`,`LINE_ID`,`FILE_ID`)VALUES");
@@ -696,7 +696,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -710,7 +710,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 9) == "CATEGORY_")
                                 {
                                     #region CATEGORY_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -737,7 +737,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_Category = String.Format(@"INSERT INTO `aeon_pop_prd`.`category_temp`
+                                        var sql_insert_data_Category = String.Format(@"INSERT INTO `aeon_pop`.`category_temp`
                                                                                     (`CATEGORY_ID`,`CATEGORY_NAME`,`DEPT_ID`,`DELETED`,`AUTO_PA`,`POS_FLAG`,`PWP_EXCLUSION`,`AGE_STOCK_RETEN_PERIOD`,`MBR_DISC_FLAG`
                                                                                     ,`MBR_DISC_PERC`,`MOMMY_DISC_PERC`,`HS_CODE`,`MSDS_CODE`,`GROUP_ID`,`DIV_ID`,`LINE_ID`,`FILE_ID`)VALUES");
 
@@ -790,7 +790,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_Category = String.Format(@"INSERT INTO `aeon_pop_prd`.`category_temp`
+                                                sql_insert_data_Category = String.Format(@"INSERT INTO `aeon_pop`.`category_temp`
                                                                                     (`CATEGORY_ID`,`CATEGORY_NAME`,`DEPT_ID`,`DELETED`,`AUTO_PA`,`POS_FLAG`,`PWP_EXCLUSION`,`AGE_STOCK_RETEN_PERIOD`,`MBR_DISC_FLAG`
                                                                                     ,`MBR_DISC_PERC`,`MOMMY_DISC_PERC`,`HS_CODE`,`MSDS_CODE`,`GROUP_ID`,`DIV_ID`,`LINE_ID`,`FILE_ID`)VALUES");
                                                 line = 0;
@@ -819,7 +819,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -833,7 +833,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 10) == "SCATEGORY_")
                                 {
                                     #region SCATEGORY_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -860,7 +860,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_SubCategory = String.Format(@"INSERT INTO `aeon_pop_prd`.`sub_category_temp`
+                                        var sql_insert_data_SubCategory = String.Format(@"INSERT INTO `aeon_pop`.`sub_category_temp`
                                                                                     (`SUBCATEGORY_ID`,`SUBCATEGORY_NAME`,`CATEGORY_ID`,`DELETED`,`DEPT_ID`,`GROUP_ID`,`DIV_ID`,`LINE_ID`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -902,7 +902,7 @@ namespace AEON_POP_WinForm
                                                 int kq = comm_sql_insert_data.ExecuteNonQuery();
                                                 connection.Close();
 
-                                                sql_insert_data_SubCategory = String.Format(@"INSERT INTO `aeon_pop_prd`.`sub_category_temp`
+                                                sql_insert_data_SubCategory = String.Format(@"INSERT INTO `aeon_pop`.`sub_category_temp`
                                                                                     (`SUBCATEGORY_ID`,`SUBCATEGORY_NAME`,`CATEGORY_ID`,`DELETED`,`DEPT_ID`,`GROUP_ID`,`DIV_ID`,`LINE_ID`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -930,7 +930,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -944,7 +944,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 5) == "ITEM_")
                                 {
                                     #region SKU new insert DB
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -971,7 +971,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop_prd`.`sku_temp`
+                                        var sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku_temp`
                                                                                     (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
                                                                                     ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
                                                                                     ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
@@ -1233,14 +1233,14 @@ namespace AEON_POP_WinForm
                                             }
                                             //string POP1_DESC_VNM = result.POP1_DESC_VNM;
                                             string POP2_DESC_VNM = "";
-                                            string temp_POP2_DESC_VNM = rows[16].ToString();
+                                            string temp_POP2_DESC_VNM = rows[15].ToString();
                                             if (temp_POP2_DESC_VNM.Contains("\""))
                                             {
                                                 POP2_DESC_VNM = temp_POP2_DESC_VNM.Replace("\"", "\"\"");
                                             }
                                             else
                                             {
-                                                POP2_DESC_VNM = rows[16].ToString();
+                                                POP2_DESC_VNM = rows[15].ToString();
                                             }
                                             //string POP2_DESC_VNM = result.POP2_DESC_VNM;
                                             string POP3_DESC_VNM = "";
@@ -1264,12 +1264,28 @@ namespace AEON_POP_WinForm
                                             {
                                                 SELLING_POINT1 = rows[85].ToString();
                                             }
+                                            if (temp_SELLING_POINT1.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT1 = temp_SELLING_POINT1.Replace(@"@@", ",");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT1 = rows[85].ToString();
+                                            }
                                             //string SELLING_POINT1 = rows[85].ToString();
                                             string SELLING_POINT2 = "";
                                             string temp_SELLING_POINT2 = rows[86].ToString();
                                             if (temp_SELLING_POINT2.Contains("\""))
                                             {
                                                 SELLING_POINT2 = temp_SELLING_POINT2.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT2 = rows[86].ToString();
+                                            }
+                                            if (temp_SELLING_POINT2.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT2 = temp_SELLING_POINT2.Replace(@"@@", ",");
                                             }
                                             else
                                             {
@@ -1286,6 +1302,14 @@ namespace AEON_POP_WinForm
                                             {
                                                 SELLING_POINT3 = rows[87].ToString();
                                             }
+                                            if (temp_SELLING_POINT3.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT3 = temp_SELLING_POINT3.Replace(@"@@", ",");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT3 = rows[87].ToString();
+                                            }
                                             //string SELLING_POINT3 = rows[87].ToString();
                                             string SELLING_POINT4 = "";
                                             string temp_SELLING_POINT4 = rows[88].ToString();
@@ -1297,12 +1321,28 @@ namespace AEON_POP_WinForm
                                             {
                                                 SELLING_POINT4 = rows[88].ToString();
                                             }
+                                            if (temp_SELLING_POINT4.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT4 = temp_SELLING_POINT4.Replace(@"@@", ",");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT4 = rows[88].ToString();
+                                            }
                                             //string SELLING_POINT4 = rows[88].ToString();
                                             string SELLING_POINT5 = "";
                                             string temp_SELLING_POINT5 = rows[89].ToString();
                                             if (temp_SELLING_POINT5.Contains("\""))
                                             {
                                                 SELLING_POINT5 = temp_SELLING_POINT5.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT5 = rows[89].ToString();
+                                            }
+                                            if (temp_SELLING_POINT5.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT5 = temp_SELLING_POINT5.Replace(@"@@", ",");
                                             }
                                             else
                                             {
@@ -1363,7 +1403,7 @@ namespace AEON_POP_WinForm
                                                 //MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
                                                 //connection.Close();
 
-                                                sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop_prd`.`sku_temp`
+                                                sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku_temp`
                                                                                     (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
                                                                                     ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
                                                                                     ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
@@ -1396,7 +1436,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -1406,7 +1446,7 @@ namespace AEON_POP_WinForm
 
                                     #region SKU old
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -1533,7 +1573,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table
-                                                                        var sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop_prd`.`sku`
+                                                                        var sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku`
                                                                                                                         (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
                                                                                                                         ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
                                                                                                                         ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
@@ -1751,7 +1791,7 @@ namespace AEON_POP_WinForm
                                                                                 //MySqlDataReader rdr_insert_data_SKU = cmd_insert_data_SKU.ExecuteReader();
                                                                                 //connection.Close();
 
-                                                                                sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop_prd`.`sku`
+                                                                                sql_insert_data_SKU = String.Format(@"INSERT INTO `aeon_pop`.`sku`
                                                                                                                         (`SKU_CODE`,`ITEM_DESC_VNM`,`PACK_ITEM`,`PERISH_ITEM`,`NON_INVENTORY`,`NON_PLU`,`MOMMY_ITEM`
                                                                                                                         ,`FOOD_ITEM`,`MEMBER_DISC_ITEM`,`SUPER_SAVER_ITEM`,`AUTO_REPLENISH_ITEM`,`PURCHASE_METHOD`
                                                                                                                         ,`LINE_ID`,`DIVISION_ID`,`GROUP_ID`,`DEPT_ID`,`CATEGORY_ID`,`SUB_CATEGORY`
@@ -1791,7 +1831,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -1806,7 +1846,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 10) == "HAMPERMST_")
                                 {
                                     #region Hamper new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -1832,7 +1872,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table hamper
-                                        var sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop_prd`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
+                                        var sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
                                                                                             ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -1876,7 +1916,7 @@ namespace AEON_POP_WinForm
                                                 connection.Close();
 
 
-                                                sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop_prd`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
+                                                sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
                                                                                             ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -1903,7 +1943,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -1913,7 +1953,7 @@ namespace AEON_POP_WinForm
 
                                     #region Hamper old
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -1996,7 +2036,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table ITEMSELLPRICE
-                                                                        var sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop_prd`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
+                                                                        var sql_insert_data_Hamper = String.Format(@"INSERT INTO `aeon_pop`.`hamper`(`PACK_SKU`,`DESCRIPTION`,`PACK_TYPE`,`SKU`,`QTY_PER_SKU`,`QTY_UOM`,`STORE`
                                                                                                                                 ,`DECORATION_FLAG`,`STATUS`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
                                                                         foreach (var result in result_table)
@@ -2051,7 +2091,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2066,7 +2106,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 13) == "ITEMPRICECHG_")
                                 {
                                     #region ItemPriceChange new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -2092,7 +2132,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table hamper
-                                        var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop_prd`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                        var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
@@ -2142,7 +2182,7 @@ namespace AEON_POP_WinForm
                                                 connection.Close();
 
 
-                                                sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop_prd`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                                sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
@@ -2171,7 +2211,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2181,7 +2221,7 @@ namespace AEON_POP_WinForm
 
                                     #region ItemPriceChange
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -2286,7 +2326,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table 
-                                                                        var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop_prd`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                                                        var sql_insert_data_ItemPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`pricechange`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                                                                 ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                                                                 ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                                                                 ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
@@ -2345,7 +2385,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2360,7 +2400,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 9) == "MIXMATCH_")
                                 {
                                     #region MIXMATCH_ new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -2386,7 +2426,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop_prd`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
+                                        var sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
                                                                                                 ,`START_DATE`,`START_TIME`,`END_DATE`,`END_TIME`,`TTL_PROMO_QTY`,`TTL_PROMO_PRICE`,`PLU_COUNT`,`EVENT_ID`,`STORE`
                                                                                                 ,`SKU`,`SEQ`,`NORMAL_PRICE`,`SELL_UOM`,`PROMO_QTY`,`FOC_QTY`,`PROMO_PRICE`,`FOC_SKU`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
@@ -2447,7 +2487,7 @@ namespace AEON_POP_WinForm
                                                 connection.Close();
 
 
-                                                sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop_prd`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
+                                                sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
                                                                                                 ,`START_DATE`,`START_TIME`,`END_DATE`,`END_TIME`,`TTL_PROMO_QTY`,`TTL_PROMO_PRICE`,`PLU_COUNT`,`EVENT_ID`,`STORE`
                                                                                                 ,`SKU`,`SEQ`,`NORMAL_PRICE`,`SELL_UOM`,`PROMO_QTY`,`FOC_QTY`,`PROMO_PRICE`,`FOC_SKU`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
                                                 line = 0;
@@ -2475,7 +2515,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2594,7 +2634,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table
-                                                                        var sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop_prd`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
+                                                                        var sql_insert_data_MixMatch = String.Format(@"INSERT INTO `aeon_pop`.`mix_match`(`PROMO_NO`,`PROMO_TYPE`,`PROMO_DESC`,`STATUS`,`MAX_OR_PARTIAL`
                                                                                                                                     ,`START_DATE`,`START_TIME`,`END_DATE`,`END_TIME`,`TTL_PROMO_QTY`,`TTL_PROMO_PRICE`,`PLU_COUNT`,`EVENT_ID`,`STORE`
                                                                                                                                     ,`SKU`,`SEQ`,`NORMAL_PRICE`,`SELL_UOM`,`PROMO_QTY`,`FOC_QTY`,`PROMO_PRICE`,`FOC_SKU`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
@@ -2666,7 +2706,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2681,7 +2721,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 12) == "GRPPRICECHG_")
                                 {
                                     #region GRPPRICECHG_ new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -2707,7 +2747,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop_prd`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
+                                        var sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
                                                                                             ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
                                                                                             ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
@@ -2751,7 +2791,7 @@ namespace AEON_POP_WinForm
                                                 connection.Close();
 
 
-                                                sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop_prd`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
+                                                sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
                                                                                             ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
                                                                                             ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
                                                 line = 0;
@@ -2779,7 +2819,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2789,7 +2829,7 @@ namespace AEON_POP_WinForm
 
                                     #region Group_PriceChange
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -2885,7 +2925,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table
-                                                                        var sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop_prd`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
+                                                                        var sql_insert_data_GroupPriceChange = String.Format(@"INSERT INTO `aeon_pop`.`group_pricechange`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
                                                                                                                                 ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
                                                                                                                                 ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
 
@@ -2940,7 +2980,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -2955,7 +2995,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 14) == "ITEMSELLPRICE_")
                                 {
                                     #region ITEMSELLPRICE_ new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -2981,7 +3021,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table ITEMSELLPRICE
-                                        var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_sell_price_temp`(`STORE`,`SKU`
+                                        var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop`.`item_sell_price_temp`(`STORE`,`SKU`
                                                                                             ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
                                                                                             ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
 
@@ -3026,7 +3066,7 @@ namespace AEON_POP_WinForm
                                                 MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
                                                 connection.Close();
 
-                                                sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_sell_price_temp`(`STORE`,`SKU`
+                                                sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop`.`item_sell_price_temp`(`STORE`,`SKU`
                                                                                             ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
                                                                                             ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
                                                 line = 0;
@@ -3054,7 +3094,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3064,7 +3104,7 @@ namespace AEON_POP_WinForm
 
                                     #region ITEMSELLPRICE old
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -3143,7 +3183,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table ITEMSELLPRICE
-                                                                        var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_sell_price`(`STORE`,`SKU`
+                                                                        var sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop`.`item_sell_price`(`STORE`,`SKU`
                                                                                                                                 ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
                                                                                                                                 ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
 
@@ -3185,7 +3225,7 @@ namespace AEON_POP_WinForm
                                                                                 MySqlDataReader rdr_insert_data_ITEMSELLPRICE = cmd_insert_data_ITEMSELLPRICE.ExecuteReader();
                                                                                 connection.Close();
 
-                                                                                sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_sell_price`(`STORE`,`SKU`
+                                                                                sql_insert_data_ITEMSELLPRICE = String.Format(@"INSERT INTO `aeon_pop`.`item_sell_price`(`STORE`,`SKU`
                                                                                                                                 ,`DESCRIPTION`,`CURRENT_PRICE`,`PROMOTION_FLAG`,`PROMOTION_RETAIL`,`MEMBER_RETAIL`
                                                                                                                                 ,`MEMBER_PROMOTION_FLAG`,`MEMBER_PROMOTION_RETAIL`,`FILE_ID`)VALUES");
                                                                                 line = 0;
@@ -3214,7 +3254,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3229,7 +3269,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 12) == "ITEMBARCODE_")
                                 {
                                     #region ITEMBARCODE_ new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -3255,7 +3295,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop_prd`.`barcode`(`BUSINESS_UNIT`,`SKU`
+                                        var sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop`.`barcode`(`BUSINESS_UNIT`,`SKU`
                                                                                             ,`BARCODE`,`IN_HOUSE_FLAG`,`PRIMARY_FLAG`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
@@ -3282,7 +3322,7 @@ namespace AEON_POP_WinForm
                                                 MySqlDataReader rdr_insert_data_BarCode = cmd_insert_data_BarCode.ExecuteReader();
                                                 connection.Close();
 
-                                                sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop_prd`.`barcode`(`BUSINESS_UNIT`,`SKU`
+                                                sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop`.`barcode`(`BUSINESS_UNIT`,`SKU`
                                                                                             ,`BARCODE`,`IN_HOUSE_FLAG`,`PRIMARY_FLAG`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
@@ -3309,7 +3349,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3319,7 +3359,7 @@ namespace AEON_POP_WinForm
 
                                     #region ITEMBARCODE
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -3393,7 +3433,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table
-                                                                        var sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop_prd`.`barcode`(`BUSINESS_UNIT`,`SKU`
+                                                                        var sql_insert_data_BarCode = String.Format(@"INSERT INTO `aeon_pop`.`barcode`(`BUSINESS_UNIT`,`SKU`
                                                                                                                                 ,`BARCODE`,`IN_HOUSE_FLAG`,`PRIMARY_FLAG`,`FILE_ID`)VALUES");
                                                                         foreach (var result in result_table)
                                                                         {
@@ -3431,7 +3471,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3446,7 +3486,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 10) == "ITEMSUPPL_")//ITEMSUPPL_ 
                                 {
                                     #region ITEMSUPPL_ new
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -3472,7 +3512,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
+                                        var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
                                         {
@@ -3498,7 +3538,7 @@ namespace AEON_POP_WinForm
                                                 MySqlDataReader rdr_insert_data_BarCode = cmd_insert_data_BarCode.ExecuteReader();
                                                 connection.Close();
 
-                                                sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
+                                                sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
                                         }
@@ -3524,7 +3564,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3534,7 +3574,7 @@ namespace AEON_POP_WinForm
 
                                     #region ITEM_SUPPLIER_CONTRACT
                                     /*
-                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                                        var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                                                          , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                                                          , filename
                                                                                          , date_now
@@ -3608,7 +3648,7 @@ namespace AEON_POP_WinForm
                                                                         #endregion
 
                                                                         //insert data to table
-                                                                        var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop_prd`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
+                                                                        var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
                                                                         foreach (var result in result_table)
                                                                         {
                                                                             //get data
@@ -3645,7 +3685,7 @@ namespace AEON_POP_WinForm
 
 
                                                                         //update info file to log_file
-                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                                        var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                                                              , log_fileid);
                                                                         connection.Open();
                                                                         var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3660,7 +3700,7 @@ namespace AEON_POP_WinForm
                                 if (filename.Substring(0, 9) == "SUPPLIER_")
                                 {
                                     #region SUPPLIER_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop_prd`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
                                                      , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
                                                      , filename
                                                      , date_now
@@ -3686,7 +3726,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_supplier = String.Format(@"INSERT INTO `aeon_pop_prd`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
+                                        var sql_insert_data_supplier = String.Format(@"INSERT INTO `aeon_pop`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
                                         {
@@ -3714,7 +3754,7 @@ namespace AEON_POP_WinForm
                                                 MySqlDataReader rdr_insert_data = cmd_insert_data.ExecuteReader();
                                                 connection.Close();
 
-                                                sql_insert_data_supplier = String.Format(@"INSERT INTO `aeon_pop_prd`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
+                                                sql_insert_data_supplier = String.Format(@"INSERT INTO `aeon_pop`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
                                         }
@@ -3740,7 +3780,7 @@ namespace AEON_POP_WinForm
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
                                                          , log_fileid);
                                     connection.Open();
                                     var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
@@ -3760,7 +3800,7 @@ namespace AEON_POP_WinForm
                 MessageBox.Show(ex.Message + lineeeeee);
                 MySqlConnection connection = new MySqlConnection(connectionString);
                 //update info file to log_file
-                //var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"{0}\" WHERE `FILE_ID` = '{1}';"
+                //var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"{0}\" WHERE `FILE_ID` = '{1}';"
                 //                                            , ex.Message
                 //                                            , log_fileid);
                 //connection.Open();
@@ -3770,7 +3810,7 @@ namespace AEON_POP_WinForm
 
                 connection.Open();
                 MySqlCommand comm_sql_update_profit_file = connection.CreateCommand();
-                var sql_update_profit_file = String.Format("UPDATE `aeon_pop_prd`.`profit_files_log` SET `MESSAGE` = \"{0}\" WHERE `FILE_ID` = '{1}';"
+                var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"{0}\" WHERE `FILE_ID` = '{1}';"
                                                             , ex.Message
                                                             , log_fileid);
                 comm_sql_update_profit_file.CommandText = sql_update_profit_file;

@@ -1299,14 +1299,14 @@ namespace AEON_POP3rdParty_WindowsService
                                             }
                                             //string POP1_DESC_VNM = result.POP1_DESC_VNM;
                                             string POP2_DESC_VNM = "";
-                                            string temp_POP2_DESC_VNM = rows[16].ToString();
+                                            string temp_POP2_DESC_VNM = rows[15].ToString();
                                             if (temp_POP2_DESC_VNM.Contains("\""))
                                             {
                                                 POP2_DESC_VNM = temp_POP2_DESC_VNM.Replace("\"", "\"\"");
                                             }
                                             else
                                             {
-                                                POP2_DESC_VNM = rows[16].ToString();
+                                                POP2_DESC_VNM = rows[15].ToString();
                                             }
                                             //string POP2_DESC_VNM = result.POP2_DESC_VNM;
                                             string POP3_DESC_VNM = "";
@@ -1330,12 +1330,28 @@ namespace AEON_POP3rdParty_WindowsService
                                             {
                                                 SELLING_POINT1 = rows[85].ToString();
                                             }
+                                            if (temp_SELLING_POINT1.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT1 = temp_SELLING_POINT1.Replace(@"@@", ",");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT1 = rows[85].ToString();
+                                            }
                                             //string SELLING_POINT1 = rows[85].ToString();
                                             string SELLING_POINT2 = "";
                                             string temp_SELLING_POINT2 = rows[86].ToString();
                                             if (temp_SELLING_POINT2.Contains("\""))
                                             {
                                                 SELLING_POINT2 = temp_SELLING_POINT2.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT2 = rows[86].ToString();
+                                            }
+                                            if (temp_SELLING_POINT2.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT2 = temp_SELLING_POINT2.Replace(@"@@", ",");
                                             }
                                             else
                                             {
@@ -1352,6 +1368,14 @@ namespace AEON_POP3rdParty_WindowsService
                                             {
                                                 SELLING_POINT3 = rows[87].ToString();
                                             }
+                                            if (temp_SELLING_POINT3.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT3 = temp_SELLING_POINT3.Replace(@"@@", ",");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT3 = rows[87].ToString();
+                                            }
                                             //string SELLING_POINT3 = rows[87].ToString();
                                             string SELLING_POINT4 = "";
                                             string temp_SELLING_POINT4 = rows[88].ToString();
@@ -1363,12 +1387,28 @@ namespace AEON_POP3rdParty_WindowsService
                                             {
                                                 SELLING_POINT4 = rows[88].ToString();
                                             }
+                                            if (temp_SELLING_POINT4.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT4 = temp_SELLING_POINT4.Replace(@"@@", ",");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT4 = rows[88].ToString();
+                                            }
                                             //string SELLING_POINT4 = rows[88].ToString();
                                             string SELLING_POINT5 = "";
                                             string temp_SELLING_POINT5 = rows[89].ToString();
                                             if (temp_SELLING_POINT5.Contains("\""))
                                             {
                                                 SELLING_POINT5 = temp_SELLING_POINT5.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                SELLING_POINT5 = rows[89].ToString();
+                                            }
+                                            if (temp_SELLING_POINT5.Contains(@"@@"))
+                                            {
+                                                SELLING_POINT5 = temp_SELLING_POINT5.Replace(@"@@", ",");
                                             }
                                             else
                                             {
