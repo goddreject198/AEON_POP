@@ -3512,7 +3512,7 @@ namespace AEON_POP_WinForm
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
+                                        var sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract_temp`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
                                         {
@@ -3538,7 +3538,7 @@ namespace AEON_POP_WinForm
                                                 MySqlDataReader rdr_insert_data_BarCode = cmd_insert_data_BarCode.ExecuteReader();
                                                 connection.Close();
 
-                                                sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
+                                                sql_insert_data_item_supplier_contract = String.Format(@"INSERT INTO `aeon_pop`.`item_supplier_contract_temp`(`SKU`,`SUPPLIER`,`CONTRACT_NO`,`STORE`,`DEFAULT_STORE`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
                                         }

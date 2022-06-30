@@ -1232,397 +1232,166 @@ namespace AEON_POP3rdParty_WindowsService
 
                                                 string ITEM_DESC_VNM = "";
                                                 string temp_desc = rows[4].ToString();
-                                                if (temp_desc.Contains("\""))
-                                                {
-                                                    ITEM_DESC_VNM = temp_desc.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    ITEM_DESC_VNM = rows[4].ToString();
-                                                }
+                                                ITEM_DESC_VNM = temp_desc.Contains("\"") ? temp_desc.Replace("\"", "\"\"") : rows[4].ToString();
+                                                ITEM_DESC_VNM = temp_desc.Contains(@"@@") ? temp_desc.Replace(@"@@", ",") : rows[4].ToString();
 
                                                 string PACK_ITEM = "";
                                                 string temp_pack_item = rows[37].ToString();
-                                                if (temp_pack_item.Contains("\""))
-                                                {
-                                                    PACK_ITEM = temp_pack_item.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    PACK_ITEM = rows[37].ToString();
-                                                }
+                                                PACK_ITEM = temp_pack_item.Contains("\"") ? temp_pack_item.Replace("\"", "\"\"") : rows[37].ToString();
+                                                PACK_ITEM = temp_pack_item.Contains(@"@@") ? temp_pack_item.Replace(@"@@", ",") : rows[37].ToString();
 
                                                 string PERISH_ITEM = "";
                                                 string temp_perish_item = rows[38].ToString();
-                                                if (temp_perish_item.Contains("\""))
-                                                {
-                                                    PERISH_ITEM = temp_perish_item.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    PERISH_ITEM = rows[38].ToString();
-                                                }
+                                                PERISH_ITEM = temp_perish_item.Contains("\"") ? temp_perish_item.Replace("\"", "\"\"") : rows[38].ToString();
+                                                PERISH_ITEM = temp_perish_item.Contains(@"@@") ? temp_perish_item.Replace(@"@@", ",") : rows[38].ToString();
 
                                                 string NON_INVENTORY = "";
                                                 string temp_NON_INVENTORY = rows[39].ToString();
-                                                if (temp_NON_INVENTORY.Contains("\""))
-                                                {
-                                                    NON_INVENTORY = temp_NON_INVENTORY.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    NON_INVENTORY = rows[39].ToString();
-                                                }
+                                                NON_INVENTORY = temp_NON_INVENTORY.Contains("\"") ? temp_NON_INVENTORY.Replace("\"", "\"\"") : rows[39].ToString();
+                                                NON_INVENTORY = temp_NON_INVENTORY.Contains(@"@@") ? temp_NON_INVENTORY.Replace(@"@@", ",") : rows[39].ToString();
                                                 //string NON_INVENTORY = result.NON_INVENTORY;
 
                                                 string NON_PLU = "";
                                                 string temp_NON_PLU = rows[41].ToString();
-                                                if (temp_NON_PLU.Contains("\""))
-                                                {
-                                                    NON_PLU = temp_NON_PLU.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    NON_PLU = rows[41].ToString();
-                                                }
+                                                NON_PLU = temp_NON_PLU.Contains("\"") ? temp_NON_PLU.Replace("\"", "\"\"") : rows[41].ToString();
+                                                NON_PLU = temp_NON_PLU.Contains(@"@@") ? temp_NON_PLU.Replace(@"@@", ",") : rows[41].ToString();
                                                 //string NON_PLU = result.NON_PLU;
 
                                                 string MOMMY_ITEM = "";
                                                 string temp_MOMMY_ITEM = rows[42].ToString();
-                                                if (temp_MOMMY_ITEM.Contains("\""))
-                                                {
-                                                    MOMMY_ITEM = temp_MOMMY_ITEM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    MOMMY_ITEM = rows[42].ToString();
-                                                }
+                                                MOMMY_ITEM = temp_MOMMY_ITEM.Contains("\"") ? temp_MOMMY_ITEM.Replace("\"", "\"\"") : rows[42].ToString();
+                                                MOMMY_ITEM = temp_MOMMY_ITEM.Contains(@"@@") ? temp_MOMMY_ITEM.Replace(@"@@", ",") : rows[42].ToString();
                                                 //string MOMMY_ITEM = result.MOMMY_ITEM;
 
                                                 string FOOD_ITEM = "";
                                                 string temp_FOOD_ITEM = rows[43].ToString();
-                                                if (temp_FOOD_ITEM.Contains("\""))
-                                                {
-                                                    FOOD_ITEM = temp_FOOD_ITEM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    FOOD_ITEM = rows[43].ToString();
-                                                }
+                                                FOOD_ITEM = temp_FOOD_ITEM.Contains("\"") ? temp_FOOD_ITEM.Replace("\"", "\"\"") : rows[43].ToString();
+                                                FOOD_ITEM = temp_FOOD_ITEM.Contains(@"@@") ? temp_FOOD_ITEM.Replace(@"@@", ",") : rows[43].ToString();
                                                 //string FOOD_ITEM = result.FOOD_ITEM;
 
                                                 string MEMBER_DISC_ITEM = "";
                                                 string temp_MEMBER_DISC_ITEM = rows[44].ToString();
-                                                if (temp_MEMBER_DISC_ITEM.Contains("\""))
-                                                {
-                                                    MEMBER_DISC_ITEM = temp_MEMBER_DISC_ITEM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    MEMBER_DISC_ITEM = rows[44].ToString();
-                                                }
+                                                MEMBER_DISC_ITEM = temp_MEMBER_DISC_ITEM.Contains("\"") ? temp_MEMBER_DISC_ITEM.Replace("\"", "\"\"") : rows[44].ToString();
+                                                MEMBER_DISC_ITEM = temp_MEMBER_DISC_ITEM.Contains(@"@@") ? temp_MEMBER_DISC_ITEM.Replace(@"@@", ",") : rows[44].ToString();
                                                 //string MEMBER_DISC_ITEM = result.MEMBER_DISC_ITEM;
 
                                                 string SUPER_SAVER_ITEM = "";
                                                 string temp_SUPER_SAVER_ITEM = rows[45].ToString();
-                                                if (temp_SUPER_SAVER_ITEM.Contains("\""))
-                                                {
-                                                    SUPER_SAVER_ITEM = temp_SUPER_SAVER_ITEM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SUPER_SAVER_ITEM = rows[45].ToString();
-                                                }
+                                                SUPER_SAVER_ITEM = temp_SUPER_SAVER_ITEM.Contains("\"") ? temp_SUPER_SAVER_ITEM.Replace("\"", "\"\"") : rows[45].ToString();
+                                                SUPER_SAVER_ITEM = temp_SUPER_SAVER_ITEM.Contains(@"@@") ? temp_SUPER_SAVER_ITEM.Replace(@"@@", ",") : rows[45].ToString();
                                                 //string SUPER_SAVER_ITEM = result.SUPER_SAVER_ITEM;
 
                                                 string AUTO_REPLENISH_ITEM = "";
                                                 string temp_AUTO_REPLENISH_ITEM = rows[47].ToString();
-                                                if (temp_AUTO_REPLENISH_ITEM.Contains("\""))
-                                                {
-                                                    AUTO_REPLENISH_ITEM =
-                                                        temp_AUTO_REPLENISH_ITEM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    AUTO_REPLENISH_ITEM = rows[47].ToString();
-                                                }
+                                                AUTO_REPLENISH_ITEM = temp_AUTO_REPLENISH_ITEM.Contains("\"") ? temp_AUTO_REPLENISH_ITEM.Replace("\"", "\"\"") : rows[47].ToString();
+                                                AUTO_REPLENISH_ITEM = temp_AUTO_REPLENISH_ITEM.Contains(@"@@") ? temp_AUTO_REPLENISH_ITEM.Replace(@"@@", ",") : rows[47].ToString();
                                                 //string AUTO_REPLENISH_ITEM = result.AUTO_REPLENISH_ITEM;
 
                                                 string PURCHASE_METHOD = "";
                                                 string temp_PURCHASE_METHOD = rows[29].ToString();
-                                                if (temp_PURCHASE_METHOD.Contains("\""))
-                                                {
-                                                    PURCHASE_METHOD = temp_PURCHASE_METHOD.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    PURCHASE_METHOD = rows[29].ToString();
-                                                }
+                                                PURCHASE_METHOD = temp_PURCHASE_METHOD.Contains("\"") ? temp_PURCHASE_METHOD.Replace("\"", "\"\"") : rows[29].ToString();
+                                                PURCHASE_METHOD = temp_PURCHASE_METHOD.Contains(@"@@") ? temp_PURCHASE_METHOD.Replace(@"@@", ",") : rows[29].ToString();
                                                 //string PURCHASE_METHOD = rows[29].ToString();
 
                                                 string LINE_ID = "";
                                                 string temp_LINE_ID = rows[23].ToString();
-                                                if (temp_LINE_ID.Contains("\""))
-                                                {
-                                                    LINE_ID = temp_LINE_ID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    LINE_ID = rows[23].ToString();
-                                                }
+                                                LINE_ID = temp_LINE_ID.Contains("\"") ? temp_LINE_ID.Replace("\"", "\"\"") : rows[23].ToString();
+                                                LINE_ID = temp_LINE_ID.Contains(@"@@") ? temp_LINE_ID.Replace(@"@@", ",") : rows[23].ToString();
                                                 //string LINE_ID = rows[23].ToString();
 
                                                 string DIVISION_ID = "";
                                                 string temp_DIVISION_ID = rows[22].ToString();
-                                                if (temp_DIVISION_ID.Contains("\""))
-                                                {
-                                                    DIVISION_ID = temp_DIVISION_ID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    DIVISION_ID = rows[22].ToString();
-                                                }
+                                                DIVISION_ID = temp_DIVISION_ID.Contains("\"") ? temp_DIVISION_ID.Replace("\"", "\"\"") : rows[22].ToString();
+                                                DIVISION_ID = temp_DIVISION_ID.Contains(@"@@") ? temp_DIVISION_ID.Replace(@"@@", ",") : rows[22].ToString();
                                                 //string DIVISION_ID = rows[22].ToString();
 
                                                 string GROUP_ID = "";
                                                 string temp_GROUP_ID = rows[24].ToString();
-                                                if (temp_GROUP_ID.Contains("\""))
-                                                {
-                                                    GROUP_ID = temp_GROUP_ID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    GROUP_ID = rows[24].ToString();
-                                                }
+                                                GROUP_ID = temp_GROUP_ID.Contains("\"") ? temp_GROUP_ID.Replace("\"", "\"\"") : rows[24].ToString();
+                                                GROUP_ID = temp_GROUP_ID.Contains(@"@@") ? temp_GROUP_ID.Replace(@"@@", ",") : rows[24].ToString();
                                                 //string GROUP_ID = rows[24].ToString();
 
                                                 string DEPT_ID = "";
                                                 string temp_DEPT_ID = rows[17].ToString();
-                                                if (temp_DEPT_ID.Contains("\""))
-                                                {
-                                                    DEPT_ID = temp_DEPT_ID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    DEPT_ID = rows[17].ToString();
-                                                }
+                                                DEPT_ID = temp_DEPT_ID.Contains("\"") ? temp_DEPT_ID.Replace("\"", "\"\"") : rows[17].ToString();
+                                                DEPT_ID = temp_DEPT_ID.Contains(@"@@") ? temp_DEPT_ID.Replace(@"@@", ",") : rows[17].ToString();
                                                 //string DEPT_ID = rows[17].ToString();
 
                                                 string CATEGORY_ID = "";
                                                 string temp_CATEGORY_ID = rows[19].ToString();
-                                                if (temp_CATEGORY_ID.Contains("\""))
-                                                {
-                                                    CATEGORY_ID = temp_CATEGORY_ID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    CATEGORY_ID = rows[19].ToString();
-                                                }
+                                                CATEGORY_ID = temp_CATEGORY_ID.Contains("\"") ? temp_CATEGORY_ID.Replace("\"", "\"\"") : rows[19].ToString();
+                                                CATEGORY_ID = temp_CATEGORY_ID.Contains(@"@@") ? temp_CATEGORY_ID.Replace(@"@@", ",") : rows[19].ToString();
                                                 //string CATEGORY_ID = rows[19].ToString();
 
                                                 string SUB_CATEGORY = "";
                                                 string temp_SUB_CATEGORY = rows[58].ToString();
-                                                if (temp_SUB_CATEGORY.Contains("\""))
-                                                {
-                                                    SUB_CATEGORY = temp_SUB_CATEGORY.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SUB_CATEGORY = rows[58].ToString();
-                                                }
-
+                                                SUB_CATEGORY = temp_SUB_CATEGORY.Contains("\"") ? temp_SUB_CATEGORY.Replace("\"", "\"\"") : rows[58].ToString();
+                                                SUB_CATEGORY = temp_SUB_CATEGORY.Contains(@"@@") ? temp_SUB_CATEGORY.Replace(@"@@", ",") : rows[58].ToString();
                                                 //string SUB_CATEGORY = rows[58].ToString();
                                                 string COLOUR_SIZE_GRID = "";
                                                 string temp_COLOUR_SIZE_GRID = rows[26].ToString();
-                                                if (temp_COLOUR_SIZE_GRID.Contains("\""))
-                                                {
-                                                    COLOUR_SIZE_GRID = temp_COLOUR_SIZE_GRID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    COLOUR_SIZE_GRID = rows[26].ToString();
-                                                }
-
+                                                COLOUR_SIZE_GRID = temp_COLOUR_SIZE_GRID.Contains("\"") ? temp_COLOUR_SIZE_GRID.Replace("\"", "\"\"") : rows[26].ToString();
+                                                COLOUR_SIZE_GRID = temp_COLOUR_SIZE_GRID.Contains(@"@@") ? temp_COLOUR_SIZE_GRID.Replace(@"@@", ",") : rows[26].ToString();
                                                 //string COLOUR_SIZE_GRID = rows[26].ToString();
                                                 string COLOUR = "";
                                                 string temp_COLOUR = rows[27].ToString();
-                                                if (temp_COLOUR.Contains("\""))
-                                                {
-                                                    COLOUR = temp_COLOUR.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    COLOUR = rows[27].ToString();
-                                                }
-
+                                                COLOUR = temp_COLOUR.Contains("\"") ? temp_COLOUR.Replace("\"", "\"\"") : rows[27].ToString();
+                                                COLOUR = temp_COLOUR.Contains(@"@@") ? temp_COLOUR.Replace(@"@@", ",") : rows[27].ToString();
                                                 //string COLOUR = rows[27].ToString();
                                                 string SIZE_ID = "";
                                                 string temp_SIZE_ID = rows[28].ToString();
-                                                if (temp_SIZE_ID.Contains("\""))
-                                                {
-                                                    SIZE_ID = temp_SIZE_ID.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SIZE_ID = rows[28].ToString();
-                                                }
+                                                SIZE_ID = temp_SIZE_ID.Contains("\"") ? temp_SIZE_ID.Replace("\"", "\"\"") : rows[28].ToString();
+                                                SIZE_ID = temp_SIZE_ID.Contains(@"@@") ? temp_SIZE_ID.Replace(@"@@", ",") : rows[28].ToString();
                                                 //string SIZE_ID = rows[28].ToString();
 
                                                 string POP1_DESC_VNM = "";
                                                 string temp_POP1_DESC_VNM = rows[14].ToString();
-                                                if (temp_POP1_DESC_VNM.Contains("\""))
-                                                {
-                                                    POP1_DESC_VNM = temp_POP1_DESC_VNM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    POP1_DESC_VNM = rows[14].ToString();
-                                                }
-
+                                                POP1_DESC_VNM = temp_POP1_DESC_VNM.Contains("\"") ? temp_POP1_DESC_VNM.Replace("\"", "\"\"") : rows[14].ToString();
+                                                POP1_DESC_VNM = temp_POP1_DESC_VNM.Contains(@"@@") ? temp_POP1_DESC_VNM.Replace(@"@@", ",") : rows[14].ToString();
                                                 //string POP1_DESC_VNM = result.POP1_DESC_VNM;
                                                 string POP2_DESC_VNM = "";
                                                 string temp_POP2_DESC_VNM = rows[15].ToString();
-                                                if (temp_POP2_DESC_VNM.Contains("\""))
-                                                {
-                                                    POP2_DESC_VNM = temp_POP2_DESC_VNM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    POP2_DESC_VNM = rows[15].ToString();
-                                                }
-
+                                                POP2_DESC_VNM = temp_POP2_DESC_VNM.Contains("\"") ? temp_POP2_DESC_VNM.Replace("\"", "\"\"") : rows[15].ToString();
+                                                POP2_DESC_VNM = temp_POP2_DESC_VNM.Contains(@"@@") ? temp_POP2_DESC_VNM.Replace(@"@@", ",") : rows[15].ToString();
                                                 //string POP2_DESC_VNM = result.POP2_DESC_VNM;
                                                 string POP3_DESC_VNM = "";
                                                 string temp_POP3_DESC_VNM = rows[84].ToString();
-                                                if (temp_POP3_DESC_VNM.Contains("\""))
-                                                {
-                                                    POP3_DESC_VNM = temp_POP3_DESC_VNM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    POP3_DESC_VNM = rows[84].ToString();
-                                                }
-
+                                                POP3_DESC_VNM = temp_POP3_DESC_VNM.Contains("\"") ? temp_POP3_DESC_VNM.Replace("\"", "\"\"") : rows[84].ToString();
+                                                POP3_DESC_VNM = temp_POP3_DESC_VNM.Contains(@"@@") ? temp_POP3_DESC_VNM.Replace(@"@@", ",") : rows[84].ToString();
                                                 //string POP3_DESC_VNM = result.POP3_DESC_VNM;
                                                 string SELLING_POINT1 = "";
                                                 string temp_SELLING_POINT1 = rows[85].ToString();
-                                                if (temp_SELLING_POINT1.Contains("\""))
-                                                {
-                                                    SELLING_POINT1 = temp_SELLING_POINT1.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT1 = rows[85].ToString();
-                                                }
-                                                if (temp_SELLING_POINT1.Contains(@"@@"))
-                                                {
-                                                    SELLING_POINT1 = temp_SELLING_POINT1.Replace(@"@@", ",");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT1 = rows[85].ToString();
-                                                }
+                                                SELLING_POINT1 = temp_SELLING_POINT1.Contains("\"") ? temp_SELLING_POINT1.Replace("\"", "\"\"") : rows[85].ToString();
+                                                SELLING_POINT1 = temp_SELLING_POINT1.Contains(@"@@") ? temp_SELLING_POINT1.Replace(@"@@", ",") : rows[85].ToString();
                                                 //string SELLING_POINT1 = rows[85].ToString();
                                                 string SELLING_POINT2 = "";
                                                 string temp_SELLING_POINT2 = rows[86].ToString();
-                                                if (temp_SELLING_POINT2.Contains("\""))
-                                                {
-                                                    SELLING_POINT2 = temp_SELLING_POINT2.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT2 = rows[86].ToString();
-                                                }
-                                                if (temp_SELLING_POINT2.Contains(@"@@"))
-                                                {
-                                                    SELLING_POINT2 = temp_SELLING_POINT2.Replace(@"@@", ",");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT2 = rows[86].ToString();
-                                                }
+                                                SELLING_POINT2 = temp_SELLING_POINT2.Contains("\"") ? temp_SELLING_POINT2.Replace("\"", "\"\"") : rows[86].ToString();
+                                                SELLING_POINT2 = temp_SELLING_POINT2.Contains(@"@@") ? temp_SELLING_POINT2.Replace(@"@@", ",") : rows[86].ToString();
                                                 //string SELLING_POINT2 = rows[86].ToString();
                                                 string SELLING_POINT3 = "";
                                                 string temp_SELLING_POINT3 = rows[87].ToString();
-                                                if (temp_SELLING_POINT3.Contains("\""))
-                                                {
-                                                    SELLING_POINT3 = temp_SELLING_POINT3.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT3 = rows[87].ToString();
-                                                }
-                                                if (temp_SELLING_POINT3.Contains(@"@@"))
-                                                {
-                                                    SELLING_POINT3 = temp_SELLING_POINT3.Replace(@"@@", ",");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT3 = rows[87].ToString();
-                                                }
+                                                SELLING_POINT3 = temp_SELLING_POINT3.Contains("\"") ? temp_SELLING_POINT3.Replace("\"", "\"\"") : rows[87].ToString();
+                                                SELLING_POINT3 = temp_SELLING_POINT3.Contains(@"@@") ? temp_SELLING_POINT3.Replace(@"@@", ",") : rows[87].ToString();
                                                 //string SELLING_POINT3 = rows[87].ToString();
                                                 string SELLING_POINT4 = "";
                                                 string temp_SELLING_POINT4 = rows[88].ToString();
-                                                if (temp_SELLING_POINT4.Contains("\""))
-                                                {
-                                                    SELLING_POINT4 = temp_SELLING_POINT4.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT4 = rows[88].ToString();
-                                                }
-                                                if (temp_SELLING_POINT4.Contains(@"@@"))
-                                                {
-                                                    SELLING_POINT4 = temp_SELLING_POINT4.Replace(@"@@", ",");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT4 = rows[88].ToString();
-                                                }
+                                                SELLING_POINT4 = temp_SELLING_POINT4.Contains("\"") ? temp_SELLING_POINT4.Replace("\"", "\"\"") : rows[88].ToString();
+                                                SELLING_POINT4 = temp_SELLING_POINT4.Contains(@"@@") ? temp_SELLING_POINT4.Replace(@"@@", ",") : rows[88].ToString();
                                                 //string SELLING_POINT4 = rows[88].ToString();
                                                 string SELLING_POINT5 = "";
                                                 string temp_SELLING_POINT5 = rows[89].ToString();
-                                                if (temp_SELLING_POINT5.Contains("\""))
-                                                {
-                                                    SELLING_POINT5 = temp_SELLING_POINT5.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT5 = rows[89].ToString();
-                                                }
-                                                if (temp_SELLING_POINT5.Contains(@"@@"))
-                                                {
-                                                    SELLING_POINT5 = temp_SELLING_POINT5.Replace(@"@@", ",");
-                                                }
-                                                else
-                                                {
-                                                    SELLING_POINT5 = rows[89].ToString();
-                                                }
-
+                                                SELLING_POINT5 = temp_SELLING_POINT5.Contains("\"") ? temp_SELLING_POINT5.Replace("\"", "\"\"") : rows[89].ToString();
+                                                SELLING_POINT5 = temp_SELLING_POINT5.Contains(@"@@") ? temp_SELLING_POINT5.Replace(@"@@", ",") : rows[89].ToString();
                                                 //string SELLING_POINT5 = rows[89].ToString();
                                                 string RETAIL_UOM = "";
                                                 string temp_RETAIL_UOM = rows[62].ToString();
-                                                if (temp_RETAIL_UOM.Contains("\""))
-                                                {
-                                                    RETAIL_UOM = temp_RETAIL_UOM.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    RETAIL_UOM = rows[62].ToString();
-                                                }
+                                                RETAIL_UOM = temp_RETAIL_UOM.Contains("\"") ? temp_RETAIL_UOM.Replace("\"", "\"\"") : rows[62].ToString();
                                                 //string RETAIL_UOM = rows[62].ToString();
 
                                                 string STATUS = "";
                                                 string temp_STATUS = rows[56].ToString();
-                                                if (temp_STATUS.Contains("\""))
-                                                {
-                                                    STATUS = temp_STATUS.Replace("\"", "\"\"");
-                                                }
-                                                else
-                                                {
-                                                    STATUS = rows[56].ToString();
-                                                }
-
+                                                STATUS = temp_STATUS.Contains("\"") ? temp_STATUS.Replace("\"", "\"\"") : rows[56].ToString();
                                                 //string STATUS = rows[56].ToString();
                                                 string ACTIVED = rows[49].ToString();
                                                 string DELETED = rows[56].ToString();
