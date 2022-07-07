@@ -133,15 +133,15 @@ namespace AEON_GetFile_WinForm
                         if (!remoteFileName.StartsWith("backup"))
                         {
                             //download file
-                            using (Stream file1 = File.OpenWrite(@"C:\profit\vnm\download\bi\" + remoteFileName))
+                            using (Stream file1 = File.OpenWrite(@"E:\SAP\BO\Prod\" + remoteFileName))
                             {
                                 client.DownloadFile($"/SAP_Cx/Cx_Out/BI/{remoteFileName}", file1);
                             }
 
-                            if (File.Exists(@"C:\profit\vnm\download\bi\" + remoteFileName))
-                                log.InfoFormat("PutFileCx_BI: download file successfully: {0}", @"C:\profit\vnm\download\bi\" + remoteFileName);
+                            if (File.Exists(@"E:\SAP\BO\Prod\" + remoteFileName))
+                                log.InfoFormat("PutFileCx_BI: download file successfully: {0}", @"E:\SAP\BO\Prod\" + remoteFileName);
                             else
-                                log.ErrorFormat("PutFileCx_BI: download file failed: {0}", @"C:\profit\vnm\download\bi\" + remoteFileName);
+                                log.ErrorFormat("PutFileCx_BI: download file failed: {0}", @"E:\SAP\BO\Prod\" + remoteFileName);
                         }
                     }
                 }
@@ -1135,11 +1135,14 @@ namespace AEON_GetFile_WinForm
             {
                 log.Info("myWorker_GetFileCx_RunWorkerBegin");
 
-                //string[] store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006", "1099", "3001", "3002", "3003", "3008", "3011", "3013", "3014", "3015", "3099"
-                //    , "5101", "5102", "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173", "5174", "5175", "5176", "5199", "5201", "5202", "5401"
-                //    , "5501", "5502", "5503", "5599", "5701", "5701_1", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805", "5871", "5872", "5873", "5874"
-                //    , "5875", "5876", "5899", "5901", "5902", "5999" };
-                var store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006" };
+                var store = new string[] {
+                    "1001", "1002", "1003", "1004", "1005", "1006", "1008", "3002", "3003", "3005"
+                    , "3008", "3011", "3013", "3014", "3015", "3016", "3018", "3099", "5101", "5102"
+                    , "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173"
+                    , "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502", "5503"
+                    , "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805"
+                    , "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
+                //var store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006" };
                 foreach (var i in store)
                 {
                     var t = new Thread(() => {
