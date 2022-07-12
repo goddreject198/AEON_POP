@@ -139,7 +139,17 @@ namespace AEON_GetFile_WinForm
                             }
 
                             if (File.Exists(@"E:\SAP\BO\Prod\" + remoteFileName))
+                            {
                                 log.InfoFormat("PutFileCx_BI: download file successfully: {0}", @"E:\SAP\BO\Prod\" + remoteFileName);
+
+                                //move file backup on server
+                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                if (!client.Exists($"/SAP_Cx/Cx_Out/BI/backup/{dateNow}"))
+                                {
+                                    client.CreateDirectory($"/SAP_Cx/Cx_Out/BI/backup/{dateNow}");
+                                }
+                                client.RenameFile($"/SAP_Cx/Cx_Out/BI/{remoteFileName}", $"/SAP_Cx/Cx_Out/BI/backup/{dateNow}/{remoteFileName}");
+                            }
                             else
                                 log.ErrorFormat("PutFileCx_BI: download file failed: {0}", @"E:\SAP\BO\Prod\" + remoteFileName);
                         }
