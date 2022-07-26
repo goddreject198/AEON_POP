@@ -1692,6 +1692,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string DEPARTMENT = rows[5].ToString();
                                                 string TRANS_TYPE = rows[2].ToString();
                                                 string REASON = rows[3].ToString();
+                                                string CREATE_BY = rows[4].ToString();
                                                 string EVENT_ID = rows[13].ToString();
                                                 string PRICE_CHANGE_TYPE = rows[12].ToString();
                                                 string PRICE_CHANGE_TYPE_VALUE = rows[24].ToString();
@@ -1711,7 +1712,9 @@ namespace AEON_POP3rdParty_WindowsService
 
                                                 string FILE_ID = log_fileid;
 
-                                                sql_insert_data_ItemPriceChange += string.Format(
+                                                if (CREATE_BY != "SYS")
+                                                {
+                                                    sql_insert_data_ItemPriceChange += string.Format(
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}""
                                                                                                     ,""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}""),"
                                                     , PRICE_CHANGE_NO, DEPARTMENT, TRANS_TYPE, REASON, EVENT_ID,
@@ -1720,25 +1723,26 @@ namespace AEON_POP3rdParty_WindowsService
                                                     STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE
                                                     , CREATED_DATE, MODIFIED_DATE, FILE_ID);
 
-                                                if (line == 100)
-                                                {
-                                                    connection.Open();
-                                                    sql_insert_data_ItemPriceChange =
-                                                        sql_insert_data_ItemPriceChange.Substring(0,
-                                                            sql_insert_data_ItemPriceChange.Length - 1);
-                                                    var cmd_insert_data_ItemPriceChange =
-                                                        new MySqlCommand(sql_insert_data_ItemPriceChange, connection);
-                                                    MySqlDataReader rdr_insert_data_ItemPriceChange =
-                                                        cmd_insert_data_ItemPriceChange.ExecuteReader();
-                                                    connection.Close();
+                                                    if (line == 100)
+                                                    {
+                                                        connection.Open();
+                                                        sql_insert_data_ItemPriceChange =
+                                                            sql_insert_data_ItemPriceChange.Substring(0,
+                                                                sql_insert_data_ItemPriceChange.Length - 1);
+                                                        var cmd_insert_data_ItemPriceChange =
+                                                            new MySqlCommand(sql_insert_data_ItemPriceChange, connection);
+                                                        MySqlDataReader rdr_insert_data_ItemPriceChange =
+                                                            cmd_insert_data_ItemPriceChange.ExecuteReader();
+                                                        connection.Close();
 
 
-                                                    sql_insert_data_ItemPriceChange = String.Format(
-                                                        @"INSERT INTO `aeon_pop_prd`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                                        sql_insert_data_ItemPriceChange = String.Format(
+                                                            @"INSERT INTO `aeon_pop_prd`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
-                                                    line = 0;
+                                                        line = 0;
+                                                    }
                                                 }
                                             }
 
@@ -2009,6 +2013,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                 //get data
                                                 string PRICE_CHANGE_NO = rows[0].ToString();
                                                 string TRANS_TYPE = rows[2].ToString();
+                                                string CREATE_BY = rows[4].ToString();
                                                 string START_DATE = rows[5].ToString();
                                                 string START_TIME = rows[7].ToString();
                                                 string END_DATE = rows[6].ToString();
@@ -2026,7 +2031,9 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string MODIFIED_DATE = rows[18].ToString();
                                                 string FILE_ID = log_fileid;
 
-                                                sql_insert_data_GroupPriceChange += string.Format(
+                                                if (CREATE_BY != "SYS")
+                                                {
+                                                    sql_insert_data_GroupPriceChange += string.Format(
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""
                                                                                             ,""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}""),"
                                                     , PRICE_CHANGE_NO, TRANS_TYPE, START_DATE, START_TIME, END_DATE,
@@ -2035,25 +2042,26 @@ namespace AEON_POP3rdParty_WindowsService
                                                     PRICE_CHANGE_TYPE_VALUE, REASON
                                                     , PROMOTION_TYPE, STATUS, CREATED_DATE, MODIFIED_DATE, FILE_ID);
 
-                                                if (line == 100)
-                                                {
-                                                    connection.Open();
-                                                    sql_insert_data_GroupPriceChange =
-                                                        sql_insert_data_GroupPriceChange.Substring(0,
-                                                            sql_insert_data_GroupPriceChange.Length - 1);
-                                                    var cmd_insert_data_GroupPriceChange =
-                                                        new MySqlCommand(sql_insert_data_GroupPriceChange, connection);
-                                                    MySqlDataReader rdr_insert_data_GroupPriceChange =
-                                                        cmd_insert_data_GroupPriceChange.ExecuteReader();
-                                                    connection.Close();
+                                                    if (line == 100)
+                                                    {
+                                                        connection.Open();
+                                                        sql_insert_data_GroupPriceChange =
+                                                            sql_insert_data_GroupPriceChange.Substring(0,
+                                                                sql_insert_data_GroupPriceChange.Length - 1);
+                                                        var cmd_insert_data_GroupPriceChange =
+                                                            new MySqlCommand(sql_insert_data_GroupPriceChange, connection);
+                                                        MySqlDataReader rdr_insert_data_GroupPriceChange =
+                                                            cmd_insert_data_GroupPriceChange.ExecuteReader();
+                                                        connection.Close();
 
 
-                                                    sql_insert_data_GroupPriceChange = String.Format(
-                                                        @"INSERT INTO `aeon_pop_prd`.`group_pricechange_temp`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
+                                                        sql_insert_data_GroupPriceChange = String.Format(
+                                                            @"INSERT INTO `aeon_pop_prd`.`group_pricechange_temp`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
                                                                                             ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
                                                                                             ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
-                                                    line = 0;
-                                                }
+                                                        line = 0;
+                                                    }
+                                                }    
                                             }
 
                                             if (line > 0)
