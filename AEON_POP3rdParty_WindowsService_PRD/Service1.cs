@@ -1723,7 +1723,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE
                                                     , CREATED_DATE, MODIFIED_DATE, FILE_ID);
 
-                                                    if (line == 100)
+                                                    if (line >= 100)
                                                     {
                                                         connection.Open();
                                                         sql_insert_data_ItemPriceChange =
@@ -2042,7 +2042,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     PRICE_CHANGE_TYPE_VALUE, REASON
                                                     , PROMOTION_TYPE, STATUS, CREATED_DATE, MODIFIED_DATE, FILE_ID);
 
-                                                    if (line == 100)
+                                                    if (line >= 100)
                                                     {
                                                         connection.Open();
                                                         sql_insert_data_GroupPriceChange =
