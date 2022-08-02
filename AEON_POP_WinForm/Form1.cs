@@ -1919,7 +1919,7 @@ namespace AEON_POP_WinForm
                                         while (!sr.EndOfStream)
                                         {
                                             string[] rows = sr.ReadLine().Split(',');
-                                            line++;
+                                            
                                             lineeeeee++;
 
                                             //get data
@@ -1947,14 +1947,15 @@ namespace AEON_POP_WinForm
 
                                             string FILE_ID = log_fileid;
 
-                                            if (CREATE_BY != "SYS")
+                                            //if (CREATE_BY != "SYS")
                                             {
+                                                line++;
                                                 sql_insert_data_ItemPriceChange += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}""
                                                                                                     ,""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}""),"
                                                                                         , PRICE_CHANGE_NO, DEPARTMENT, TRANS_TYPE, REASON, EVENT_ID, PRICE_CHANGE_TYPE, PRICE_CHANGE_TYPE_VALUE, PROMOTION_TYPE
                                                                                         , START_DATE, DAILY_START_TIME, END_DATE, DAILY_END_TIME, STATUS, STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE
                                                                                         , CREATED_DATE, MODIFIED_DATE, FILE_ID);
-                                                if (line >= 10)
+                                                if (line >= 1)
                                                 {
                                                     connection.Open();
                                                     sql_insert_data_ItemPriceChange = sql_insert_data_ItemPriceChange.Substring(0, sql_insert_data_ItemPriceChange.Length - 1);

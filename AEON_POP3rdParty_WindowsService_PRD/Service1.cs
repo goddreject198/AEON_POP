@@ -223,7 +223,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     , STORE_ID, STORE_NAME, STORE_BU, STORE_TAX_REG, STORE_DATE_OPEN,
                                                     STORE_REGION, DELETED, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data_Store =
@@ -361,7 +361,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}""),"
                                                     , LINE_ID, LINE_NAME, DELETED, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data_Store =
@@ -499,7 +499,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}""),"
                                                     , DIV_ID, DIV_NAME, LINE_ID, DELETED, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data_Store =
@@ -639,7 +639,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}""),"
                                                     , GROUP_ID, GROUP_NAME, DIV_ID, DELETED, LINE_ID, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data = connection.CreateCommand();
@@ -807,7 +807,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     , PRINT_REMARK_IN_OC, DLOAD_PO_REMARK_TO_EDI,
                                                     INDICATION_IN_ORD_CHKLST, DIV_ID, LINE_ID, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data = connection.CreateCommand();
@@ -963,7 +963,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     , MOMMY_DISC_PERC, HS_CODE, MSDS_CODE, GROUP_ID, DIV_ID, LINE_ID,
                                                     FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data = connection.CreateCommand();
@@ -1107,7 +1107,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     , SUBCATEGORY_ID, SUBCATEGORY_NAME, CATEGORY_ID, DELETED, DEPT_ID,
                                                     GROUP_ID, DIV_ID, LINE_ID, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data = connection.CreateCommand();
@@ -1416,7 +1416,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     RETAIL_UOM, STATUS, ACTIVED, DELETED
                                                     , DATE_CREATE, MODIFIED_DATE, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     MySqlCommand comm_sql_insert_data_SKU = connection.CreateCommand();
@@ -1568,7 +1568,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     , PACK_SKU, DESCRIPTION, PACK_TYPE, SKU, QTY_PER_SKU, QTY_UOM, STORE
                                                     , DECORATION_FLAG, STATUS, MODIFIED_DATE, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     sql_insert_data_Hamper =
@@ -1685,7 +1685,6 @@ namespace AEON_POP3rdParty_WindowsService
                                             while (!sr.EndOfStream)
                                             {
                                                 string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
-                                                line++;
 
                                                 //get data
                                                 string PRICE_CHANGE_NO = rows[0].ToString();
@@ -1714,6 +1713,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                                 if (CREATE_BY != "SYS")
                                                 {
+                                                    line++;
                                                     sql_insert_data_ItemPriceChange += string.Format(
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}"",""{10}""
                                                                                                     ,""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}"",""{18}"",""{19}"",""{20}""),"
@@ -1723,7 +1723,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     STORE, SKU, LAST_SELL_PRICE, LAST_SELL_UNIT, NEW_SELL_PRICE
                                                     , CREATED_DATE, MODIFIED_DATE, FILE_ID);
 
-                                                    if (line >= 100)
+                                                    if (line >= 1000)
                                                     {
                                                         connection.Open();
                                                         sql_insert_data_ItemPriceChange =
@@ -1891,7 +1891,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     SEQ, NORMAL_PRICE, SELL_UOM, PROMO_QTY
                                                     , FOC_QTY, PROMO_PRICE, FOC_SKU, MODIFIED_DATE, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     sql_insert_data_MixMatch =
@@ -2008,7 +2008,7 @@ namespace AEON_POP3rdParty_WindowsService
                                             while (!sr.EndOfStream)
                                             {
                                                 string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
-                                                line++;
+                                                
 
                                                 //get data
                                                 string PRICE_CHANGE_NO = rows[0].ToString();
@@ -2033,6 +2033,7 @@ namespace AEON_POP3rdParty_WindowsService
 
                                                 if (CREATE_BY != "SYS")
                                                 {
+                                                    line++;
                                                     sql_insert_data_GroupPriceChange += string.Format(
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""
                                                                                             ,""{10}"",""{11}"",""{12}"",""{13}"",""{14}"",""{15}"",""{16}"",""{17}""),"
@@ -2042,7 +2043,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     PRICE_CHANGE_TYPE_VALUE, REASON
                                                     , PROMOTION_TYPE, STATUS, CREATED_DATE, MODIFIED_DATE, FILE_ID);
 
-                                                    if (line >= 100)
+                                                    if (line >= 1000)
                                                     {
                                                         connection.Open();
                                                         sql_insert_data_GroupPriceChange =
@@ -2190,7 +2191,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     PROMOTION_RETAIL, MEMBER_RETAIL
                                                     , MEMBER_PROMOTION_FLAG, MEMBER_PROMOTION_RETAIL, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     sql_insert_data_ITEMSELLPRICE =
@@ -2320,7 +2321,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     , BUSINESS_UNIT, SKU, BARCODE, IN_HOUSE_FLAG, PRIMARY_FLAG,
                                                     FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     sql_insert_data_BarCode =
@@ -2448,7 +2449,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}""),"
                                                     , SKU, SUPPLIER, CONTRACT_NO, STORE, DEFAULT_STORE, FILE_ID);
 
-                                                if (line == 100)
+                                                if (line == 1000)
                                                 {
                                                     connection.Open();
                                                     sql_insert_data_item_supplier_contract =

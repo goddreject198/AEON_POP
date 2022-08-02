@@ -1361,8 +1361,32 @@ namespace AEON_GetFile_WinForm
 
         private static void DownloadFileCx_DayBefore(string i, DateTime maxTimeCxDownload)
         {
-            var infoDownload = new DirectoryInfo(
-                $@"\\10.121.2.207\NFS\production\vnm\download\pos\{i}\backup\{DateTime.Now:yyyy}\{DateTime.Now:MM}\{DateTime.Now.AddDays(-1):dd}\");
+            string day = "";
+            string month = "";
+            string year = "";
+            if (DateTime.Now.Day == 1)
+            {
+                if (DateTime.Now.Month == 1)
+                {
+                    year = DateTime.Now.AddYears(-1).ToString("yyyy");
+                    month = DateTime.Now.AddMonths(-1).ToString("MM");
+                    day = DateTime.Now.AddDays(-1).ToString("dd");
+                }
+                else
+                {
+                    year = DateTime.Now.ToString("yyyy");
+                    month = DateTime.Now.AddMonths(-1).ToString("MM");
+                    day = DateTime.Now.AddDays(-1).ToString("dd");
+                }
+            }
+            else
+            {
+                year = DateTime.Now.ToString("yyyy");
+                month = DateTime.Now.ToString("MM");
+                day = DateTime.Now.ToString("dd");
+            }
+
+            var infoDownload = new DirectoryInfo($@"\\10.121.2.207\NFS\production\vnm\download\pos\{i}\backup\{year}\{month}\{day}\");
             var duration = new TimeSpan(0, 0, 0, 1);
             var filesPathDownload = infoDownload.GetFiles("*.*")
                 //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
