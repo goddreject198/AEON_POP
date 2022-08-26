@@ -1171,14 +1171,19 @@ namespace AEON_GetFile_WinForm
         {
             try
             {
+                var host = FPTHost;
+                var port = Convert.ToInt32(FPTPort);
+                var username = FPTUser;
+                var password = FPTPwd;
+
                 var maxTimeCxDownload = GetMaxTimeCxDownload(i);
                 if (maxTimeCxDownload != DateTime.MinValue)
                 {
                     log.InfoFormat("max time download store: {0}, {1}", i, maxTimeCxDownload.ToString(CultureInfo.InvariantCulture));
 
-                    DownloadFileCx_DayBefore(i, maxTimeCxDownload);
+                    DownloadFileCx_DayBefore(i, maxTimeCxDownload, host, port, username, password);
 
-                    DownloadFileCx_DayCurrent(i, maxTimeCxDownload);
+                    DownloadFileCx_DayCurrent(i, maxTimeCxDownload, host, port, username, password);
                 }
                 
                 //get file from dir upload
@@ -1186,7 +1191,7 @@ namespace AEON_GetFile_WinForm
                 if (maxTimeCxUpload != DateTime.MinValue)
                 {
                     //download file from folder Upload in Middle Server
-                    DownloadFileCx_Upload(i, maxTimeCxUpload);
+                    DownloadFileCx_Upload(i, maxTimeCxUpload, host, port, username, password);
                 }
                 
                 log.Info("UploadFile_Cx done! Store: " + i);
@@ -1197,7 +1202,7 @@ namespace AEON_GetFile_WinForm
             }
         }
 
-        private static void DownloadFileCx_Upload(string i, DateTime maxTimeCxUpload)
+        private static void DownloadFileCx_Upload(string i, DateTime maxTimeCxUpload, string host, int port, string username, string password)
         {
             log.InfoFormat("max time upload store: {0}, {1}", i, maxTimeCxUpload.ToString(CultureInfo.InvariantCulture));
             var infoUpload = new DirectoryInfo($@"\\10.121.2.207\NFS\production\vnm\upload\pos\{i}\backup\");
@@ -1210,11 +1215,6 @@ namespace AEON_GetFile_WinForm
                 .OrderByDescending(x => x.LastWriteTime)
                 .Select(x => x.FullName)
                 .ToList();
-
-            const string host = "139.180.214.252";
-            const int port = 22;
-            const string username = "fptsftpuser";
-            const string password = "Fptsftp*2021";
 
             using (var client = new SftpClient(host, port, username, password))
             {
@@ -1290,7 +1290,7 @@ namespace AEON_GetFile_WinForm
             return maxTimeCxUpload;
         }
 
-        private static void DownloadFileCx_DayCurrent(string i, DateTime maxTimeCxDownload)
+        private static void DownloadFileCx_DayCurrent(string i, DateTime maxTimeCxDownload, string host, int port, string username, string password)
         {
             var infoDownload = new DirectoryInfo(
                 $@"\\10.121.2.207\NFS\production\vnm\download\pos\{i}\backup\{DateTime.Now:yyyy}\{DateTime.Now:MM}\{DateTime.Now:dd}\");
@@ -1307,11 +1307,6 @@ namespace AEON_GetFile_WinForm
                 .OrderByDescending(x => x.LastWriteTime)
                 .Select(x => x.FullName)
                 .ToList();
-
-            const string host = "139.180.214.252";
-            const int port = 22;
-            const string username = "fptsftpuser";
-            const string password = "Fptsftp*2021";
 
             using (var client = new SftpClient(host, port, username, password))
             {
@@ -1359,7 +1354,7 @@ namespace AEON_GetFile_WinForm
             }
         }
 
-        private static void DownloadFileCx_DayBefore(string i, DateTime maxTimeCxDownload)
+        private static void DownloadFileCx_DayBefore(string i, DateTime maxTimeCxDownload, string host, int port, string username, string password)
         {
             string day = "";
             string month = "";
@@ -1400,10 +1395,6 @@ namespace AEON_GetFile_WinForm
                 .Select(x => x.FullName)
                 .ToList();
 
-            const string host = "139.180.214.252";
-            const int port = 22;
-            const string username = "fptsftpuser";
-            const string password = "Fptsftp*2021";
 
             using (var client = new SftpClient(host, port, username, password))
             {
