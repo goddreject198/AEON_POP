@@ -1699,3 +1699,6 @@ AEON_POP3rdParty_WindowsService_PRD/obj/Debug/TemporaryGeneratedFile_036C0B5B-14
 AEON_POP3rdParty_WindowsService_PRD/obj/Debug/TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs
 AEON_POP3rdParty_WindowsService_PRD/obj/Debug/TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs
 AEON_POP3rdParty_WindowsService_PRD/obj/x64/Release/AEON_POP3rdParty_WindowsService.csprojAssemblyReference.cache
+AEON_POP_WebService/obj/Debug/netcoreapp3.1/AEON_POP_WebService.csproj.AssemblyReference.cache
+AEON_POP_WebService/obj/Debug/netcoreapp3.1/AEON_POP_WebService.GeneratedMSBuildEditorConfig.editorconfig
+AEON_POP_WebService/obj/Debug/netcoreapp3.1/apphost.exe

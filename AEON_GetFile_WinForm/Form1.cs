@@ -126,7 +126,7 @@ namespace AEON_GetFile_WinForm
                 {
                     log.Info("PutFileCx_BI Connected to FPT Cloud");
 
-                    var filesList = client.ListDirectory("/SAP_Cx/Cx_Out/BI");
+                    var filesList = client.ListDirectory("/SAP_CX_UAT/Cx_Out/BI");
                     foreach (var file in filesList)
                     {
                         var remoteFileName = file.Name;
@@ -135,7 +135,7 @@ namespace AEON_GetFile_WinForm
                             //download file
                             using (Stream file1 = File.OpenWrite(@"E:\SAP\BO\Prod\" + remoteFileName))
                             {
-                                client.DownloadFile($"/SAP_Cx/Cx_Out/BI/{remoteFileName}", file1);
+                                client.DownloadFile($"/SAP_CX_UAT/Cx_Out/BI/{remoteFileName}", file1);
                             }
 
                             if (File.Exists(@"E:\SAP\BO\Prod\" + remoteFileName))
@@ -144,11 +144,11 @@ namespace AEON_GetFile_WinForm
 
                                 //move file backup on server
                                 var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                if (!client.Exists($"/SAP_Cx/Cx_Out/BI/backup/{dateNow}"))
+                                if (!client.Exists($"/SAP_CX_UAT/Cx_Out/BI/backup/{dateNow}"))
                                 {
-                                    client.CreateDirectory($"/SAP_Cx/Cx_Out/BI/backup/{dateNow}");
+                                    client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/BI/backup/{dateNow}");
                                 }
-                                client.RenameFile($"/SAP_Cx/Cx_Out/BI/{remoteFileName}", $"/SAP_Cx/Cx_Out/BI/backup/{dateNow}/{remoteFileName}");
+                                client.RenameFile($"/SAP_CX_UAT/Cx_Out/BI/{remoteFileName}", $"/SAP_CX_UAT/Cx_Out/BI/backup/{dateNow}/{remoteFileName}");
                             }
                             else
                                 log.ErrorFormat("PutFileCx_BI: download file failed: {0}", @"E:\SAP\BO\Prod\" + remoteFileName);
@@ -202,7 +202,7 @@ namespace AEON_GetFile_WinForm
                 {
                     log.Info("PutFileCx_Pos Connected to FPT Cloud");
 
-                    var filesList = client.ListDirectory("/SAP_Cx/Cx_Out/POS");
+                    var filesList = client.ListDirectory("/SAP_CX_UAT/Cx_Out/POS");
                     foreach (var file in filesList)
                     {
                         var remoteFileName = file.Name;
@@ -211,7 +211,7 @@ namespace AEON_GetFile_WinForm
                             //download file
                             using (Stream file1 = File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
                             {
-                                client.DownloadFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", file1);
+                                client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
                             }
 
                             if (File.Exists(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
@@ -220,11 +220,11 @@ namespace AEON_GetFile_WinForm
 
                                 //move file backup on server
                                 var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                if (!client.Exists($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}"))
+                                if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
                                 {
-                                    client.CreateDirectory($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}");
+                                    client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
                                 }
-                                client.RenameFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", $"/SAP_Cx/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
                             }
                             else
                                 log.ErrorFormat("PutFileCx_Pos: download file failed: {0}", @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
@@ -235,7 +235,7 @@ namespace AEON_GetFile_WinForm
                             //download file
                             using (Stream file1 = File.OpenWrite($@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
                             {
-                                client.DownloadFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", file1);
+                                client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
                             }
 
                             if (File.Exists($@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
@@ -244,11 +244,11 @@ namespace AEON_GetFile_WinForm
 
                                 //move file backup on server
                                 var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                if (!client.Exists($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}"))
+                                if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
                                 {
-                                    client.CreateDirectory($"/SAP_Cx/Cx_Out/POS/backup/{dateNow}");
+                                    client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
                                 }
-                                client.RenameFile($"/SAP_Cx/Cx_Out/POS/{remoteFileName}", $"/SAP_Cx/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
                             }
                             else
                                 log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
@@ -1245,7 +1245,7 @@ namespace AEON_GetFile_WinForm
                             try
                             {
                                 client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                client.ChangeDirectory("/SAP_Cx/" + i);
+                                client.ChangeDirectory("/SAP_CX_UAT/" + i);
                                 client.UploadFile(fileStream, Path.GetFileName(path));
                                 log.InfoFormat("GetFileCx: UploadFile successfully: {0}", path);
                             }
@@ -1336,7 +1336,7 @@ namespace AEON_GetFile_WinForm
                             try
                             {
                                 client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                client.ChangeDirectory("/SAP_Cx/" + i);
+                                client.ChangeDirectory("/SAP_CX_UAT/" + i);
                                 client.UploadFile(fileStream, Path.GetFileName(path));
                                 log.InfoFormat("GetFileCx: UploadFile successfully store: {0}, {1}", i, path);
                             }
@@ -1425,7 +1425,7 @@ namespace AEON_GetFile_WinForm
                             try
                             {
                                 client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                client.ChangeDirectory("/SAP_Cx/" + i);
+                                client.ChangeDirectory("/SAP_CX_UAT/" + i);
                                 client.UploadFile(fileStream, Path.GetFileName(path));
                                 log.InfoFormat("GetFileCx: UploadFile successfully store: {0}, {1}", i, path);
                             }
