@@ -2559,7 +2559,7 @@ namespace AEON_POP3rdParty_WindowsService
                                             int line = 0;
                                             //insert data to table
                                             var sql_insert_data_supplier = String.Format(
-                                                @"INSERT INTO `aeon_pop_prd`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
+                                                @"INSERT INTO `aeon_pop_prd`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`PHONE_NUMBER`,`EMAIL_ADDRESS`,`FILE_ID`)VALUES");
 
                                             while (!sr.EndOfStream)
                                             {
@@ -2574,13 +2574,15 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string SUPPLIER_SHORTNAME_VNM = rows[5].ToString();
                                                 string SUPPLIER_TYPE = rows[7].ToString();
                                                 string DELETE_FLAG = rows[11].ToString();
+                                                string PHONE_NUMBER = rows[20].ToString();
+                                                string EMAIL_ADDRESS = rows[22].ToString();
                                                 string FILE_ID = log_fileid;
 
                                                 sql_insert_data_supplier += string.Format(
-                                                    @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}""),"
+                                                    @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""),"
                                                     , SUPPLIER_CODE, SUPPLIER_NAME_END, SUPPLIER_NAME_VNM,
                                                     SUPPLIER_SHORTNAME_END, SUPPLIER_SHORTNAME_VNM, SUPPLIER_TYPE,
-                                                    DELETE_FLAG, FILE_ID);
+                                                    DELETE_FLAG, PHONE_NUMBER, EMAIL_ADDRESS, FILE_ID);
 
                                                 if (line == 1000)
                                                 {
@@ -2594,7 +2596,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                     connection.Close();
 
                                                     sql_insert_data_supplier = String.Format(
-                                                        @"INSERT INTO `aeon_pop_prd`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
+                                                        @"INSERT INTO `aeon_pop_prd`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`PHONE_NUMBER`,`EMAIL_ADDRESS`,`FILE_ID`)VALUES");
                                                     line = 0;
                                                 }
                                             }
@@ -2607,7 +2609,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                         sql_insert_data_supplier.Length - 1);
                                                 var cmd_insert_data = new MySqlCommand(sql_insert_data_supplier,
                                                     connection);
-                                                MySqlDataReader rdr_insert_data_BarCode =
+                                                MySqlDataReader rdr_insert_data =
                                                     cmd_insert_data.ExecuteReader();
                                                 connection.Close();
                                             }

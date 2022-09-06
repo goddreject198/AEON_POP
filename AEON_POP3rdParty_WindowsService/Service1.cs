@@ -1510,7 +1510,7 @@ namespace AEON_POP3rdParty_WindowsService
 
 
                                                     sql_insert_data_ItemPriceChange = String.Format(
-                                                        @"INSERT INTO `aeon_pop_prd`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
+                                                        @"INSERT INTO `aeon_pop`.`pricechange_temp`(`PRICE_CHANGE_NO`,`DEPARTMENT`,`TRANS_TYPE`,`REASON`,`EVENT_ID`
                                                                                             ,`PRICE_CHANGE_TYPE`,`PRICE_CHANGE_TYPE_VALUE`,`PROMOTION_TYPE`,`START_DATE`,`DAILY_START_TIME`,`END_DATE`
                                                                                             ,`DAILY_END_TIME`,`STATUS`,`STORE`,`SKU`,`LAST_SELL_PRICE`,`LAST_SELL_UNIT`,`NEW_SELL_PRICE`,`CREATED_DATE`
                                                                                             ,`MODIFIED_DATE`,`FILE_ID`)VALUES");
@@ -1782,7 +1782,7 @@ namespace AEON_POP3rdParty_WindowsService
 
 
                                                     sql_insert_data_GroupPriceChange = String.Format(
-                                                        @"INSERT INTO `aeon_pop_prd`.`group_pricechange_temp`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
+                                                        @"INSERT INTO `aeon_pop`.`group_pricechange_temp`(`PRICE_CHANGE_NO`,`TRANS_TYPE`,`START_DATE`,`START_TIME`
                                                                                             ,`END_DATE`,`END_TIME`,`CATEGORY`,`STORE`,`EVENT_ID`,`EXCLUDE_SEASON_ID`,`PRICE_CHANGE_TYPE`
                                                                                             ,`PRICE_CHANGE_TYPE_VALUE`,`REASON`,`PROMOTION_TYPE`,`STATUS`,`CREATED_DATE`,`MODIFIED_DATE`,`FILE_ID`)VALUES");
                                                     line = 0;
@@ -2158,19 +2158,25 @@ namespace AEON_POP3rdParty_WindowsService
                                 if (filename.Substring(0, 9) == "SUPPLIER_")
                                 {
                                     #region SUPPLIER_
-                                    var sql_insert_profit_file = String.Format("INSERT INTO `AEON_POP`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
-                                                     , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
-                                                     , filename
-                                                     , date_now
-                                                     , time_now
-                                                     , "Inprocess");
+
+                                    var sql_insert_profit_file = String.Format(
+                                        "INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                        , filename.Substring(filename.LastIndexOf("_") + 1,
+                                            filename.Length - filename.LastIndexOf("_") - 8)
+                                        , filename
+                                        , date_now
+                                        , time_now
+                                        , "Inprocess");
                                     connection.Open();
-                                    var cmd_insert_profit_file = new MySqlCommand(sql_insert_profit_file, connection);
+                                    var cmd_insert_profit_file =
+                                        new MySqlCommand(sql_insert_profit_file, connection);
                                     MySqlDataReader rdr_insert_profit_file = cmd_insert_profit_file.ExecuteReader();
                                     connection.Close();
 
                                     //get File_ID
-                                    var sql_get_fileID = String.Format("select * from profit_files_log order by FILE_ID desc limit 1");
+                                    var sql_get_fileID =
+                                        String.Format(
+                                            "select * from profit_files_log order by FILE_ID desc limit 1");
                                     connection.Open();
                                     var cmd_get_fileID = new MySqlCommand(sql_get_fileID, connection);
                                     MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
@@ -2184,7 +2190,8 @@ namespace AEON_POP3rdParty_WindowsService
                                     {
                                         int line = 0;
                                         //insert data to table
-                                        var sql_insert_data_supplier = String.Format(@"INSERT INTO `aeon_pop`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
+                                        var sql_insert_data_supplier = String.Format(
+                                            @"INSERT INTO `aeon_pop`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`PHONE_NUMBER`,`EMAIL_ADDRESS`,`FILE_ID`)VALUES");
 
                                         while (!sr.EndOfStream)
                                         {
@@ -2199,40 +2206,57 @@ namespace AEON_POP3rdParty_WindowsService
                                             string SUPPLIER_SHORTNAME_VNM = rows[5].ToString();
                                             string SUPPLIER_TYPE = rows[7].ToString();
                                             string DELETE_FLAG = rows[11].ToString();
+                                            string PHONE_NUMBER = rows[20].ToString();
+                                            string EMAIL_ADDRESS = rows[22].ToString();
                                             string FILE_ID = log_fileid;
 
-                                            sql_insert_data_supplier += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}""),"
-                                                                                        , SUPPLIER_CODE, SUPPLIER_NAME_END, SUPPLIER_NAME_VNM, SUPPLIER_SHORTNAME_END, SUPPLIER_SHORTNAME_VNM, SUPPLIER_TYPE, DELETE_FLAG, FILE_ID);
+                                            sql_insert_data_supplier += string.Format(
+                                                @"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}"",""{9}""),"
+                                                , SUPPLIER_CODE, SUPPLIER_NAME_END, SUPPLIER_NAME_VNM,
+                                                SUPPLIER_SHORTNAME_END, SUPPLIER_SHORTNAME_VNM, SUPPLIER_TYPE,
+                                                DELETE_FLAG, PHONE_NUMBER, EMAIL_ADDRESS, FILE_ID);
 
                                             if (line == 1000)
                                             {
                                                 connection.Open();
-                                                sql_insert_data_supplier = sql_insert_data_supplier.Substring(0, sql_insert_data_supplier.Length - 1);
-                                                var cmd_insert_data = new MySqlCommand(sql_insert_data_supplier, connection);
+                                                sql_insert_data_supplier =
+                                                    sql_insert_data_supplier.Substring(0,
+                                                        sql_insert_data_supplier.Length - 1);
+                                                var cmd_insert_data = new MySqlCommand(sql_insert_data_supplier,
+                                                    connection);
                                                 MySqlDataReader rdr_insert_data = cmd_insert_data.ExecuteReader();
                                                 connection.Close();
 
-                                                sql_insert_data_supplier = String.Format(@"INSERT INTO `aeon_pop`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`FILE_ID`)VALUES");
+                                                sql_insert_data_supplier = String.Format(
+                                                    @"INSERT INTO `aeon_pop`.`supplier_temp`(`SUPPLIER_CODE`,`SUPPLIER_NAME_END`,`SUPPLIER_NAME_VNM`,`SUPPLIER_SHORTNAME_END`,`SUPPLIER_SHORTNAME_VNM`,`SUPPLIER_TYPE`,`DELETE_FLAG`,`PHONE_NUMBER`,`EMAIL_ADDRESS`,`FILE_ID`)VALUES");
                                                 line = 0;
                                             }
                                         }
+
                                         if (line > 0)
                                         {
                                             connection.Open();
-                                            sql_insert_data_supplier = sql_insert_data_supplier.Substring(0, sql_insert_data_supplier.Length - 1);
-                                            var cmd_insert_data = new MySqlCommand(sql_insert_data_supplier, connection);
-                                            MySqlDataReader rdr_insert_data_BarCode = cmd_insert_data.ExecuteReader();
+                                            sql_insert_data_supplier =
+                                                sql_insert_data_supplier.Substring(0,
+                                                    sql_insert_data_supplier.Length - 1);
+                                            var cmd_insert_data = new MySqlCommand(sql_insert_data_supplier,
+                                                connection);
+                                            MySqlDataReader rdr_insert_data =
+                                                cmd_insert_data.ExecuteReader();
                                             connection.Close();
                                         }
                                     }
+
                                     //move file to folder backup
-                                    String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") +
+                                                       @"\";
                                     bool exist = Directory.Exists(dirBackup);
                                     if (!exist)
                                     {
                                         // Tạo thư mục.
                                         Directory.CreateDirectory(dirBackup);
                                     }
+
                                     string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
                                     File.Move(pathtg, dirPathBackup);
 
@@ -2247,12 +2271,15 @@ namespace AEON_POP3rdParty_WindowsService
 
 
                                     //update info file to log_file
-                                    var sql_update_profit_file = String.Format("UPDATE `AEON_POP`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
-                                                         , log_fileid);
+                                    var sql_update_profit_file = String.Format(
+                                        "UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                        , log_fileid);
                                     connection.Open();
-                                    var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
+                                    var cmd_update_profit_file =
+                                        new MySqlCommand(sql_update_profit_file, connection);
                                     MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
                                     connection.Close();
+
                                     #endregion
                                 }
                             }
