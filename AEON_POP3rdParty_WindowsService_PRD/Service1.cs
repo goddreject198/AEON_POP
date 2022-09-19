@@ -25,6 +25,7 @@ namespace AEON_POP3rdParty_WindowsService
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
         private BackgroundWorker myWorker_PostDataToMobile = new BackgroundWorker();
+        private BackgroundWorker myWorker_AutoDelData = new BackgroundWorker();
 
         public static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         // tạo 1 biến Timer private
@@ -34,6 +35,7 @@ namespace AEON_POP3rdParty_WindowsService
 
         private bool check_backgroundworker_running = false;
         private bool check_backgroundworker_PostDataToMobile_running = false;
+        private bool check_backgroundworker_AutoDelData_running = false;
 
         public Service1()
         {
@@ -50,6 +52,12 @@ namespace AEON_POP3rdParty_WindowsService
             myWorker_PostDataToMobile.ProgressChanged += new ProgressChangedEventHandler(myWorker_PostDataToMobile_ProgressChanged);
             myWorker_PostDataToMobile.WorkerReportsProgress = true;
             myWorker_PostDataToMobile.WorkerSupportsCancellation = true;
+            //khai báo properties của background process 
+            myWorker_AutoDelData.DoWork += new DoWorkEventHandler(myWorker_AutoDelData_DoWork);
+            myWorker_AutoDelData.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_AutoDelData_RunWorkerCompleted);
+            myWorker_AutoDelData.ProgressChanged += new ProgressChangedEventHandler(myWorker_AutoDelData_ProgressChanged);
+            myWorker_AutoDelData.WorkerReportsProgress = true;
+            myWorker_AutoDelData.WorkerSupportsCancellation = true;
 
             //myWorker_ItemSellPrice.RunWorkerAsync();
         }
@@ -100,7 +108,18 @@ namespace AEON_POP3rdParty_WindowsService
                 {
                     log.Error(String.Format("Can not run backgroud_worker: myWorker_PostDataToMobile!|{0}", e.Message));
                 }
-            }    
+            }
+            if (check_backgroundworker_AutoDelData_running == false && args.SignalTime.Hour == 0 && args.SignalTime.Minute == 10)
+            {
+                try
+                {
+                    myWorker_AutoDelData.RunWorkerAsync();
+                }
+                catch (Exception e)
+                {
+                    log.Error(String.Format("Can not run backgroud_worker: myWorker_AutoDelData!|{0}", e.Message));
+                }
+            }
         }
 
         private void myWorker_ItemSellPrice_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -2800,6 +2819,48 @@ namespace AEON_POP3rdParty_WindowsService
             finally
             {
                 check_backgroundworker_PostDataToMobile_running = false;
+            }
+        }
+
+        private void myWorker_AutoDelData_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_AutoDelData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            log.Info("myWorker_AutoDelData_RunWorkerCompleted!");
+        }
+
+        private void myWorker_AutoDelData_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                check_backgroundworker_AutoDelData_running = true;
+                MySqlConnection connection = new MySqlConnection(connectionString);
+
+                #region PriceChange
+
+                string date_now = DateTime.Now.AddDays(-1).ToString("yyyyMMdd");
+                var sql_delete_pricechange = String.Format("DELETE FROM aeon_pop_prd.pricechange where END_DATE = '{0}';", date_now);
+                log.InfoFormat("AutoDelData - PriceChange: SQL del: {0}", sql_delete_pricechange);
+                connection.Open();
+                MySqlCommand comm_sql_delete_pricechange = connection.CreateCommand();
+                comm_sql_delete_pricechange.CommandText = sql_delete_pricechange;
+                int kq = comm_sql_delete_pricechange.ExecuteNonQuery();
+                connection.Close();
+                log.InfoFormat("AutoDelData - PriceChange: Result: {0}", kq);
+
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("AutoDelData: Exception: {0}", ex.Message);
+            }
+            finally
+            {
+                check_backgroundworker_AutoDelData_running = false;
             }
         }
     }
