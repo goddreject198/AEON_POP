@@ -1368,6 +1368,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string temp_POP1_DESC_VNM = rows[14].ToString();
                                                 POP1_DESC_VNM = temp_POP1_DESC_VNM.Contains("\"") ? temp_POP1_DESC_VNM.Replace("\"", "\"\"") : rows[14].ToString();
                                                 POP1_DESC_VNM = POP1_DESC_VNM.Contains(@"@@") ? POP1_DESC_VNM.Replace(@"@@", ", ") : POP1_DESC_VNM;
+                                                POP1_DESC_VNM = POP1_DESC_VNM.Contains(@"--") ? POP1_DESC_VNM.Replace(@"--", "") : POP1_DESC_VNM;
                                                 //string POP1_DESC_VNM = result.POP1_DESC_VNM;
                                                 string POP2_DESC_VNM = "";
                                                 string temp_POP2_DESC_VNM = rows[15].ToString();
