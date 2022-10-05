@@ -1159,7 +1159,17 @@ namespace AEON_GetFile_WinForm
                     var t = new Thread(() => {
                         UploadFile_Cx(i);
                     });
+                    t.Name = i;
                     t.Start();
+                }
+                Thread.Sleep(270000);
+                if (MyCounter_GetFilePos2Cx.count > 0)
+                {
+                    while (Thread.CurrentThread.Name != null)
+                    {
+                        log.ErrorFormat("myWorker_GetFileCx_DoWork - kill thread: {0}", Thread.CurrentThread.Name);
+                        Thread.CurrentThread.Abort();
+                    }
                 }
             }
             catch (Exception ex)
