@@ -25,6 +25,7 @@ namespace AEON_POP3rdParty_WindowsService
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
         private BackgroundWorker myWorker_PostDataToMobile = new BackgroundWorker();
+        private BackgroundWorker myWorker_PostDataToBookingApp = new BackgroundWorker();
 
         public static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         // tạo 1 biến Timer private
@@ -34,11 +35,12 @@ namespace AEON_POP3rdParty_WindowsService
 
         private bool check_backgroundworker_running = false;
         private bool check_backgroundworker_PostDataToMobile_running = false;
+        private bool check_backgroundworker_PostDataToBookingApp_running = false;
 
         public Service1()
         {
             InitializeComponent();
-            //khai báo properties của background process ApproveFileInDMS
+            //khai báo properties của background process 
             myWorker_ItemSellPrice.DoWork += new DoWorkEventHandler(myWorker_ItemSellPrice_DoWork);
             myWorker_ItemSellPrice.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_ItemSellPrice_RunWorkerCompleted);
             myWorker_ItemSellPrice.ProgressChanged += new ProgressChangedEventHandler(myWorker_ItemSellPrice_ProgressChanged);
@@ -50,6 +52,12 @@ namespace AEON_POP3rdParty_WindowsService
             myWorker_PostDataToMobile.ProgressChanged += new ProgressChangedEventHandler(myWorker_PostDataToMobile_ProgressChanged);
             myWorker_PostDataToMobile.WorkerReportsProgress = true;
             myWorker_PostDataToMobile.WorkerSupportsCancellation = true;
+            //khai báo properties của background process 
+            myWorker_PostDataToBookingApp.DoWork += new DoWorkEventHandler(myWorker_PostDataToBookingApp_DoWork);
+            myWorker_PostDataToBookingApp.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PostDataToBookingApp_RunWorkerCompleted);
+            myWorker_PostDataToBookingApp.ProgressChanged += new ProgressChangedEventHandler(myWorker_PostDataToBookingApp_ProgressChanged);
+            myWorker_PostDataToBookingApp.WorkerReportsProgress = true;
+            myWorker_PostDataToBookingApp.WorkerSupportsCancellation = true;
 
             //myWorker_ItemSellPrice.RunWorkerAsync();
         }
@@ -94,13 +102,24 @@ namespace AEON_POP3rdParty_WindowsService
             {
                 try
                 {
-                    myWorker_PostDataToMobile.RunWorkerAsync();
+                    //myWorker_PostDataToMobile.RunWorkerAsync();
                 }
                 catch (Exception e)
                 {
                     log.Error(String.Format("Can not run backgroud_worker: myWorker_PostDataToMobile!|{0}", e.Message));
                 }
-            }    
+            }
+            if (check_backgroundworker_PostDataToBookingApp_running == false)
+            {
+                try
+                {
+                    myWorker_PostDataToBookingApp.RunWorkerAsync();
+                }
+                catch (Exception e)
+                {
+                    log.Error(String.Format("Can not run backgroud_worker: myWorker_PostDataToBookingApp!|{0}", e.Message));
+                }
+            }
         }
 
         private void myWorker_ItemSellPrice_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -2418,6 +2437,398 @@ namespace AEON_POP3rdParty_WindowsService
             finally
             {
                 check_backgroundworker_PostDataToMobile_running = false;
+            }
+        }
+
+        private void myWorker_PostDataToBookingApp_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PostDataToBookingApp_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            log.Info("myWorker_PostDataToBookingApp_RunWorkerCompleted!");
+        }
+
+        private void myWorker_PostDataToBookingApp_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                log.Info("myWorker_PostDataToBookingApp_DoWork!");
+                check_backgroundworker_PostDataToBookingApp_running = true;
+                //line
+                try
+                {
+                    MySqlConnection connection = new MySqlConnection(connectionString);
+                    var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.line_code_temp limit 2000;");
+                    connection.Open();
+                    var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
+                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                    MyAdapter.SelectCommand = cmd_get_fileID;
+                    DataTable dTable_SKUCode = new DataTable();
+                    MyAdapter.Fill(dTable_SKUCode);
+                    connection.Close();
+
+                    var client = new RestClient("http://45.77.34.122/thirdparty/bookingapp/download_line");
+                    client.Timeout = -1;
+                    var request = new RestRequest(Method.POST);
+                    request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                    request.AddHeader("Content-Type", "application/json");
+
+                    string body = "{\"codes\": [";
+                    string sku_code = "";
+                    int dem = 0;
+                    for (int i = 0; i < dTable_SKUCode.Rows.Count; i++)
+                    {
+                        dem++;
+                        sku_code += "\"" + dTable_SKUCode.Rows[i][0].ToString() + "\",";
+
+                        if (dem == 100)
+                        {
+                            sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                            body += sku_code + "]}";
+
+                            request.AddParameter("application/json", body, ParameterType.RequestBody);
+                            log.InfoFormat("PostDataToBookingApp - Line: Json body: {0}", body);
+                            IRestResponse response = client.Execute(request);
+                            //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                            log.InfoFormat("PostDataToBookingApp - Line: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                            if (response.IsSuccessful)
+                            {
+                                var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`line_code_temp` WHERE LINE_ID IN ({0});", sku_code);
+                                connection.Open();
+                                MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                                comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                                int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                                connection.Close();
+
+                                //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                                log.InfoFormat("PostDataToBookingApp - Line: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                            }
+
+                            body = "{\"codes\": [";
+                            sku_code = "";
+
+                            request.Parameters.Clear();
+                            request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                            request.AddHeader("Content-Type", "application/json");
+
+                            dem = 0;
+                        }
+                    }
+
+                    if (dem > 0)
+                    {
+                        sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                        body += sku_code + "]}";
+
+                        request.AddParameter("application/json", body, ParameterType.RequestBody);
+                        log.InfoFormat("PostDataToBookingApp - Line: Json body: {0}", body);
+                        IRestResponse response = client.Execute(request);
+                        //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                        log.InfoFormat("PostDataToBookingApp - Line: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                        if (response.IsSuccessful)
+                        {
+                            var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`line_code_temp` WHERE LINE_ID IN ({0});", sku_code);
+                            connection.Open();
+                            MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                            comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                            int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                            connection.Close();
+
+                            //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                            log.InfoFormat("PostDataToBookingApp - Line: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.InfoFormat("PostDataToBookingApp - Line exception: {0}", ex.Message);
+                }
+                //department
+                try
+                {
+                    MySqlConnection connection = new MySqlConnection(connectionString);
+                    var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.department_code_temp limit 2000;");
+                    connection.Open();
+                    var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
+                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                    MyAdapter.SelectCommand = cmd_get_fileID;
+                    DataTable dTable_SKUCode = new DataTable();
+                    MyAdapter.Fill(dTable_SKUCode);
+                    connection.Close();
+
+                    var client = new RestClient("http://45.77.34.122/thirdparty/bookingapp/download_department");
+                    client.Timeout = -1;
+                    var request = new RestRequest(Method.POST);
+                    request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                    request.AddHeader("Content-Type", "application/json");
+
+                    string body = "{\"codes\": [";
+                    string sku_code = "";
+                    int dem = 0;
+                    for (int i = 0; i < dTable_SKUCode.Rows.Count; i++)
+                    {
+                        dem++;
+                        sku_code += "\"" + dTable_SKUCode.Rows[i][0].ToString() + "\",";
+
+                        if (dem == 100)
+                        {
+                            sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                            body += sku_code + "]}";
+
+                            request.AddParameter("application/json", body, ParameterType.RequestBody);
+                            log.InfoFormat("PostDataToBookingApp - Department: Json body: {0}", body);
+                            IRestResponse response = client.Execute(request);
+                            //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                            log.InfoFormat("PostDataToBookingApp - Department: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                            if (response.IsSuccessful)
+                            {
+                                var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`department_code_temp` WHERE DEPT_ID IN ({0});", sku_code);
+                                connection.Open();
+                                MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                                comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                                int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                                connection.Close();
+
+                                //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                                log.InfoFormat("PostDataToBookingApp - Department: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                            }
+
+                            body = "{\"codes\": [";
+                            sku_code = "";
+
+                            request.Parameters.Clear();
+                            request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                            request.AddHeader("Content-Type", "application/json");
+
+                            dem = 0;
+                        }
+                    }
+
+                    if (dem > 0)
+                    {
+                        sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                        body += sku_code + "]}";
+
+                        request.AddParameter("application/json", body, ParameterType.RequestBody);
+                        log.InfoFormat("PostDataToBookingApp - Department: Json body: {0}", body);
+                        IRestResponse response = client.Execute(request);
+                        //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                        log.InfoFormat("PostDataToBookingApp - Department: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                        if (response.IsSuccessful)
+                        {
+                            var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`department_code_temp` WHERE DEPT_ID IN ({0});", sku_code);
+                            connection.Open();
+                            MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                            comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                            int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                            connection.Close();
+
+                            //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                            log.InfoFormat("PostDataToBookingApp - Department: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.InfoFormat("PostDataToBookingApp - Department exception: {0}", ex.Message);
+                }
+                //supplier
+                try
+                {
+                    MySqlConnection connection = new MySqlConnection(connectionString);
+                    var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.supplier_code_temp limit 2000;");
+                    connection.Open();
+                    var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
+                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                    MyAdapter.SelectCommand = cmd_get_fileID;
+                    DataTable dTable_SKUCode = new DataTable();
+                    MyAdapter.Fill(dTable_SKUCode);
+                    connection.Close();
+
+                    var client = new RestClient("http://45.77.34.122/thirdparty/bookingapp/download_supplier");
+                    client.Timeout = -1;
+                    var request = new RestRequest(Method.POST);
+                    request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                    request.AddHeader("Content-Type", "application/json");
+
+                    string body = "{\"codes\": [";
+                    string sku_code = "";
+                    int dem = 0;
+                    for (int i = 0; i < dTable_SKUCode.Rows.Count; i++)
+                    {
+                        dem++;
+                        sku_code += "\"" + dTable_SKUCode.Rows[i][0].ToString() + "\",";
+
+                        if (dem == 100)
+                        {
+                            sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                            body += sku_code + "]}";
+
+                            request.AddParameter("application/json", body, ParameterType.RequestBody);
+                            log.InfoFormat("PostDataToBookingApp - Supplier: Json body: {0}", body);
+                            IRestResponse response = client.Execute(request);
+                            //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                            log.InfoFormat("PostDataToBookingApp - Supplier: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                            if (response.IsSuccessful)
+                            {
+                                var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`supplier_code_temp` WHERE SUPPLIER_CODE IN ({0});", sku_code);
+                                connection.Open();
+                                MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                                comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                                int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                                connection.Close();
+
+                                //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                                log.InfoFormat("PostDataToBookingApp - Supplier: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                            }
+
+                            body = "{\"codes\": [";
+                            sku_code = "";
+
+                            request.Parameters.Clear();
+                            request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                            request.AddHeader("Content-Type", "application/json");
+
+                            dem = 0;
+                        }
+                    }
+
+                    if (dem > 0)
+                    {
+                        sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                        body += sku_code + "]}";
+
+                        request.AddParameter("application/json", body, ParameterType.RequestBody);
+                        log.InfoFormat("PostDataToBookingApp - Supplier: Json body: {0}", body);
+                        IRestResponse response = client.Execute(request);
+                        //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                        log.InfoFormat("PostDataToBookingApp - Supplier: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                        if (response.IsSuccessful)
+                        {
+                            var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`supplier_code_temp` WHERE SUPPLIER_CODE IN ({0});", sku_code);
+                            connection.Open();
+                            MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                            comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                            int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                            connection.Close();
+
+                            //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                            log.InfoFormat("PostDataToBookingApp - Supplier: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.InfoFormat("PostDataToBookingApp - Supplier exception: {0}", ex.Message);
+                }
+                //sku
+                try
+                {
+                    MySqlConnection connection = new MySqlConnection(connectionString);
+                    var sql_get_SKU = String.Format("SELECT distinct * FROM aeon_pop.sku_code_temp_bka limit 2000;");
+                    connection.Open();
+                    var cmd_get_fileID = new MySqlCommand(sql_get_SKU, connection);
+                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                    MyAdapter.SelectCommand = cmd_get_fileID;
+                    DataTable dTable_SKUCode = new DataTable();
+                    MyAdapter.Fill(dTable_SKUCode);
+                    connection.Close();
+
+                    var client = new RestClient("http://45.77.34.122/thirdparty/bookingapp/download_product");
+                    client.Timeout = -1;
+                    var request = new RestRequest(Method.POST);
+                    request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                    request.AddHeader("Content-Type", "application/json");
+
+                    string body = "{\"codes\": [";
+                    string sku_code = "";
+                    int dem = 0;
+                    for (int i = 0; i < dTable_SKUCode.Rows.Count; i++)
+                    {
+                        dem++;
+                        sku_code += "\"" + dTable_SKUCode.Rows[i][0].ToString() + "\",";
+
+                        if (dem == 100)
+                        {
+                            sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                            body += sku_code + "]}";
+
+                            request.AddParameter("application/json", body, ParameterType.RequestBody);
+                            log.InfoFormat("PostDataToBookingApp - Product: Json body: {0}", body);
+                            IRestResponse response = client.Execute(request);
+                            //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                            log.InfoFormat("PostDataToBookingApp - Product: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                            if (response.IsSuccessful)
+                            {
+                                var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`sku_code_temp_bka` WHERE SKU_CODE IN ({0});", sku_code);
+                                connection.Open();
+                                MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                                comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                                int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                                connection.Close();
+
+                                //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                                log.InfoFormat("PostDataToBookingApp - Product: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                            }
+
+                            body = "{\"codes\": [";
+                            sku_code = "";
+
+                            request.Parameters.Clear();
+                            request.AddHeader("Authorization", "6d9bf625-7f54-452d-bc37-6e89f702c17a");
+                            request.AddHeader("Content-Type", "application/json");
+
+                            dem = 0;
+                        }
+                    }
+
+                    if (dem > 0)
+                    {
+                        sku_code = sku_code.Substring(0, sku_code.Length - 1);
+                        body += sku_code + "]}";
+
+                        request.AddParameter("application/json", body, ParameterType.RequestBody);
+                        log.InfoFormat("PostDataToBookingApp - Product: Json body: {0}", body);
+                        IRestResponse response = client.Execute(request);
+                        //MessageBox.Show(response.StatusCode + ": " + response.Content);
+                        log.InfoFormat("PostDataToBookingApp - Product: Result: {0} - {1}", response.StatusCode, response.Content);
+
+                        if (response.IsSuccessful)
+                        {
+                            var sql_delete_sku_code = String.Format("DELETE FROM `AEON_POP`.`sku_code_temp_bka` WHERE SKU_CODE IN ({0});", sku_code);
+                            connection.Open();
+                            MySqlCommand comm_sql_delete_sku_code = connection.CreateCommand();
+                            comm_sql_delete_sku_code.CommandText = sql_delete_sku_code;
+                            int kq = comm_sql_delete_sku_code.ExecuteNonQuery();
+                            connection.Close();
+
+                            //MessageBox.Show(sql_delete_sku_code + ": " + kq);
+                            log.InfoFormat("PostDataToBookingApp - Product: Clear line: {0} - {1}", sql_delete_sku_code, kq);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.InfoFormat("PostDataToBookingApp - Product exception: {0}", ex.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("PostDataToBookingApp: Exception: {0}", ex.Message);
+            }
+            finally
+            {
+                check_backgroundworker_PostDataToBookingApp_running = false;
             }
         }
     }
