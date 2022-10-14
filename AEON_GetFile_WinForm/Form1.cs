@@ -196,70 +196,99 @@ namespace AEON_GetFile_WinForm
 
         private static void PutFileCx_Pos(string host, int port, string username, string password)
         {
-            using (var client = new SftpClient(host, port, username, password))
+            try
             {
-                client.Connect();
-                if (client.IsConnected)
+                MyCounter_PutFileCx2Pos.MuTexLock.WaitOne();
+                MyCounter_PutFileCx2Pos.count++;
+                MyCounter_PutFileCx2Pos.MuTexLock.ReleaseMutex();
+
+                using (var client = new SftpClient(host, port, username, password))
                 {
-                    log.Info("PutFileCx_Pos Connected to FPT Cloud");
-
-                    var filesList = client.ListDirectory("/SAP_CX_UAT/Cx_Out/POS");
-                    foreach (var file in filesList)
+                    client.Connect();
+                    if (client.IsConnected)
                     {
-                        var remoteFileName = file.Name;
-                        if (!remoteFileName.StartsWith("backup") && remoteFileName.StartsWith("M"))
+                        log.Info("PutFileCx_Pos Connected to FPT Cloud");
+
+                        var filesList = client.ListDirectory("/SAP_CX_UAT/Cx_Out/POS");
+                        foreach (var file in filesList)
                         {
-                            //download file
-                            using (Stream file1 = File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
+                            var remoteFileName = file.Name;
+                            if (!remoteFileName.StartsWith("backup") && remoteFileName.StartsWith("M"))
                             {
-                                client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
-                            }
-
-                            if (File.Exists(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
-                            {
-                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}", @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
-
-                                //move file backup on server
-                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                //download file
+                                using (Stream file1 =
+                                    File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
                                 {
-                                    client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
+                                    client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
                                 }
-                                client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
-                            }
-                            else
-                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}", @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
-                        }
-                        else if (!remoteFileName.StartsWith("backup") && !remoteFileName.StartsWith("M"))
-                        {
-                            var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) + Path.GetExtension(remoteFileName).Substring(1,3); 
-                            //download file
-                            using (Stream file1 = File.OpenWrite($@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
-                            {
-                                client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
-                            }
 
-                            if (File.Exists($@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
-                            {
-                                log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
-
-                                //move file backup on server
-                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                if (File.Exists(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
                                 {
-                                    client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
+                                    log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
+                                        @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
+
+                                    //move file backup on server
+                                    var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                    if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                    {
+                                        client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
+                                    }
+
+                                    client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}",
+                                        $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
                                 }
-                                client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                else
+                                    log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
+                                        @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
                             }
-                            else
-                                log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+                            else if (!remoteFileName.StartsWith("backup") && !remoteFileName.StartsWith("M"))
+                            {
+                                var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) +
+                                                  Path.GetExtension(remoteFileName).Substring(1, 3);
+                                //download file
+                                using (Stream file1 = File.OpenWrite(
+                                    $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                                {
+                                    client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
+                                }
+
+                                if (File.Exists(
+                                    $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                                {
+                                    log.InfoFormat(
+                                        $@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+
+                                    //move file backup on server
+                                    var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                    if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                    {
+                                        client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
+                                    }
+
+                                    client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}",
+                                        $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                }
+                                else
+                                    log.ErrorFormat(
+                                        $@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+                            }
                         }
                     }
+                    else
+                    {
+                        log.Error("PutFileCx_Pos can not connected to FPT Cloud");
+                    }
                 }
-                else
-                {
-                    log.Error("PutFileCx_Pos can not connected to FPT Cloud");
-                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("PutFileCx_Pos Exception: {0}", e.Message);
+            }
+            finally
+            {
+                MyCounter_PutFileCx2Pos.MuTexLock.WaitOne();
+                MyCounter_PutFileCx2Pos.count--;
+                MyCounter_PutFileCx2Pos.MuTexLock.ReleaseMutex();
             }
         }
 
@@ -1657,6 +1686,11 @@ namespace AEON_GetFile_WinForm
             public static int count = 0;
             public static Mutex MuTexLock = new Mutex();
         }
+        class MyCounter_PutFileCx2Pos
+        {
+            public static int count = 0;
+            public static Mutex MuTexLock = new Mutex();
+        }
         private void timer_Tick(object sender, ElapsedEventArgs args)
         {
             if (args.SignalTime.Minute % 5 == 0)
@@ -1674,6 +1708,20 @@ namespace AEON_GetFile_WinForm
                     }
                 }
             }
+
+            log.InfoFormat("MyCounter_PutFileCx2Pos.count: {0}", MyCounter_PutFileCx2Pos.count);
+            if (MyCounter_PutFileCx2Pos.count == 0)
+            {
+                try
+                {
+                    myWorker_PutFileCx_Pos.RunWorkerAsync();
+                }
+                catch (Exception ex)
+                {
+                    log.Error(String.Format("Can not run backgroud_worker: myWorker_PutFileCx_Pos!|{0}", ex.Message));
+                }
+            }
+                
         }
 
         private void button4_Click(object sender, EventArgs e)
