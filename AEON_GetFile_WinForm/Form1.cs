@@ -215,62 +215,113 @@ namespace AEON_GetFile_WinForm
                             var remoteFileName = file.Name;
                             if (!remoteFileName.StartsWith("backup") && remoteFileName.StartsWith("M"))
                             {
-                                //download file
-                                using (Stream file1 =
-                                    File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
+                                var task = Task.Run(() =>
                                 {
-                                    client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
-                                }
-
-                                if (File.Exists(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
-                                {
-                                    log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
-                                        @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
-
-                                    //move file backup on server
-                                    var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                    if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                    bool result = false;
+                                    try
                                     {
-                                        client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
-                                    }
+                                        //download file
+                                        using (Stream file1 = File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
+                                        {
+                                            client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
+                                        }
 
-                                    client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}",
-                                        $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                        if (File.Exists(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
+                                        {
+                                            log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
+                                                @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
+
+                                            //move file backup on server
+                                            var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                            if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                            {
+                                                client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
+                                            }
+
+                                            client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}",
+                                                $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                            result = true;
+                                        }
+                                        else
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
+                                                @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
+                                            result = false;
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        log.ErrorFormat("", e.Message);
+                                    }
+                                    return result;
+                                });
+                                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+
+                                if (isCompletedSuccessfully)
+                                {
+                                    log.InfoFormat("PutFileCx_Pos - M: Put file Cx to Pos susscessfully! result: {0}", task.Result);
                                 }
                                 else
-                                    log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
-                                        @"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName);
+                                {
+                                    log.ErrorFormat("PutFileCx_Pos - M: The function has taken longer than the maximum time allowed.");
+                                }
                             }
                             else if (!remoteFileName.StartsWith("backup") && !remoteFileName.StartsWith("M"))
                             {
-                                var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) +
-                                                  Path.GetExtension(remoteFileName).Substring(1, 3);
-                                //download file
-                                using (Stream file1 = File.OpenWrite(
-                                    $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                                var task = Task.Run(() =>
                                 {
-                                    client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
-                                }
-
-                                if (File.Exists(
-                                    $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
-                                {
-                                    log.InfoFormat(
-                                        $@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
-
-                                    //move file backup on server
-                                    var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                    if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                    bool result = false;
+                                    try
                                     {
-                                        client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
-                                    }
+                                        var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) +
+                                                          Path.GetExtension(remoteFileName).Substring(1, 3);
+                                        //download file
+                                        using (Stream file1 = File.OpenWrite(
+                                            $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                                        {
+                                            client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
+                                        }
 
-                                    client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}",
-                                        $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                        if (File.Exists(
+                                            $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
+                                        {
+                                            log.InfoFormat(
+                                                $@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+
+                                            //move file backup on server
+                                            var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                            if (!client.Exists($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}"))
+                                            {
+                                                client.CreateDirectory($"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}");
+                                            }
+
+                                            client.RenameFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}",
+                                                $"/SAP_CX_UAT/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                            result = true;
+                                        }
+                                        else
+                                        {
+                                            log.ErrorFormat(
+                                                $@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+                                            result = false;
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        log.ErrorFormat("", e.Message);
+                                    }
+                                    return result;
+                                });
+                                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+
+                                if (isCompletedSuccessfully)
+                                {
+                                    log.InfoFormat("PutFileCx_Pos - Other: Put file Cx to Pos susscessfully! result: {0}", task.Result);
                                 }
                                 else
-                                    log.ErrorFormat(
-                                        $@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}");
+                                {
+                                    log.ErrorFormat("PutFileCx_Pos - Other: The function has taken longer than the maximum time allowed.");
+                                }
                             }
                         }
                     }
@@ -464,22 +515,44 @@ namespace AEON_GetFile_WinForm
 
         private List<string> GetFilesPathMaster_DayCurrent(DateTime maxTimePopMaster)
         {
-            var durationMaster = new TimeSpan(0, 0, 0, 1);
-            var infoMaster = new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
-            var filesPathMaster = infoMaster.GetFiles("ITEMBARCODE_*.csv")
-                .Union(infoMaster.GetFiles("ITEMSUPPL_*.csv"))
-                .Union(infoMaster.GetFiles("SUPPLIER_*.csv"))
-                .Union(infoMaster.GetFiles("STORE_*.csv"))
-                .Union(infoMaster.GetFiles("LINE_*.csv"))
-                .Union(infoMaster.GetFiles("DIVISION_*.csv"))
-                .Union(infoMaster.GetFiles("GROUP_*.csv"))
-                .Union(infoMaster.GetFiles("DEPT_*.csv"))
-                .Union(infoMaster.GetFiles("CATEGORY_*.csv"))
-                .Union(infoMaster.GetFiles("SCATEGORY_*.csv"))
-                .Where(x => x.LastWriteTime >= maxTimePopMaster.Add(durationMaster))
-                .OrderByDescending(x => x.LastWriteTime)
-                .Select(x => x.FullName)
-                .ToList();
+            List<string> filesPathMaster = new List<string>();
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    var durationMaster = new TimeSpan(0, 0, -1, 0);
+                    var infoMaster =
+                        new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
+                    filesPathMaster = infoMaster.GetFiles("ITEMBARCODE_*.csv")
+                        .Union(infoMaster.GetFiles("ITEMSUPPL_*.csv"))
+                        .Union(infoMaster.GetFiles("SUPPLIER_*.csv"))
+                        .Union(infoMaster.GetFiles("STORE_*.csv"))
+                        .Union(infoMaster.GetFiles("LINE_*.csv"))
+                        .Union(infoMaster.GetFiles("DIVISION_*.csv"))
+                        .Union(infoMaster.GetFiles("GROUP_*.csv"))
+                        .Union(infoMaster.GetFiles("DEPT_*.csv"))
+                        .Union(infoMaster.GetFiles("CATEGORY_*.csv"))
+                        .Union(infoMaster.GetFiles("SCATEGORY_*.csv"))
+                        .Where(x => x.LastWriteTime >= maxTimePopMaster.Add(durationMaster))
+                        .OrderByDescending(x => x.LastWriteTime)
+                        .Select(x => x.FullName)
+                        .ToList();
+                }
+                catch (Exception e)
+                {
+                    log.ErrorFormat("GetFilesPathMaster_DayCurrent Exception: {0}", e.Message);
+                }
+                return filesPathMaster;
+            });
+            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+            if (isCompletedSuccessfully)
+            {
+                log.InfoFormat("GetFilesPathMaster_DayCurrent successfully! File count: {0}", task.Result.Count);
+            }
+            else
+            {
+                log.ErrorFormat("GetFilesPathMaster_DayCurrent: The function has taken longer than the maximum time allowed.");
+            }
             return filesPathMaster;
         }
 
@@ -549,23 +622,44 @@ namespace AEON_GetFile_WinForm
 
         private List<string> GetFilesPathMaster_DayBefore(DateTime maxTimePopMaster)
         {
-            var durationMaster = new TimeSpan(0, 0, 0, 1);
-            var infoMaster =
-                new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
-            var filesPathMaster = infoMaster.GetFiles("ITEMBARCODE_*.csv")
-                .Union(infoMaster.GetFiles("ITEMSUPPL_*.csv"))
-                .Union(infoMaster.GetFiles("SUPPLIER_*.csv"))
-                .Union(infoMaster.GetFiles("STORE_*.csv"))
-                .Union(infoMaster.GetFiles("LINE_*.csv"))
-                .Union(infoMaster.GetFiles("DIVISION_*.csv"))
-                .Union(infoMaster.GetFiles("GROUP_*.csv"))
-                .Union(infoMaster.GetFiles("DEPT_*.csv"))
-                .Union(infoMaster.GetFiles("CATEGORY_*.csv"))
-                .Union(infoMaster.GetFiles("SCATEGORY_*.csv"))
-                .Where(x => x.LastWriteTime >= maxTimePopMaster.Add(durationMaster))
-                .OrderByDescending(x => x.LastWriteTime)
-                .Select(x => x.FullName)
-                .ToList();
+            List<string> filesPathMaster = new List<string>();
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    var durationMaster = new TimeSpan(0, 0, -1, 0);
+                    var infoMaster =
+                        new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
+                    filesPathMaster = infoMaster.GetFiles("ITEMBARCODE_*.csv")
+                        .Union(infoMaster.GetFiles("ITEMSUPPL_*.csv"))
+                        .Union(infoMaster.GetFiles("SUPPLIER_*.csv"))
+                        .Union(infoMaster.GetFiles("STORE_*.csv"))
+                        .Union(infoMaster.GetFiles("LINE_*.csv"))
+                        .Union(infoMaster.GetFiles("DIVISION_*.csv"))
+                        .Union(infoMaster.GetFiles("GROUP_*.csv"))
+                        .Union(infoMaster.GetFiles("DEPT_*.csv"))
+                        .Union(infoMaster.GetFiles("CATEGORY_*.csv"))
+                        .Union(infoMaster.GetFiles("SCATEGORY_*.csv"))
+                        .Where(x => x.LastWriteTime >= maxTimePopMaster.Add(durationMaster))
+                        .OrderByDescending(x => x.LastWriteTime)
+                        .Select(x => x.FullName)
+                        .ToList();
+                }
+                catch (Exception e)
+                {
+                    log.ErrorFormat("GetFilesPathMaster_DayBefore Exception: {0}", e.Message);
+                }
+                return filesPathMaster;
+            });
+            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+            if (isCompletedSuccessfully)
+            {
+                log.InfoFormat("GetFilesPathMaster_DayBefore successfully! File count: {0}", task.Result.Count);
+            }
+            else
+            {
+                log.ErrorFormat("GetFilesPathMaster_DayBefore: The function has taken longer than the maximum time allowed.");
+            }
             return filesPathMaster;
         }
 
@@ -601,19 +695,38 @@ namespace AEON_GetFile_WinForm
             return false;
         }
 
-
-
         private List<string> GetFilesPath(DateTime maxTimePop)
         {
-            var duration = new TimeSpan(0, 0, 0, 1);
-            var info = new DirectoryInfo(DirectoryFrom_PRD);
-            var filesPath = info.GetFiles("*.csv")
-                //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                .Where(x => x.LastWriteTime >= maxTimePop)
-                .OrderByDescending(x => x.LastWriteTime)
-                .Select(x => x.FullName)
-                .ToList();
-            return filesPath;
+            List<string> filesPathUpload_temp = new List<string>();
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    var info = new DirectoryInfo(DirectoryFrom_PRD);
+                    var duration = new TimeSpan(0, 0, -1, 0);
+                    filesPathUpload_temp = info.GetFiles("*.csv")
+                        //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
+                        .Where(x => x.LastWriteTime >= maxTimePop)
+                        .OrderByDescending(x => x.LastWriteTime)
+                        .Select(x => x.FullName)
+                        .ToList();
+                }
+                catch (Exception e)
+                {
+                    log.ErrorFormat("GetFilesPath-POP Exception: {0}", e.Message);
+                }
+                return filesPathUpload_temp;
+            });
+            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+            if (isCompletedSuccessfully)
+            {
+                log.InfoFormat("GetFilesPath-POP successfully! File count: {0}", task.Result.Count);
+            }
+            else
+            {
+                log.ErrorFormat("GetFilesPath-POP: The function has taken longer than the maximum time allowed.");
+            }
+            return filesPathUpload_temp;
         }
 
         private bool GetMaxTimePop(out string lastFileName, out DateTime maxTimePop)
@@ -1760,5 +1873,16 @@ namespace AEON_GetFile_WinForm
             }
         }
 
+        private void button8_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                myWorker_GetFile3rdParty_Azure.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }
