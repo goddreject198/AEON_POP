@@ -67,7 +67,7 @@ namespace AEON_POP_3rdParty_GetFileService
 
         private void timer_Tick(object sender, ElapsedEventArgs args)
         {
-            if (check_backgroundworker_running == false)
+            if (check_backgroundworker_running == false && (args.SignalTime.Minute % 5 == 0))
             {
                 try
                 {
@@ -557,7 +557,7 @@ namespace AEON_POP_3rdParty_GetFileService
             {
                 try
                 {
-                    var durationMaster = new TimeSpan(0, 0, -1, 0);
+                    var durationMaster = new TimeSpan(0, 0, 0, -1);
                     var infoMaster =
                         new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
                     filesPathMaster = infoMaster.GetFiles("ITEMBARCODE_*.csv")
@@ -664,7 +664,7 @@ namespace AEON_POP_3rdParty_GetFileService
             {
                 try
                 {
-                    var durationMaster = new TimeSpan(0, 0, -1, 0);
+                    var durationMaster = new TimeSpan(0, 0, 0, -1);
                     var infoMaster =
                         new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
                     filesPathMaster = infoMaster.GetFiles("ITEMBARCODE_*.csv")
