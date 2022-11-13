@@ -28,6 +28,8 @@ namespace AEON_POP_3rdParty_GetFileService
         private string DirectoryFrom = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom");
         private string FileConfig2 = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfig2");
         private string DirectoryFrom2 = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom2");
+        private string FileConfigTransation = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfigTransation");
+        private string DirectoryFromTransation = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFromTransation");
         private string FPTHost = System.Configuration.ConfigurationManager.AppSettings.Get("FPTHost");
         private string FPTPort = System.Configuration.ConfigurationManager.AppSettings.Get("FPTPort");
         private string FPTUser = System.Configuration.ConfigurationManager.AppSettings.Get("FPTUser");
@@ -67,7 +69,7 @@ namespace AEON_POP_3rdParty_GetFileService
 
         private void timer_Tick(object sender, ElapsedEventArgs args)
         {
-            if (check_backgroundworker_running == false)
+            if (check_backgroundworker_running == false && args.SignalTime.Minute % 5 == 0)
             {
                 try
                 {
@@ -104,10 +106,16 @@ namespace AEON_POP_3rdParty_GetFileService
 
                 if (GetMaxTimePopMaster(out var maxTimePopMaster)) return;
                 //check day before
-                DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
+                //DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
 
                 //check current day
                 DownloadFilePopMaster_DayCurrent(GetFilesPathMaster_DayCurrent(maxTimePopMaster));
+
+                //get file transaction (PO)
+                if (GetMaxTimePopTransaction(out var maxTimePopTransaction)) return;
+                //check day before
+                DownloadFilePopTransaction_DayCurrent(GetFilesPathTransation_DayCurrent(maxTimePopTransaction));
+
 
                 log.Info("UploadFile_POP3rdParty done!");
 
@@ -402,7 +410,7 @@ namespace AEON_POP_3rdParty_GetFileService
                     client.Connect();
                     if (client.IsConnected)
                     {
-                        log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
+                        log.Info("UploadFile_POP3rdParty_master Connected to FPT Cloud");
 
                         var maxtimePos = 0;
                         foreach (var path in filesPathMaster)
@@ -410,7 +418,7 @@ namespace AEON_POP_3rdParty_GetFileService
                             var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
                             if (maxtimePos == 0)
                             {
-                                log.InfoFormat("last time pop PRD: {0}", lastwritetime);
+                                log.InfoFormat("last time pop UAT: {0}", lastwritetime);
 
                                 StreamWriter sw = new StreamWriter(FileConfig2, false, Encoding.Unicode);
                                 sw.Write(path + ",");
@@ -427,24 +435,24 @@ namespace AEON_POP_3rdParty_GetFileService
                                     client.BufferSize = 4 * 1024; // bypass Payload error large files
                                     client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
                                     client.UploadFile(fileStream, Path.GetFileName(path));
-                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}", path);
+                                    log.InfoFormat("GetFilePOP3rdParty_UAT: UploadFile_master successfully: {0}", path);
                                 }
                                 catch (Exception ex)
                                 {
-                                    log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_master Exception: {0}", ex.Message);
+                                    log.ErrorFormat("GetFilePOP3rdParty_UAT: UploadFile_master Exception: {0}", ex.Message);
                                 }
                             }
                         }
                     }
                     else
                     {
-                        log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
+                        log.Error("UploadFile_POP3rdParty_master_UAT can not connected to AEON Azure");
                     }
                 }
             }
             else
             {
-                log.InfoFormat("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2);
+                log.InfoFormat("UploadFile_POP3rdParty_UAT: service get no file from {0}!", DirectoryFrom2);
             }
         }
 
@@ -468,6 +476,7 @@ namespace AEON_POP_3rdParty_GetFileService
                         .Union(infoMaster.GetFiles("DEPT_*.csv"))
                         .Union(infoMaster.GetFiles("CATEGORY_*.csv"))
                         .Union(infoMaster.GetFiles("SCATEGORY_*.csv"))
+                        .Union(infoMaster.GetFiles("SUPPLCONTRACT_*.csv"))
                         .Where(x => x.LastWriteTime >= maxTimePopMaster.Add(durationMaster))
                         .OrderByDescending(x => x.LastWriteTime)
                         .Select(x => x.FullName)
@@ -575,6 +584,7 @@ namespace AEON_POP_3rdParty_GetFileService
                         .Union(infoMaster.GetFiles("DEPT_*.csv"))
                         .Union(infoMaster.GetFiles("CATEGORY_*.csv"))
                         .Union(infoMaster.GetFiles("SCATEGORY_*.csv"))
+                        .Union(infoMaster.GetFiles("SUPPLCONTRACT_*.csv"))
                         .Where(x => x.LastWriteTime >= maxTimePopMaster.Add(durationMaster))
                         .OrderByDescending(x => x.LastWriteTime)
                         .Select(x => x.FullName)
@@ -695,6 +705,131 @@ namespace AEON_POP_3rdParty_GetFileService
 
             log.Info("MaxTime_Pop_PRD: " + maxTimePop.ToString(CultureInfo.InvariantCulture));
             return false;
+        }
+
+        private bool GetMaxTimePopTransaction(out DateTime maxTimePopTransaction)
+        {
+            maxTimePopTransaction = DateTime.MinValue;
+            if (File.Exists(FileConfigTransation))
+            {
+                using (var reader = new StreamReader(FileConfigTransation))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        if (line != null)
+                        {
+                            var values = line.Split(',');
+                            var maxTime = values[1].ToString();
+                            log.Info(maxTime);
+                            DateTime.TryParseExact(maxTime, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture,
+                                System.Globalization.DateTimeStyles.None, out maxTimePopTransaction);
+                        }
+                    }
+                }
+            }
+
+            if (maxTimePopTransaction == DateTime.MinValue)
+            {
+                log.Info(maxTimePopTransaction.ToString(CultureInfo.InvariantCulture));
+                return true;
+            }
+
+            log.Info(maxTimePopTransaction.ToString(CultureInfo.InvariantCulture));
+            return false;
+        }
+
+        private List<string> GetFilesPathTransation_DayCurrent(DateTime maxTimePopTransaction)
+        {
+            List<string> filesPathTransation = new List<string>();
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    var durationTransation = new TimeSpan(0, 0, 0, 0);
+                    var infoMaster =
+                        new DirectoryInfo(string.Format(DirectoryFromTransation));
+                    filesPathTransation = infoMaster.GetFiles("PO_*.csv")
+                        .Where(x => x.LastWriteTime >= maxTimePopTransaction.Add(durationTransation))
+                        .OrderByDescending(x => x.LastWriteTime)
+                        .Select(x => x.FullName)
+                        .ToList();
+                }
+                catch (Exception e)
+                {
+                    log.ErrorFormat("GetFilesPathTransation_DayBefore Exception: {0}", e.Message);
+                }
+                return filesPathTransation;
+            });
+            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+            if (isCompletedSuccessfully)
+            {
+                log.InfoFormat("GetFilesPathTransation_DayBefore successfully! File count: {0}", task.Result.Count);
+            }
+            else
+            {
+                log.ErrorFormat("GetFilesPathTransation_DayBefore: The function has taken longer than the maximum time allowed.");
+            }
+            return filesPathTransation;
+        }
+        private void DownloadFilePopTransaction_DayCurrent(IReadOnlyCollection<string> filesPathTransation)
+        {
+            if (filesPathTransation.Count > 0)
+            {
+                var host = FPTHost;
+                var port = Convert.ToInt32(FPTPort);
+                var username = FPTUser;
+                var password = FPTPwd;
+
+                using (var client = new SftpClient(host, port, username, password))
+                {
+                    client.Connect();
+                    if (client.IsConnected)
+                    {
+                        log.Info("UploadFile_POP3rdParty_Transation Connected to FPT Cloud");
+
+                        var maxtimePos = 0;
+                        foreach (var path in filesPathTransation)
+                        {
+                            var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                            if (maxtimePos == 0)
+                            {
+                                log.InfoFormat("last time transation UAT: {0}", lastwritetime);
+
+                                StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
+                                sw.Write(path + ",");
+                                sw.Write(lastwritetime);
+                                sw.WriteLine();
+                                sw.Close();
+                            }
+
+                            maxtimePos++;
+                            using (var fileStream = new FileStream(path, FileMode.Open))
+                            {
+                                try
+                                {
+                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                    client.UploadFile(fileStream, Path.GetFileName(path));
+                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                }
+                                catch (Exception ex)
+                                {
+                                    log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        log.Error("UploadFile_POP3rdParty_transaction_UAT can not connected to FPT Cloud");
+                    }
+                }
+            }
+            else
+            {
+                log.InfoFormat("UploadFile_POP3rdParty_transaction_UAT: service get no file from {0}!", DirectoryFromTransation);
+            }
         }
     }
 }

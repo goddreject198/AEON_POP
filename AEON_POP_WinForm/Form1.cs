@@ -3573,6 +3573,210 @@ namespace AEON_POP_WinForm
                                     #endregion
                                 }
                             }
+                            if (filename.Length >= 14)
+                            {
+                                if (filename.Substring(0, 14) == "SUPPLCONTRACT_")
+                                {
+                                    #region SUPPLCONTRACT_
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                     , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
+                                                     , filename
+                                                     , date_now
+                                                     , time_now
+                                                     , "Inprocess");
+                                    connection.Open();
+                                    var cmd_insert_profit_file = new MySqlCommand(sql_insert_profit_file, connection);
+                                    MySqlDataReader rdr_insert_profit_file = cmd_insert_profit_file.ExecuteReader();
+                                    connection.Close();
+
+                                    //get File_ID
+                                    var sql_get_fileID = String.Format("select * from profit_files_log order by FILE_ID desc limit 1");
+                                    connection.Open();
+                                    var cmd_get_fileID = new MySqlCommand(sql_get_fileID, connection);
+                                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                                    MyAdapter.SelectCommand = cmd_get_fileID;
+                                    DataTable dTable_FileID = new DataTable();
+                                    MyAdapter.Fill(dTable_FileID);
+                                    connection.Close();
+
+                                    log_fileid = dTable_FileID.Rows[0][0].ToString();
+
+                                    using (StreamReader sr = new StreamReader(pathtg))
+                                    {
+                                        int line = 0;
+                                        //insert data to table
+                                        var sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`supplier_contract_temp`
+                                                                                    (`VN_CODE`,`VN_CONTRACT`,`BRANCH_CODE`,`COMPANY_TAX_REGISTRATION_NO`,`FILE_ID`)VALUES");
+
+                                        while (!sr.EndOfStream)
+                                        {
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
+                                            line++;
+
+                                            //get data
+                                            string VN_CODE = rows[0].ToString();
+
+                                            string VN_CONTRACT = "";
+                                            string temp_VN_CONTRACT = rows[1].ToString();
+                                            if (temp_VN_CONTRACT.Contains("\""))
+                                            {
+                                                VN_CONTRACT = temp_VN_CONTRACT.Replace("\"", "\"\"");
+                                            }
+                                            else
+                                            {
+                                                VN_CONTRACT = rows[1].ToString();
+                                            }
+                                            string BRANCH_CODE = rows[11].ToString();
+                                            string COMPANY_TAX_REGISTRATION_NO = rows[67].ToString();
+                                            string FILE_ID = log_fileid;
+
+
+                                            sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}""),"
+                                                                                        , VN_CODE, VN_CONTRACT, BRANCH_CODE, COMPANY_TAX_REGISTRATION_NO, FILE_ID);
+
+                                            if (line == 100)
+                                            {
+                                                connection.Open();
+                                                MySqlCommand comm_sql_insert_data = connection.CreateCommand();
+                                                sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
+                                                comm_sql_insert_data.CommandText = sql_insert_data;
+                                                int kq = comm_sql_insert_data.ExecuteNonQuery();
+                                                connection.Close();
+
+                                                sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`supplier_contract_temp`
+                                                                                    (`VN_CODE`,`VN_CONTRACT`,`BRANCH_CODE`,`COMPANY_TAX_REGISTRATION_NO`,`FILE_ID`)VALUES");
+                                                line = 0;
+                                            }
+                                        }
+                                        if (line > 0)
+                                        {
+                                            connection.Open();
+                                            MySqlCommand comm_sql_insert_data = connection.CreateCommand();
+                                            sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
+                                            comm_sql_insert_data.CommandText = sql_insert_data;
+                                            int kq = comm_sql_insert_data.ExecuteNonQuery();
+                                            connection.Close();
+                                        }
+                                    }
+                                    //move file to folder backup
+                                    String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+
+
+                                    //update info file to log_file
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                         , log_fileid);
+                                    connection.Open();
+                                    var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
+                                    MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                    connection.Close();
+                                    #endregion
+                                }
+                            }
+                            if (filename.Length >= 3)
+                            {
+                                if (filename.Substring(0, 3) == "PO_")
+                                {
+                                    #region PO_
+                                    var sql_insert_profit_file = String.Format("INSERT INTO `aeon_pop`.`profit_files_log` (`FILE_DATE`,`FILE_NAME`,`SYS_DATE`,`SYS_TIME`,`MESSAGE`) VALUES('{0}','{1}','{2}','{3}','{4}'); "
+                                                     , filename.Substring(filename.LastIndexOf("_") + 1, filename.Length - filename.LastIndexOf("_") - 8)
+                                                     , filename
+                                                     , date_now
+                                                     , time_now
+                                                     , "Inprocess");
+                                    connection.Open();
+                                    var cmd_insert_profit_file = new MySqlCommand(sql_insert_profit_file, connection);
+                                    MySqlDataReader rdr_insert_profit_file = cmd_insert_profit_file.ExecuteReader();
+                                    connection.Close();
+
+                                    //get File_ID
+                                    var sql_get_fileID = String.Format("select * from profit_files_log order by FILE_ID desc limit 1");
+                                    connection.Open();
+                                    var cmd_get_fileID = new MySqlCommand(sql_get_fileID, connection);
+                                    MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+                                    MyAdapter.SelectCommand = cmd_get_fileID;
+                                    DataTable dTable_FileID = new DataTable();
+                                    MyAdapter.Fill(dTable_FileID);
+                                    connection.Close();
+
+                                    log_fileid = dTable_FileID.Rows[0][0].ToString();
+
+                                    using (StreamReader sr = new StreamReader(pathtg))
+                                    {
+                                        int line = 0;
+                                        //insert data to table
+                                        var sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`purchase_order_temp`
+                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`FILE_ID`)VALUES");
+
+                                        while (!sr.EndOfStream)
+                                        {
+                                            string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
+                                            line++;
+
+                                            //get data
+                                            string ORDER_NO = rows[0].ToString();
+                                            string SUPPLIER = rows[5].ToString();
+                                            string ETA_DATE = rows[8].ToString();
+                                            string SKU = rows[48].ToString();
+                                            string FILE_ID = log_fileid;
+
+
+                                            sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}""),"
+                                                                                        , ORDER_NO, SUPPLIER, ETA_DATE, SKU, FILE_ID);
+
+                                            if (line == 100)
+                                            {
+                                                connection.Open();
+                                                MySqlCommand comm_sql_insert_data = connection.CreateCommand();
+                                                sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
+                                                comm_sql_insert_data.CommandText = sql_insert_data;
+                                                int kq = comm_sql_insert_data.ExecuteNonQuery();
+                                                connection.Close();
+
+                                                sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`purchase_order_temp`
+                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`FILE_ID`)VALUES");
+                                                line = 0;
+                                            }
+                                        }
+                                        if (line > 0)
+                                        {
+                                            connection.Open();
+                                            MySqlCommand comm_sql_insert_data = connection.CreateCommand();
+                                            sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
+                                            comm_sql_insert_data.CommandText = sql_insert_data;
+                                            int kq = comm_sql_insert_data.ExecuteNonQuery();
+                                            connection.Close();
+                                        }
+                                    }
+                                    //move file to folder backup
+                                    String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+
+
+                                    //update info file to log_file
+                                    var sql_update_profit_file = String.Format("UPDATE `aeon_pop`.`profit_files_log` SET `MESSAGE` = \"Successfully\" WHERE `FILE_ID` = '{0}';"
+                                                         , log_fileid);
+                                    connection.Open();
+                                    var cmd_update_profit_file = new MySqlCommand(sql_update_profit_file, connection);
+                                    MySqlDataReader rdr_update_profit_file = cmd_update_profit_file.ExecuteReader();
+                                    connection.Close();
+                                    #endregion
+                                }
+                            }
                         }
                     }
                 }
