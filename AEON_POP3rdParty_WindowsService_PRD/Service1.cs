@@ -109,17 +109,19 @@ namespace AEON_POP3rdParty_WindowsService
                     log.Error(String.Format("Can not run backgroud_worker: myWorker_PostDataToMobile!|{0}", e.Message));
                 }
             }
-            if (check_backgroundworker_AutoDelData_running == false && args.SignalTime.Hour == 0 && args.SignalTime.Minute == 10)
-            {
-                try
-                {
-                    myWorker_AutoDelData.RunWorkerAsync();
-                }
-                catch (Exception e)
-                {
-                    log.Error(String.Format("Can not run backgroud_worker: myWorker_AutoDelData!|{0}", e.Message));
-                }
-            }
+
+            //anh Ân chốt không xài rule này ngày 18/11/22
+            //if (check_backgroundworker_AutoDelData_running == false && args.SignalTime.Hour == 0 && args.SignalTime.Minute == 10)
+            //{
+            //    try
+            //    {
+            //        myWorker_AutoDelData.RunWorkerAsync();
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        log.Error(String.Format("Can not run backgroud_worker: myWorker_AutoDelData!|{0}", e.Message));
+            //    }
+            //}
         }
 
         private void myWorker_ItemSellPrice_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -2636,8 +2638,7 @@ namespace AEON_POP3rdParty_WindowsService
                                         }
 
                                         //move file to folder backup
-                                        String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") +
-                                                           @"\";
+                                        String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
                                         bool exist = Directory.Exists(dirBackup);
                                         if (!exist)
                                         {
@@ -2758,15 +2759,25 @@ namespace AEON_POP3rdParty_WindowsService
                                             }
                                         }
                                         //move file to folder backup
-                                        String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                        String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
                                         bool exist = Directory.Exists(dirBackup);
                                         if (!exist)
                                         {
                                             // Tạo thư mục.
                                             Directory.CreateDirectory(dirBackup);
                                         }
+
                                         string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
                                         File.Move(pathtg, dirPathBackup);
+
+                                        if (File.Exists(dirPathBackup))
+                                        {
+                                            log.InfoFormat("Read File Success! {0}", dirPathBackup);
+                                        }
+                                        else
+                                        {
+                                            log.ErrorFormat("Read File Failed! {0}", dirPathBackup);
+                                        }
 
 
                                         //update info file to log_file
@@ -2855,15 +2866,25 @@ namespace AEON_POP3rdParty_WindowsService
                                             }
                                         }
                                         //move file to folder backup
-                                        String dirBackup = @"C:\Profit_Receive\Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                        String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
                                         bool exist = Directory.Exists(dirBackup);
                                         if (!exist)
                                         {
                                             // Tạo thư mục.
                                             Directory.CreateDirectory(dirBackup);
                                         }
+
                                         string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
                                         File.Move(pathtg, dirPathBackup);
+
+                                        if (File.Exists(dirPathBackup))
+                                        {
+                                            log.InfoFormat("Read File Success! {0}", dirPathBackup);
+                                        }
+                                        else
+                                        {
+                                            log.ErrorFormat("Read File Failed! {0}", dirPathBackup);
+                                        }
 
 
                                         //update info file to log_file
@@ -2903,10 +2924,12 @@ namespace AEON_POP3rdParty_WindowsService
 
         private bool CheckFileAlreadyExist(string pathtg)
         {
+            String dirBackup_lastday = Folder_in + @"Backup\" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"\";
+            string dirPathBackup_lastday = dirBackup_lastday + Path.GetFileName(pathtg);
             String dirBackup = Folder_in + @"Backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
             string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
 
-            if (File.Exists(dirPathBackup))
+            if (File.Exists(dirPathBackup_lastday) || File.Exists(dirPathBackup))
             {
                 File.Delete(pathtg);
                 log.InfoFormat("File is duplicate, Delete file! {0}", pathtg);

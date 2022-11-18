@@ -651,7 +651,7 @@ namespace AEON_POP_3rdParty_GetFileService
                     var duration = new TimeSpan(0, 0, -1, 0);
                     filesPathUpload_temp = info.GetFiles("*.csv")
                         //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                        .Where(x => x.LastWriteTime >= maxTimePop)
+                        .Where(x => x.LastWriteTime >= maxTimePop.Add(duration))
                         .OrderByDescending(x => x.LastWriteTime)
                         .Select(x => x.FullName)
                         .ToList();
