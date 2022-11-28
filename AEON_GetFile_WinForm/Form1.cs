@@ -24,6 +24,7 @@ namespace AEON_GetFile_WinForm
         private BackgroundWorker myWorker_GetFile3rdParty = new BackgroundWorker();
         private BackgroundWorker myWorker_GetFile3rdParty_PRD = new BackgroundWorker();
         private BackgroundWorker myWorker_GetFile3rdParty_Azure = new BackgroundWorker();
+        private BackgroundWorker myWorker_GetFile3rdParty_Azure_New = new BackgroundWorker();
         private BackgroundWorker myWorker_PutFileCx_Pos = new BackgroundWorker();
         private BackgroundWorker myWorker_PutFileCx_BI = new BackgroundWorker();
 
@@ -86,6 +87,12 @@ namespace AEON_GetFile_WinForm
             myWorker_GetFile3rdParty_Azure.ProgressChanged += new ProgressChangedEventHandler(myWorker_GetFile3rdParty_Azure_ProgressChanged);
             myWorker_GetFile3rdParty_Azure.WorkerReportsProgress = true;
             myWorker_GetFile3rdParty_Azure.WorkerSupportsCancellation = true;
+
+            myWorker_GetFile3rdParty_Azure_New.DoWork += new DoWorkEventHandler(myWorker_GetFile3rdParty_Azure_New_DoWork);
+            myWorker_GetFile3rdParty_Azure_New.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_GetFile3rdParty_Azure_New_RunWorkerCompleted);
+            myWorker_GetFile3rdParty_Azure_New.ProgressChanged += new ProgressChangedEventHandler(myWorker_GetFile3rdParty_Azure_New_ProgressChanged);
+            myWorker_GetFile3rdParty_Azure_New.WorkerReportsProgress = true;
+            myWorker_GetFile3rdParty_Azure_New.WorkerSupportsCancellation = true;
 
             myWorker_PutFileCx_Pos.DoWork += new DoWorkEventHandler(myWorker_PutFileCx_Pos_DoWork);
             myWorker_PutFileCx_Pos.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PutFileCx_Pos_RunWorkerCompleted);
@@ -733,7 +740,7 @@ namespace AEON_GetFile_WinForm
                                     client.BufferSize = 4 * 1024; // bypass Payload error large files
                                     client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
                                     client.UploadFile(fileStream, Path.GetFileName(path));
-                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}",path);
+                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}", path);
                                 }
                                 catch (Exception ex)
                                 {
@@ -1047,7 +1054,7 @@ namespace AEON_GetFile_WinForm
                 log.Info("MaxTime_Pop_PRD: " + maxTimePop.ToString());
                 TimeSpan duration = new TimeSpan(0, 0, 0, 1);
 
-                
+
                 DirectoryInfo info = new DirectoryInfo(DirectoryFrom_PRD);
                 List<string> filesPath = info.GetFiles("*.csv")
                                                 //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
@@ -1212,7 +1219,7 @@ namespace AEON_GetFile_WinForm
                             }
                         }
 
-                        
+
                     }
                     else
                     {
@@ -1412,7 +1419,7 @@ namespace AEON_GetFile_WinForm
                         }
                     }
                     log.Info("UploadFile_POP3rdParty done!");
-                }    
+                }
                 else
                 {
                     log.Info(string.Format("UploadFile_POP3rdParty: service get no file from {0}!", DirectoryFrom));
@@ -1632,7 +1639,8 @@ namespace AEON_GetFile_WinForm
                 //var store = new string[] { "1001"};
                 foreach (var i in store)
                 {
-                    var t = new Thread(() => {
+                    var t = new Thread(() =>
+                    {
                         UploadFile_Cx(i);
                     });
                     t.Name = i;
@@ -1678,7 +1686,7 @@ namespace AEON_GetFile_WinForm
 
                     DownloadFileCx_DayCurrent(i, maxTimeCxDownload, host, port, username, password);
                 }
-                
+
                 //get file from dir upload
                 var maxTimeCxUpload = GetMaxTimeCxUpload(i);
                 if (maxTimeCxUpload != DateTime.MinValue)
@@ -1686,7 +1694,7 @@ namespace AEON_GetFile_WinForm
                     //download file from folder Upload in Middle Server
                     DownloadFileCx_Upload(i, maxTimeCxUpload, host, port, username, password);
                 }
-                
+
                 log.Info("UploadFile_Cx done! Store: " + i);
             }
             catch (Exception ex)
@@ -1925,7 +1933,7 @@ namespace AEON_GetFile_WinForm
             {
                 log.InfoFormat("UploadFile_Cx - Download_Day_Current - Store {0}: Exception: {1}", i, ex.Message);
             }
-            
+
         }
 
         private static void DownloadFileCx_DayBefore(string i, DateTime maxTimeCxDownload, string host, int port, string username, string password)
@@ -1981,7 +1989,7 @@ namespace AEON_GetFile_WinForm
                     {
                         log.ErrorFormat("UploadFile_Cx - Download_Day_Current - Store {0}: {1}", i, e.Message);
                     }
-                    
+
                     return filesPathDownload_temp;
                 });
 
@@ -2052,7 +2060,7 @@ namespace AEON_GetFile_WinForm
             {
                 log.InfoFormat("UploadFile_Cx - Download_Day_Before - Store {0}: Exception: {1}", i, ex.Message);
             }
-            
+
         }
 
         private static DateTime GetMaxTimeCxDownload(string i)
@@ -2168,7 +2176,7 @@ namespace AEON_GetFile_WinForm
                     log.Error(String.Format("Can not run backgroud_worker: myWorker_PutFileCx_Pos!|{0}", ex.Message));
                 }
             }
-                
+
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -2285,10 +2293,11 @@ namespace AEON_GetFile_WinForm
                     , "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502", "5503"
                     , "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805"
                     , "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
-                //var store = new string[] { "1001"};
+                //var store = new string[] { "5876" };
                 foreach (var i in store)
                 {
-                    var t = new Thread(() => {
+                    var t = new Thread(() =>
+                    {
                         UploadFile_Cx_PRD(i);
                     });
                     t.Name = i;
@@ -2652,7 +2661,7 @@ namespace AEON_GetFile_WinForm
                     }
                     return filesPathUpload_temp;
                 });
-                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(90000));
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(180000));
                 if (isCompletedSuccessfully)
                 {
                     var filesPathUpload = task.Result;
@@ -2718,6 +2727,155 @@ namespace AEON_GetFile_WinForm
             catch (Exception ex)
             {
                 log.InfoFormat("UploadFile_Cx_PRD - Upload - Store {0}: Exception: {1}", i, ex.Message);
+            }
+        }
+
+
+        private System.Timers.Timer timer_Pop = null;
+        private void button8_Click_1(object sender, EventArgs e)
+        {
+            try
+            {
+                // Tạo 1 timer từ libary System.Timers
+                timer_Pop = new System.Timers.Timer();
+                // Execute mỗi 1 phút
+                timer_Pop.Interval = 60000;
+                // Những gì xảy ra khi timer đó dc tick
+                timer_Pop.Elapsed += timer_Pop_Tick;
+                // Enable timer
+                timer_Pop.Enabled = true;
+
+                //myWorker_GetFileCx.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+        private void timer_Pop_Tick(object sender, ElapsedEventArgs args)
+        {
+            if (args.SignalTime.Minute % 5 == 0)
+            {
+                try
+                {
+                    myWorker_GetFile3rdParty_Azure_New.RunWorkerAsync();
+                }
+                catch (Exception e)
+                {
+                    log.Error(String.Format("Can not run backgroud_worker: myWorker_GetFile3rdParty_Azure_New!|{0}", e.Message));
+                }
+            }
+        }
+
+        private void myWorker_GetFile3rdParty_Azure_New_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_GetFile3rdParty_Azure_New_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            log.Info("myWorker_GetFile3rdParty_Azure_New_RunWorkerCompleted");
+        }
+
+        private void myWorker_GetFile3rdParty_Azure_New_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                log.Info("myWorker_GetFile3rdParty_Azure_New_DoWork");
+
+                DownloadFilePop_New();
+
+                //if (GetMaxTimePopMaster(out var maxTimePopMaster)) return;
+                ////check day before
+                //DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
+                ////check current day
+                //DownloadFilePopMaster_DayCurrent(GetFilesPathMaster_DayCurrent(maxTimePopMaster));
+
+                //if (GetMaxTimePopTransaction(out var maxTimePopTransaction)) return;
+                ////check day before
+                //DownloadFilePopTransaction_DayBefore(GetFilesPathTransation_DayBefore(maxTimePopTransaction));
+                ////check day current
+                //DownloadFilePopTransaction_DayCurrent(GetFilesPathTransation_DayCurrent(maxTimePopTransaction));
+
+
+                log.Info("myWorker_GetFile3rdParty_Azure_New_DoWork done!");
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("myWorker_GetFile3rdParty_Azure_New_DoWork - Exception: {0}", ex.Message);
+            }
+        }
+
+        private void DownloadFilePop_New()
+        {
+            try
+            {
+                string pop_path = @"\\10.121.2.207\NFS\production\vnm\download\fpt_bi\pop_system";
+                //string pop_path = @"C:\profit\vnm\download\fpt_bi\pop_system";
+                DirectoryInfo info = new DirectoryInfo(pop_path);
+                List<string> filesPath = info.GetFiles("*.csv")
+                    .Select(x => x.FullName)
+                    .ToList();
+                log.InfoFormat("UploadFile_POP3rdParty_PRD pop_path count: {0}", filesPath.Count);
+                if (filesPath.Count > 0)
+                {
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
+
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
+
+                            foreach (var pathtg in filesPath)
+                            {
+                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                {
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message);
+                                    }
+                                }
+                                if (client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + Path.GetFileName(pathtg)))
+                                {
+                                    //move file to folder backup
+                                    String dirBackup = @"\\10.121.2.207\NFS\production\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    //String dirBackup = @"C:\profit\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+                                    if (File.Exists(dirPathBackup))
+                                    {
+                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", dirPathBackup);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty_PRD can not connected to FPT Cloud");
+                        }
+                    }
+                }    
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
             }
         }
     }
