@@ -51,6 +51,7 @@ namespace AEON_GetFile_WinForm
         private string AVNAzurePort = System.Configuration.ConfigurationManager.AppSettings.Get("AVNAzurePort");
         private string AVNAzureUser = System.Configuration.ConfigurationManager.AppSettings.Get("AVNAzureUser");
         private string AVNAzurePwd = System.Configuration.ConfigurationManager.AppSettings.Get("AVNAzurePwd");
+        private string Store_Directory = System.Configuration.ConfigurationManager.AppSettings.Get("Store_Directory");
 
 
         public Form1()
@@ -2229,23 +2230,34 @@ namespace AEON_GetFile_WinForm
         private System.Timers.Timer timer_CxPRD = null;
         private void button7_Click(object sender, EventArgs e)
         {
-            try
+            if (MyCounter_GetFilePos2CxPRD.count == 0)
             {
-                // Tạo 1 timer từ libary System.Timers
-                timer_CxPRD = new System.Timers.Timer();
-                // Execute mỗi 1 phút
-                timer_CxPRD.Interval = 60000;
-                // Những gì xảy ra khi timer đó dc tick
-                timer_CxPRD.Elapsed += timer_CxPRD_Tick;
-                // Enable timer
-                timer_CxPRD.Enabled = true;
+                try
+                {
+                    myWorker_GetFileCxPRD.RunWorkerAsync();
+                }
+                catch (Exception ex)
+                {
+                    log.Error(String.Format("Can not run backgroud_worker: myWorker_GetFileCxPRD!|{0}", ex.Message));
+                }
+            }
+            //try
+            //{
+            //    // Tạo 1 timer từ libary System.Timers
+            //    timer_CxPRD = new System.Timers.Timer();
+            //    // Execute mỗi 1 phút
+            //    timer_CxPRD.Interval = 60000;
+            //    // Những gì xảy ra khi timer đó dc tick
+            //    timer_CxPRD.Elapsed += timer_CxPRD_Tick;
+            //    // Enable timer
+            //    timer_CxPRD.Enabled = true;
 
-                //myWorker_GetFileCx.RunWorkerAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+            //    //myWorker_GetFileCx.RunWorkerAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show(ex.Message);
+            //}
         }
         class MyCounter_GetFilePos2CxPRD
         {
@@ -2285,16 +2297,33 @@ namespace AEON_GetFile_WinForm
             try
             {
                 log.Info("myWorker_GetFileCxPRD_DoWork");
+                List<string> store_list = new List<string>();
+                var directory = Store_Directory;
+                if (File.Exists(directory))
+                {
+                    using (var reader = new StreamReader(directory))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                store_list.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                    return;
+                }
 
-                var store = new string[] {
-                    "1001", "1002", "1003", "1004", "1005", "1006", "1008", "3002", "3003", "3005"
-                    , "3008", "3011", "3013", "3014", "3015", "3016", "3018", "3099", "5101", "5102"
-                    , "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173"
-                    , "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502", "5503"
-                    , "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805"
-                    , "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
+                //var store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006", "1008", "3002", "3003", "3005", "3008", "3011", "3013", "3014", "3015", "3016", "3018", "3099"
+                //    , "5101", "5102", "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173", "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502"
+                //    , "5503", "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805", "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
                 //var store = new string[] { "5876" };
-                foreach (var i in store)
+                foreach (var i in store_list)
                 {
                     var t = new Thread(() =>
                     {

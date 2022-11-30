@@ -2828,8 +2828,7 @@ namespace AEON_POP3rdParty_WindowsService
                                             while (!sr.EndOfStream)
                                             {
                                                 string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
-                                                line++;
-
+                                                
                                                 //get data
                                                 string ORDER_NO = rows[0].ToString();
                                                 string SUPPLIER = rows[5].ToString();
@@ -2837,24 +2836,28 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string SKU = rows[48].ToString();
                                                 string BRANCH_CODE = rows[23].ToString();
                                                 string CONTRACT_NO = rows[6].ToString();
+                                                string DELIVERY_LOCATION = rows[46].ToString();
                                                 string FILE_ID = log_fileid;
 
-
-                                                sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}""),"
-                                                                                            , ORDER_NO, SUPPLIER, ETA_DATE, SKU, BRANCH_CODE, CONTRACT_NO, FILE_ID);
-
-                                                if (line == 100)
+                                                if (DELIVERY_LOCATION != "DCXD" && DELIVERY_LOCATION != "DCSP")
                                                 {
-                                                    connection.Open();
-                                                    MySqlCommand comm_sql_insert_data = connection.CreateCommand();
-                                                    sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
-                                                    comm_sql_insert_data.CommandText = sql_insert_data;
-                                                    int kq = comm_sql_insert_data.ExecuteNonQuery();
-                                                    connection.Close();
+                                                    line++;
+                                                    sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}""),"
+                                                        , ORDER_NO, SUPPLIER, ETA_DATE, SKU, BRANCH_CODE, CONTRACT_NO, FILE_ID);
 
-                                                    sql_insert_data = String.Format(@"INSERT INTO `aeon_pop_prd`.`purchase_order_temp`
+                                                    if (line == 100)
+                                                    {
+                                                        connection.Open();
+                                                        MySqlCommand comm_sql_insert_data = connection.CreateCommand();
+                                                        sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
+                                                        comm_sql_insert_data.CommandText = sql_insert_data;
+                                                        int kq = comm_sql_insert_data.ExecuteNonQuery();
+                                                        connection.Close();
+
+                                                        sql_insert_data = String.Format(@"INSERT INTO `aeon_pop_prd`.`purchase_order_temp`
                                                                                     (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`FILE_ID`)VALUES");
-                                                    line = 0;
+                                                        line = 0;
+                                                    }
                                                 }
                                             }
                                             if (line > 0)
