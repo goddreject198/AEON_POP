@@ -103,9 +103,10 @@ namespace AEON_POP_3rdParty_GetFileService
                 log.Info("myWorker_GetFile3rdParty_RunWorkerBegin");
                 check_backgroundworker_running = true;
 
-                if (GetMaxTimePop(out var lastFileName, out var maxTimePop)) return;
+                //if (GetMaxTimePop(out var lastFileName, out var maxTimePop)) return;
 
-                DownloadFilePop(GetFilesPath(maxTimePop), lastFileName);
+                //DownloadFilePop(GetFilesPath(maxTimePop), lastFileName);
+                DownloadFilePop_New();
 
                 if (GetMaxTimePopMaster(out var maxTimePopMaster)) return;
                 //check day before
@@ -422,6 +423,80 @@ namespace AEON_POP_3rdParty_GetFileService
                 log.Error(string.Format("myWorker_GetFile3rdParty_PRD_DoWork - Exception: {0}", ex.Message));
             }
         }
+
+        private void DownloadFilePop_New()
+        {
+            try
+            {
+                //string pop_path = @"\\10.121.2.207\NFS\production\vnm\download\fpt_bi\pop_system";
+                string pop_path = DirectoryFrom_PRD;
+                DirectoryInfo info = new DirectoryInfo(pop_path);
+                List<string> filesPath = info.GetFiles("*.csv")
+                    .Select(x => x.FullName)
+                    .ToList();
+                log.InfoFormat("UploadFile_POP3rdParty_PRD pop_path count: {0}", filesPath.Count);
+                if (filesPath.Count > 0)
+                {
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
+
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
+
+                            foreach (var pathtg in filesPath)
+                            {
+                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                {
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message);
+                                    }
+                                }
+                                if (client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + Path.GetFileName(pathtg)))
+                                {
+                                    //move file to folder backup
+                                    String dirBackup = DirectoryFrom_PRD + @"\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    //String dirBackup = @"C:\profit\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                    bool exist = Directory.Exists(dirBackup);
+                                    if (!exist)
+                                    {
+                                        // Tạo thư mục.
+                                        Directory.CreateDirectory(dirBackup);
+                                    }
+                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                    File.Move(pathtg, dirPathBackup);
+                                    if (File.Exists(dirPathBackup))
+                                    {
+                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", dirPathBackup);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty_PRD can not connected to FPT Cloud");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
+            }
+        }
+
         private void DownloadFilePop(List<string> filesPath, string lastFileName)
         {
             if (filesPath.Count > 0)

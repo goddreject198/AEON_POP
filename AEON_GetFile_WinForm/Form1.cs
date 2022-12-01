@@ -2297,32 +2297,32 @@ namespace AEON_GetFile_WinForm
             try
             {
                 log.Info("myWorker_GetFileCxPRD_DoWork");
-                List<string> store_list = new List<string>();
-                var directory = Store_Directory;
-                if (File.Exists(directory))
-                {
-                    using (var reader = new StreamReader(directory))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            var line = reader.ReadLine();
-                            if (!string.IsNullOrEmpty(line))
-                            {
-                                store_list.Add(line);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
-                    return;
-                }
+                //List<string> store_list = new List<string>();
+                //var directory = Store_Directory;
+                //if (File.Exists(directory))
+                //{
+                //    using (var reader = new StreamReader(directory))
+                //    {
+                //        while (!reader.EndOfStream)
+                //        {
+                //            var line = reader.ReadLine();
+                //            if (!string.IsNullOrEmpty(line))
+                //            {
+                //                store_list.Add(line);
+                //            }
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                //    return;
+                //}
 
-                //var store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006", "1008", "3002", "3003", "3005", "3008", "3011", "3013", "3014", "3015", "3016", "3018", "3099"
-                //    , "5101", "5102", "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173", "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502"
-                //    , "5503", "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805", "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
-                //var store = new string[] { "5876" };
+                ////var store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006", "1008", "3002", "3003", "3005", "3008", "3011", "3013", "3014", "3015", "3016", "3018", "3099"
+                ////    , "5101", "5102", "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173", "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502"
+                ////    , "5503", "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805", "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
+                var store_list = new string[] { "1001" };
                 foreach (var i in store_list)
                 {
                     var t = new Thread(() =>
@@ -2359,9 +2359,9 @@ namespace AEON_GetFile_WinForm
                 {
                     log.InfoFormat("max time download store: {0}, {1}", i, maxTimeCxDownload.ToString(CultureInfo.InvariantCulture));
 
-                    DownloadFileCxPRD_DayBefore(i, maxTimeCxDownload, host, port, username, password);
+                    //DownloadFileCxPRD_DayBefore(i, maxTimeCxDownload, host, port, username, password);
 
-                    DownloadFileCxPRD_DayCurrent(i, maxTimeCxDownload, host, port, username, password);
+                    //DownloadFileCxPRD_DayCurrent(i, maxTimeCxDownload, host, port, username, password);
                 }
 
                 //get file from dir upload
@@ -2673,7 +2673,7 @@ namespace AEON_GetFile_WinForm
                     try
                     {
                         var infoUpload = new DirectoryInfo($@"\\10.121.2.207\NFS\production\vnm\upload\pos\{i}\backup\");
-                        //var infoUpload = new DirectoryInfo($@"C:\NFS\production\vnm\upload\pos\{i}\backup\");
+                        //var infoUpload = new DirectoryInfo($@"C:\profit\vnm\upload\pos\{i}\backup\");
                         var duration = new TimeSpan(0, 0, 0, 1);
                         filesPathUpload_temp = infoUpload.GetFiles("*.*")
                             //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
@@ -2703,23 +2703,27 @@ namespace AEON_GetFile_WinForm
                             {
                                 log.Info("UploadFile_Cx_PRD - Upload: Connected to FPT Cloud, Store: " + i);
 
-                                var maxtimeUpload = 0;
+                                //var maxtimeUpload = 0;
+                                string file_path = "";
+                                string file_time = "";
                                 foreach (var path in filesPathUpload)
                                 {
-                                    if (maxtimeUpload == 0)
-                                    {
-                                        log.InfoFormat("last time upload store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
-                                        var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
+                                    //if (maxtimeUpload == 0)
+                                    //{
+                                    //    log.InfoFormat("last time upload store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
+                                    //    var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
 
-                                        var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
-                                            Encoding.Unicode);
-                                        sw.Write(path + ",");
-                                        sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
-                                        sw.WriteLine();
-                                        sw.Close();
-                                    }
+                                    //    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                    //        Encoding.Unicode);
+                                    //    sw.Write(path + ",");
+                                    //    sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
+                                    //    sw.WriteLine();
+                                    //    sw.Close();
+                                    //}
 
-                                    maxtimeUpload++;
+                                    //maxtimeUpload++;
+                                    file_path = path;
+                                    file_time = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
                                     using (var fileStream = new FileStream(path, FileMode.Open))
                                     {
                                         try
@@ -2734,6 +2738,17 @@ namespace AEON_GetFile_WinForm
                                             log.ErrorFormat("UploadFile_Cx_PRD - Upload: UploadFile Exception: {0}", ex.Message);
                                         }
                                     }
+                                }
+                                {
+                                    log.InfoFormat("last time upload store {0}: {1}", i, file_time);
+                                    var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
+
+                                    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                        Encoding.Unicode);
+                                    sw.Write(file_path + ",");
+                                    sw.Write(file_time);
+                                    sw.WriteLine();
+                                    sw.Close();
                                 }
                                 client.Disconnect();
                             }
