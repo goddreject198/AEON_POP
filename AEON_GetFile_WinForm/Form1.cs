@@ -2230,34 +2230,34 @@ namespace AEON_GetFile_WinForm
         private System.Timers.Timer timer_CxPRD = null;
         private void button7_Click(object sender, EventArgs e)
         {
-            if (MyCounter_GetFilePos2CxPRD.count == 0)
+            //if (MyCounter_GetFilePos2CxPRD.count == 0)
+            //{
+            //    try
+            //    {
+            //        myWorker_GetFileCxPRD.RunWorkerAsync();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        log.Error(String.Format("Can not run backgroud_worker: myWorker_GetFileCxPRD!|{0}", ex.Message));
+            //    }
+            //}
+            try
             {
-                try
-                {
-                    myWorker_GetFileCxPRD.RunWorkerAsync();
-                }
-                catch (Exception ex)
-                {
-                    log.Error(String.Format("Can not run backgroud_worker: myWorker_GetFileCxPRD!|{0}", ex.Message));
-                }
-            }
-            //try
-            //{
-            //    // Tạo 1 timer từ libary System.Timers
-            //    timer_CxPRD = new System.Timers.Timer();
-            //    // Execute mỗi 1 phút
-            //    timer_CxPRD.Interval = 60000;
-            //    // Những gì xảy ra khi timer đó dc tick
-            //    timer_CxPRD.Elapsed += timer_CxPRD_Tick;
-            //    // Enable timer
-            //    timer_CxPRD.Enabled = true;
+                // Tạo 1 timer từ libary System.Timers
+                timer_CxPRD = new System.Timers.Timer();
+                // Execute mỗi 1 phút
+                timer_CxPRD.Interval = 60000;
+                // Những gì xảy ra khi timer đó dc tick
+                timer_CxPRD.Elapsed += timer_CxPRD_Tick;
+                // Enable timer
+                timer_CxPRD.Enabled = true;
 
-            //    //myWorker_GetFileCx.RunWorkerAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(ex.Message);
-            //}
+                //myWorker_GetFileCx.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
         class MyCounter_GetFilePos2CxPRD
         {
@@ -2297,32 +2297,32 @@ namespace AEON_GetFile_WinForm
             try
             {
                 log.Info("myWorker_GetFileCxPRD_DoWork");
-                //List<string> store_list = new List<string>();
-                //var directory = Store_Directory;
-                //if (File.Exists(directory))
-                //{
-                //    using (var reader = new StreamReader(directory))
-                //    {
-                //        while (!reader.EndOfStream)
-                //        {
-                //            var line = reader.ReadLine();
-                //            if (!string.IsNullOrEmpty(line))
-                //            {
-                //                store_list.Add(line);
-                //            }
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
-                //    return;
-                //}
+                List<string> store_list = new List<string>();
+                var directory = Store_Directory;
+                if (File.Exists(directory))
+                {
+                    using (var reader = new StreamReader(directory))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                store_list.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                    return;
+                }
 
                 ////var store = new string[] { "1001", "1002", "1003", "1004", "1005", "1006", "1008", "3002", "3003", "3005", "3008", "3011", "3013", "3014", "3015", "3016", "3018", "3099"
                 ////    , "5101", "5102", "5103", "5104", "5105", "5106", "5107", "5108", "5109", "5171", "5172", "5173", "5174", "5175", "5176", "5199", "5201", "5202", "5401", "5501", "5502"
                 ////    , "5503", "5599", "5701", "5702", "5703", "5704", "5801", "5802", "5803", "5804", "5805", "5871", "5872", "5873", "5874", "5875", "5876", "5899", "5901", "5902", "5999" };
-                var store_list = new string[] { "1001" };
+                //var store_list = new string[] { "1001" };
                 foreach (var i in store_list)
                 {
                     var t = new Thread(() =>
@@ -2690,72 +2690,84 @@ namespace AEON_GetFile_WinForm
                     }
                     return filesPathUpload_temp;
                 });
-                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(180000));
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
                 if (isCompletedSuccessfully)
                 {
                     var filesPathUpload = task.Result;
                     if (filesPathUpload.Count > 0)
                     {
-                        using (var client = new SftpClient(host, port, username, password))
+                        var task_upload = Task.Run(() =>
                         {
-                            client.Connect();
-                            if (client.IsConnected)
+                            using (var client = new SftpClient(host, port, username, password))
                             {
-                                log.Info("UploadFile_Cx_PRD - Upload: Connected to FPT Cloud, Store: " + i);
-
-                                //var maxtimeUpload = 0;
-                                string file_path = "";
-                                string file_time = "";
-                                foreach (var path in filesPathUpload)
+                                client.Connect();
+                                if (client.IsConnected)
                                 {
-                                    //if (maxtimeUpload == 0)
-                                    //{
-                                    //    log.InfoFormat("last time upload store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
-                                    //    var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
+                                    log.Info("UploadFile_Cx_PRD - Upload: Connected to FPT Cloud, Store: " + i);
 
-                                    //    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
-                                    //        Encoding.Unicode);
-                                    //    sw.Write(path + ",");
-                                    //    sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
-                                    //    sw.WriteLine();
-                                    //    sw.Close();
-                                    //}
-
-                                    //maxtimeUpload++;
-                                    file_path = path;
-                                    file_time = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                    //var maxtimeUpload = 0;
+                                    string file_path = "";
+                                    string file_time = "";
+                                    foreach (var path in filesPathUpload)
                                     {
-                                        try
+                                        //if (maxtimeUpload == 0)
+                                        //{
+                                        //    log.InfoFormat("last time upload store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
+                                        //    var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
+
+                                        //    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                        //        Encoding.Unicode);
+                                        //    sw.Write(path + ",");
+                                        //    sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
+                                        //    sw.WriteLine();
+                                        //    sw.Close();
+                                        //}
+
+                                        //maxtimeUpload++;
+                                        file_path = path;
+                                        file_time = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                        using (var fileStream = new FileStream(path, FileMode.Open))
                                         {
-                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                            client.ChangeDirectory("/SAP_CX_PRD/" + i);
-                                            client.UploadFile(fileStream, Path.GetFileName(path));
-                                            log.InfoFormat("UploadFile_Cx_PRD - Upload: UploadFile successfully: {0}", path);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            log.ErrorFormat("UploadFile_Cx_PRD - Upload: UploadFile Exception: {0}", ex.Message);
+                                            try
+                                            {
+                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                client.ChangeDirectory("/SAP_CX_PRD/" + i);
+                                                client.UploadFile(fileStream, Path.GetFileName(path));
+                                                log.InfoFormat("UploadFile_Cx_PRD - Upload: UploadFile successfully: {0}", path);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                log.ErrorFormat("UploadFile_Cx_PRD - Upload: UploadFile Exception: {0}", ex.Message);
+                                            }
                                         }
                                     }
-                                }
-                                {
-                                    log.InfoFormat("last time upload store {0}: {1}", i, file_time);
-                                    var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
+                                    {
+                                        log.InfoFormat("last time upload store {0}: {1}", i, file_time);
+                                        var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
 
-                                    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
-                                        Encoding.Unicode);
-                                    sw.Write(file_path + ",");
-                                    sw.Write(file_time);
-                                    sw.WriteLine();
-                                    sw.Close();
+                                        var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                            Encoding.Unicode);
+                                        sw.Write(file_path + ",");
+                                        sw.Write(file_time);
+                                        sw.WriteLine();
+                                        sw.Close();
+                                    }
+                                    client.Disconnect();
                                 }
-                                client.Disconnect();
+                                else
+                                {
+                                    log.Error("UploadFile_Cx_PRD - Upload: Can not connected to FPT Cloud, Store: " + i);
+                                }
                             }
-                            else
-                            {
-                                log.Error("UploadFile_Cx_PRD - Upload: Can not connected to FPT Cloud, Store: " + i);
-                            }
+                        });
+                        bool isCompletedSuccessfully_upload = task_upload.Wait(TimeSpan.FromMilliseconds(300000));
+                        if (isCompletedSuccessfully_upload)
+                        {
+                            log.InfoFormat("UploadFile_Cx - Upload: Store: {0}, File count: {1}, upload done", i, filesPathUpload.Count);
+                        }
+                        else
+                        {
+                            log.ErrorFormat("UploadFile_Cx - Upload - Store {0}: The function upload has taken longer than the maximum time allowed.", i);
                         }
                     }
                     else

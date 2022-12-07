@@ -100,8 +100,8 @@ namespace AEON_POP_3rdParty_GetFileService
                 log.Info("myWorker_GetFile3rdParty_PRD_DoWork");
                 check_backgroundworker_running = true;
 
-                log.Info("myWorker_GetFile3rdParty_RunWorkerBegin");
-                check_backgroundworker_running = true;
+                //log.Info("myWorker_GetFile3rdParty_RunWorkerBegin");
+                //check_backgroundworker_running = true;
 
                 //if (GetMaxTimePop(out var lastFileName, out var maxTimePop)) return;
 
