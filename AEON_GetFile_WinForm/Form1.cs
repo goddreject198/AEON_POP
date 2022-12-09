@@ -2841,17 +2841,17 @@ namespace AEON_GetFile_WinForm
 
                 DownloadFilePop_New();
 
-                //if (GetMaxTimePopMaster(out var maxTimePopMaster)) return;
-                ////check day before
-                //DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
-                ////check current day
-                //DownloadFilePopMaster_DayCurrent(GetFilesPathMaster_DayCurrent(maxTimePopMaster));
+                if (GetMaxTimePopMaster(out var maxTimePopMaster)) return;
+                //check day before
+                DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
+                //check current day
+                DownloadFilePopMaster_DayCurrent(GetFilesPathMaster_DayCurrent(maxTimePopMaster));
 
-                //if (GetMaxTimePopTransaction(out var maxTimePopTransaction)) return;
-                ////check day before
-                //DownloadFilePopTransaction_DayBefore(GetFilesPathTransation_DayBefore(maxTimePopTransaction));
-                ////check day current
-                //DownloadFilePopTransaction_DayCurrent(GetFilesPathTransation_DayCurrent(maxTimePopTransaction));
+                if (GetMaxTimePopTransaction(out var maxTimePopTransaction)) return;
+                //check day before
+                DownloadFilePopTransaction_DayBefore(GetFilesPathTransation_DayBefore(maxTimePopTransaction));
+                //check day current
+                DownloadFilePopTransaction_DayCurrent(GetFilesPathTransation_DayCurrent(maxTimePopTransaction));
 
 
                 log.Info("myWorker_GetFile3rdParty_Azure_New_DoWork done!");
