@@ -2359,9 +2359,9 @@ namespace AEON_GetFile_WinForm
                 {
                     log.InfoFormat("max time download store: {0}, {1}", i, maxTimeCxDownload.ToString(CultureInfo.InvariantCulture));
 
-                    //DownloadFileCxPRD_DayBefore(i, maxTimeCxDownload, host, port, username, password);
+                    DownloadFileCxPRD_DayBefore(i, maxTimeCxDownload, host, port, username, password);
 
-                    //DownloadFileCxPRD_DayCurrent(i, maxTimeCxDownload, host, port, username, password);
+                    DownloadFileCxPRD_DayCurrent(i, maxTimeCxDownload, host, port, username, password);
                 }
 
                 //get file from dir upload
@@ -2390,7 +2390,7 @@ namespace AEON_GetFile_WinForm
         private static DateTime GetMaxTimeCxPRDDownload(string i)
         {
             var maxTimeCxDownload = DateTime.MinValue;
-            var directoryDownload = $@"C:\FPTGetFile\Config\MaxTime_Cx_Download_{i}_PRD.csv";
+            var directoryDownload = $@"C:\FPTGetFile\Config\MaxTime_Cx_Download_{i}_Winform.csv";
             if (File.Exists(directoryDownload))
             {
                 using (var reader = new StreamReader(directoryDownload))
@@ -2413,7 +2413,7 @@ namespace AEON_GetFile_WinForm
         private static DateTime GetMaxTimeCxPRDUpload(string i)
         {
             var maxTimeCxUpload = DateTime.MinValue;
-            var directoryUpload = $@"C:\FPTGetFile\Config\MaxTime_Cx_Upload_{i}_PRD.csv";
+            var directoryUpload = $@"C:\FPTGetFile\Config\MaxTime_Cx_Upload_{i}_Winform.csv";
             if (File.Exists(directoryUpload))
             {
                 using (var reader = new StreamReader(directoryUpload))
@@ -2436,6 +2436,129 @@ namespace AEON_GetFile_WinForm
 
             return maxTimeCxUpload;
         }
+        private static void DownloadFileCxPRD_DayCurrent(string i, DateTime maxTimeCxDownload, string host, int port, string username, string password)
+        {
+            try
+            {
+                var task = Task.Run(() =>
+                {
+                    List<string> filesPathDownload_temp = new List<string>();
+                    try
+                    {
+                        var infoDownload = new DirectoryInfo($@"\\10.121.2.207\NFS\production\vnm\download\pos\{i}\backup\{DateTime.Now:yyyy}\{DateTime.Now:MM}\{DateTime.Now:dd}\");
+                        //var infoDownload = new DirectoryInfo($@"C:\NFS\production\vnm\download\pos\{i}\backup\{DateTime.Now:yyyy}\{DateTime.Now:MM}\{DateTime.Now:dd}\");
+
+                        var duration = new TimeSpan(0, 0, 0, 1);
+                        filesPathDownload_temp = infoDownload.GetFiles("*.*")
+                            //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
+                            .Where(x => (x.LastWriteTime >= maxTimeCxDownload.Add(duration)) &&
+                                        (Path.GetFileName(x.FullName).Substring(0, 1) == "D"
+                                         || Path.GetFileName(x.FullName).Substring(0, 1) == "T" ||
+                                         Path.GetFileName(x.FullName).Substring(0, 1) == "A"
+                                         || Path.GetFileName(x.FullName).Substring(0, 1) == "C" ||
+                                         Path.GetFileName(x.FullName).Substring(0, 1) == "I"))
+                            .OrderByDescending(x => x.LastWriteTime)
+                            .Select(x => x.FullName)
+                            .ToList();
+                    }
+                    catch (Exception e)
+                    {
+                        log.ErrorFormat("UploadFile_Cx - Download_Day_Current - Store {0}: {1}", i, e.Message);
+                    }
+                    return filesPathDownload_temp;
+                });
+
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(90000));
+                if (isCompletedSuccessfully)
+                {
+                    var filesPathDownload = task.Result;
+                    if (filesPathDownload.Count > 0)
+                    {
+                        var task_upload = Task.Run(() =>
+                        {
+                            using (var client = new SftpClient(host, port, username, password))
+                            {
+                                client.Connect();
+                                if (client.IsConnected)
+                                {
+                                    log.Info("UploadFile_Cx - Download_Day_Current: Connected to FPT Cloud, Store: " + i);
+
+                                    //var maxtimeDownload = 0;
+                                    string file_path = "";
+                                    string file_time = "";
+                                    foreach (var path in filesPathDownload)
+                                    {
+                                        //if (maxtimeDownload == 0)
+                                        //{
+                                        //    log.InfoFormat("last time download store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
+                                        //    var filename = $"MaxTime_Cx_Download_{i}_PRD.csv";
+                                        //    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                        //        Encoding.Unicode);
+                                        //    sw.Write(path + ",");
+                                        //    sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
+                                        //    sw.WriteLine();
+                                        //    sw.Close();
+                                        //}
+
+                                        //maxtimeDownload++;
+                                        file_path = path;
+                                        file_time = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                        using (var fileStream = new FileStream(path, FileMode.Open))
+                                        {
+
+                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                            client.ChangeDirectory("/SAP_CX_PRD/" + i);
+                                            client.UploadFile(fileStream, Path.GetFileName(path));
+                                            log.InfoFormat("UploadFile_Cx - Download_Day_Current: UploadFile successfully store: {0}, {1}", i, path);
+                                        }
+                                    }
+                                    {
+                                        log.InfoFormat("last time download store {0}: {1}", i, file_time);
+                                        var filename = $"MaxTime_Cx_Download_{i}_Winform.csv";
+
+                                        var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                            Encoding.Unicode);
+                                        sw.Write(file_path + ",");
+                                        sw.Write(file_time);
+                                        sw.WriteLine();
+                                        sw.Close();
+                                    }
+                                    client.Disconnect();
+                                }
+                                else
+                                {
+                                    log.Error("UploadFile_Cx - Download_Day_Current: Can not connected to AEON Azure, Store: " + i);
+                                }
+                            }
+                        });
+
+                        bool isCompletedSuccessfully_upload = task_upload.Wait(TimeSpan.FromMilliseconds(90000));
+                        if (isCompletedSuccessfully_upload)
+                        {
+                            log.InfoFormat("UploadFile_Cx - Download_Day_Current: Store: {0}, File count: {1}, upload done", i, filesPathDownload.Count);
+                        }
+                        else
+                        {
+                            log.ErrorFormat("UploadFile_Cx - Download_Day_Current - Store {0}: The function upload has taken longer than the maximum time allowed.", i);
+                        }
+                    }
+                    else
+                    {
+                        log.InfoFormat("UploadFile_Cx - Download_Day_Current: Store: {0}, File count: {1}", i, filesPathDownload.Count);
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("UploadFile_Cx - Download_Day_Current - Store {0}: The function has taken longer than the maximum time allowed.", i);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.InfoFormat("UploadFile_Cx - Download_Day_Current - Store {0}: Exception: {1}", i, ex.Message);
+            }
+
+        }
+
         private static void DownloadFileCxPRD_DayBefore(string i, DateTime maxTimeCxDownload, string host, int port, string username, string password)
         {
             try
@@ -2481,13 +2604,14 @@ namespace AEON_GetFile_WinForm
                                          Path.GetFileName(x.FullName).Substring(0, 1) == "A"
                                          || Path.GetFileName(x.FullName).Substring(0, 1) == "C" ||
                                          Path.GetFileName(x.FullName).Substring(0, 1) == "I"))
-                            .OrderByDescending(x => x.LastWriteTime)
+                            //.OrderByDescending(x => x.LastWriteTime)
+                            .OrderBy(x => x.LastWriteTime)
                             .Select(x => x.FullName)
                             .ToList();
                     }
                     catch (Exception e)
                     {
-                        log.ErrorFormat("UploadFile_Cx_PRD - Download_Day_Before - Store {0}: {1}", i, e.Message);
+                        log.ErrorFormat("UploadFile_Cx - Download_Day_Before - Store {0}: {1}", i, e.Message);
                     }
 
                     return filesPathDownload_temp;
@@ -2499,166 +2623,87 @@ namespace AEON_GetFile_WinForm
                     var filesPathDownload = task.Result;
                     if (filesPathDownload.Count > 0)
                     {
-                        using (var client = new SftpClient(host, port, username, password))
+                        var task_upload = Task.Run(() =>
                         {
-                            client.Connect();
-                            if (client.IsConnected)
+                            using (var client = new SftpClient(host, port, username, password))
                             {
-                                log.Info("UploadFile_Cx_PRD - Download_Day_Before: Connected to AEON Azure, Store: " + i);
-
-                                var maxtimeDownload = 0;
-                                foreach (var path in filesPathDownload)
+                                client.Connect();
+                                if (client.IsConnected)
                                 {
-                                    if (maxtimeDownload == 0)
-                                    {
-                                        log.InfoFormat("last time download store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
-                                        var filename = $"MaxTime_Cx_Download_{i}_PRD.csv";
+                                    log.Info("UploadFile_Cx - Download_Day_Before: Connected to AEON Azure, Store: " + i);
 
-                                        var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
-                                            Encoding.Unicode);
-                                        sw.Write(path + ",");
-                                        sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
-                                        sw.WriteLine();
-                                        sw.Close();
-                                    }
-
-                                    maxtimeDownload++;
-                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                    //var maxtimeDownload = 0;
+                                    string file_path = "";
+                                    string file_time = "";
+                                    foreach (var path in filesPathDownload)
                                     {
-                                        try
+                                        //if (maxtimeDownload == 0)
+                                        //{
+                                        //    log.InfoFormat("last time download store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
+                                        //    var filename = $"MaxTime_Cx_Download_{i}_PRD.csv";
+
+                                        //    var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                        //        Encoding.Unicode);
+                                        //    sw.Write(path + ",");
+                                        //    sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
+                                        //    sw.WriteLine();
+                                        //    sw.Close();
+                                        //}
+
+                                        //maxtimeDownload++;
+                                        file_path = path;
+                                        file_time = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                        using (var fileStream = new FileStream(path, FileMode.Open))
                                         {
+
                                             client.BufferSize = 4 * 1024; // bypass Payload error large files
                                             client.ChangeDirectory("/SAP_CX_PRD/" + i);
                                             client.UploadFile(fileStream, Path.GetFileName(path));
-                                            log.InfoFormat("UploadFile_Cx_PRD - Download_Day_Before: UploadFile successfully store: {0}, {1}", i, path);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            log.ErrorFormat("UploadFile_Cx_PRD - Download_Day_Before: UploadFile Exception store: {0}, {1}", i, ex.Message);
+                                            log.InfoFormat("UploadFile_Cx - Download_Day_Before: UploadFile successfully store: {0}, {1}", i, path);
                                         }
                                     }
+                                    {
+                                        log.InfoFormat("last time download store {0}: {1}", i, file_time);
+                                        var filename = $"MaxTime_Cx_Download_{i}_Winform.csv";
+
+                                        var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
+                                            Encoding.Unicode);
+                                        sw.Write(file_path + ",");
+                                        sw.Write(file_time);
+                                        sw.WriteLine();
+                                        sw.Close();
+                                    }
+                                    client.Disconnect();
                                 }
-                                client.Disconnect();
+                                else
+                                {
+                                    log.Error("UploadFile_Cx - Download_Day_Before: Can not connected to AEON Azure, Store: " + i);
+                                }
                             }
-                            else
-                            {
-                                log.Error("UploadFile_Cx_PRD - Download_Day_Before: Can not connected to AEON Azure, Store: " + i);
-                            }
+                        });
+                        bool isCompletedSuccessfully_upload = task_upload.Wait(TimeSpan.FromMilliseconds(90000));
+                        if (isCompletedSuccessfully_upload)
+                        {
+                            log.InfoFormat("UploadFile_Cx - Download_Day_Before: Store: {0}, File count: {1}, upload done", i, filesPathDownload.Count);
+                        }
+                        else
+                        {
+                            log.ErrorFormat("UploadFile_Cx - Download_Day_Before - Store {0}: The function upload has taken longer than the maximum time allowed.", i);
                         }
                     }
                     else
                     {
-                        log.InfoFormat("UploadFile_Cx_PRD - Download_Day_Before: Store: {0}, File count: {1}", i, filesPathDownload.Count);
+                        log.InfoFormat("UploadFile_Cx - Download_Day_Before: Store: {0}, File count: {1}", i, filesPathDownload.Count);
                     }
                 }
                 else
                 {
-                    log.ErrorFormat("UploadFile_Cx_PRD - Download_Day_Before - Store {0}: The function has taken longer than the maximum time allowed.", i);
+                    log.ErrorFormat("UploadFile_Cx - Download_Day_Before - Store {0}: The function has taken longer than the maximum time allowed.", i);
                 }
             }
             catch (Exception ex)
             {
-                log.InfoFormat("UploadFile_Cx_PRD - Download_Day_Before - Store {0}: Exception: {1}", i, ex.Message);
-            }
-
-        }
-        private static void DownloadFileCxPRD_DayCurrent(string i, DateTime maxTimeCxDownload, string host, int port, string username, string password)
-        {
-            try
-            {
-                var task = Task.Run(() =>
-                {
-                    List<string> filesPathDownload_temp = new List<string>();
-                    try
-                    {
-                        var infoDownload = new DirectoryInfo($@"\\10.121.2.207\NFS\production\vnm\download\pos\{i}\backup\{DateTime.Now:yyyy}\{DateTime.Now:MM}\{DateTime.Now:dd}\");
-                        //var infoDownload = new DirectoryInfo($@"C:\NFS\production\vnm\download\pos\{i}\backup\{DateTime.Now:yyyy}\{DateTime.Now:MM}\{DateTime.Now:dd}\");
-
-                        var duration = new TimeSpan(0, 0, 0, 1);
-                        filesPathDownload_temp = infoDownload.GetFiles("*.*")
-                            //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                            .Where(x => (x.LastWriteTime >= maxTimeCxDownload.Add(duration)) &&
-                                        (Path.GetFileName(x.FullName).Substring(0, 1) == "D"
-                                         || Path.GetFileName(x.FullName).Substring(0, 1) == "T" ||
-                                         Path.GetFileName(x.FullName).Substring(0, 1) == "A"
-                                         || Path.GetFileName(x.FullName).Substring(0, 1) == "C" ||
-                                         Path.GetFileName(x.FullName).Substring(0, 1) == "I"))
-                            .OrderByDescending(x => x.LastWriteTime)
-                            .Select(x => x.FullName)
-                            .ToList();
-                    }
-                    catch (Exception e)
-                    {
-                        log.ErrorFormat("UploadFile_Cx_PRD - Download_Day_Current - Store {0}: {1}", i, e.Message);
-                    }
-                    return filesPathDownload_temp;
-                });
-
-                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(90000));
-                if (isCompletedSuccessfully)
-                {
-                    var filesPathDownload = task.Result;
-                    if (filesPathDownload.Count > 0)
-                    {
-                        using (var client = new SftpClient(host, port, username, password))
-                        {
-                            client.Connect();
-                            if (client.IsConnected)
-                            {
-                                log.Info("UploadFile_Cx_PRD - Download_Day_Current: Connected to FPT Cloud, Store: " + i);
-
-                                var maxtimeDownload = 0;
-                                foreach (var path in filesPathDownload)
-                                {
-                                    if (maxtimeDownload == 0)
-                                    {
-                                        log.InfoFormat("last time download store {0}: {1:yyyyMMddHHmmss}", i, File.GetLastWriteTime(path));
-                                        var filename = $"MaxTime_Cx_Download_{i}_PRD.csv";
-                                        var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
-                                            Encoding.Unicode);
-                                        sw.Write(path + ",");
-                                        sw.Write(File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss"));
-                                        sw.WriteLine();
-                                        sw.Close();
-                                    }
-
-                                    maxtimeDownload++;
-                                    using (var fileStream = new FileStream(path, FileMode.Open))
-                                    {
-                                        try
-                                        {
-                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                            client.ChangeDirectory("/SAP_CX_PRD/" + i);
-                                            client.UploadFile(fileStream, Path.GetFileName(path));
-                                            log.InfoFormat("UploadFile_Cx_PRD - Download_Day_Current: UploadFile successfully store: {0}, {1}", i, path);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            log.ErrorFormat("UploadFile_Cx_PRD - Download_Day_Current: UploadFile Exception store: {0}, {1}", i, ex.Message);
-                                        }
-                                    }
-                                }
-                                client.Disconnect();
-                            }
-                            else
-                            {
-                                log.Error("UploadFile_Cx_PRD - Download_Day_Current: Can not connected to AEON Azure, Store: " + i);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        log.InfoFormat("UploadFile_Cx_PRD - Download_Day_Current: Store: {0}, File count: {1}", i, filesPathDownload.Count);
-                    }
-                }
-                else
-                {
-                    log.ErrorFormat("UploadFile_Cx_PRD - Download_Day_Current - Store {0}: The function has taken longer than the maximum time allowed.", i);
-                }
-            }
-            catch (Exception ex)
-            {
-                log.InfoFormat("UploadFile_Cx_PRD - Download_Day_Current - Store {0}: Exception: {1}", i, ex.Message);
+                log.InfoFormat("UploadFile_Cx - Download_Day_Before - Store {0}: Exception: {1}", i, ex.Message);
             }
 
         }
@@ -2728,22 +2773,16 @@ namespace AEON_GetFile_WinForm
                                         file_time = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
                                         using (var fileStream = new FileStream(path, FileMode.Open))
                                         {
-                                            try
-                                            {
-                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                client.ChangeDirectory("/SAP_CX_PRD/" + i);
-                                                client.UploadFile(fileStream, Path.GetFileName(path));
-                                                log.InfoFormat("UploadFile_Cx_PRD - Upload: UploadFile successfully: {0}", path);
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                log.ErrorFormat("UploadFile_Cx_PRD - Upload: UploadFile Exception: {0}", ex.Message);
-                                            }
+
+                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                            client.ChangeDirectory("/SAP_CX_PRD/" + i);
+                                            client.UploadFile(fileStream, Path.GetFileName(path));
+                                            log.InfoFormat("UploadFile_Cx_PRD - Upload: UploadFile successfully: {0}", path);
                                         }
                                     }
                                     {
                                         log.InfoFormat("last time upload store {0}: {1}", i, file_time);
-                                        var filename = $"MaxTime_Cx_Upload_{i}_PRD.csv";
+                                        var filename = $"MaxTime_Cx_Upload_{i}_Winform.csv";
 
                                         var sw = new StreamWriter(string.Format(@"C:\FPTGetFile\Config\" + filename), false,
                                             Encoding.Unicode);
@@ -2927,7 +2966,7 @@ namespace AEON_GetFile_WinForm
                             log.Error("UploadFile_POP3rdParty_PRD can not connected to FPT Cloud");
                         }
                     }
-                }    
+                }
             }
             catch (Exception ex)
             {
