@@ -2735,7 +2735,7 @@ namespace AEON_GetFile_WinForm
                     }
                     return filesPathUpload_temp;
                 });
-                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(600000));
                 if (isCompletedSuccessfully)
                 {
                     var filesPathUpload = task.Result;
