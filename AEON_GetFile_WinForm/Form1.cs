@@ -2973,5 +2973,47 @@ namespace AEON_GetFile_WinForm
                 log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
             }
         }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string file_name = textBox1.Text;
+                string store = file_name.Substring(7,1) + file_name.Substring(9,3);
+                //MessageBox.Show(store);
+
+                var host = AVNAzureHost;
+                var port = Convert.ToInt32(AVNAzurePort);
+                var username = AVNAzureUser;
+                var password = AVNAzurePwd;
+
+                using (var client = new SftpClient(host, port, username, password))
+                {
+                    client.Connect();
+                    if (client.IsConnected)
+                    {
+                        log.Info("Get1File - Upload: Connected to FPT Cloud");
+                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
+                        using (var fileStream = new FileStream(path, FileMode.Open))
+                        {
+
+                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                            client.UploadFile(fileStream, Path.GetFileName(path));
+                            log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                        }
+                        client.Disconnect();
+                    }
+                    else
+                    {
+                        log.Error("Get1File - Upload: Can not connected to FPT Cloud, Store: " + store);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Get1File, Exception: {0}", ex.Message);
+            }
+        }
     }
 }
