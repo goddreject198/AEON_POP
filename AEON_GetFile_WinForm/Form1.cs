@@ -2266,7 +2266,7 @@ namespace AEON_GetFile_WinForm
         }
         private void timer_CxPRD_Tick(object sender, ElapsedEventArgs args)
         {
-            if (args.SignalTime.Minute % 5 == 0)
+            if (args.SignalTime.Minute % 5 == 3)
             {
                 log.InfoFormat("MyCounter_GetFilePos2CxPRD.count: {0}", MyCounter_GetFilePos2CxPRD.count);
                 if (MyCounter_GetFilePos2CxPRD.count == 0)
