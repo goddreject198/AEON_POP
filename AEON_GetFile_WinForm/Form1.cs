@@ -155,7 +155,7 @@ namespace AEON_GetFile_WinForm
                         if (!remoteFileName.StartsWith("backup"))
                         {
                             //download file
-                            using (Stream file1 = File.OpenWrite(@"E:\SAP\BO\Prod\" + remoteFileName))
+                            using (Stream file1 = File.Create(@"E:\SAP\BO\Prod\" + remoteFileName))
                             {
                                 client.DownloadFile($"/SAP_CX_UAT/Cx_Out/BI/{remoteFileName}", file1);
                             }
@@ -199,13 +199,16 @@ namespace AEON_GetFile_WinForm
             try
             {
                 log.Info("myWorker_PutFileCx_Pos_DoWork");
+                MyCounter_PutFileCx2Pos.MuTexLock.WaitOne();
+                MyCounter_PutFileCx2Pos.count++;
+                MyCounter_PutFileCx2Pos.MuTexLock.ReleaseMutex();
 
                 var host = FPTHost;
                 var port = Convert.ToInt32(FPTPort);
                 var username = FPTUser;
                 var password = FPTPwd;
 
-                PutFileCx_Pos(host, port, username, password);
+                PutFileCx_Pos_PRD(host, port, username, password);
 
                 log.Info("myWorker_PutFileCx_Pos_DoWork done!");
             }
@@ -213,9 +216,159 @@ namespace AEON_GetFile_WinForm
             {
                 log.ErrorFormat("myWorker_PutFileCx_Pos_DoWork - Exception: {0}", ex.Message);
             }
+            finally
+            {
+                MyCounter_PutFileCx2Pos.MuTexLock.WaitOne();
+                MyCounter_PutFileCx2Pos.count--;
+                MyCounter_PutFileCx2Pos.MuTexLock.ReleaseMutex();
+            }
         }
 
-        private static void PutFileCx_Pos(string host, int port, string username, string password)
+        private static void PutFileCx_Pos_PRD(string host, int port, string username, string password)
+        {
+            try
+            {
+                var task_Cx2Pos = Task.Run(() =>
+                {
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("PutFileCx_Pos Connected to FPT Cloud");
+
+                            var filesList = client.ListDirectory("/SAP_CX_PRD/Cx_Out/POS").OrderByDescending(file => file.Name);
+                            foreach (var file in filesList)
+                            {
+                                var remoteFileName = file.Name;
+                                if (!remoteFileName.StartsWith("backup") && remoteFileName.StartsWith("M"))
+                                {
+                                    var task = Task.Run(() =>
+                                    {
+                                        bool result = false;
+                                        try
+                                        {
+                                            //download file
+                                            using (Stream file1 = File.Create(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
+                                            {
+                                                client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/{remoteFileName}", file1);
+                                            }
+
+                                            if (File.Exists(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
+                                            {
+                                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
+                                                    @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
+
+                                                //move file backup on server
+                                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                                if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}"))
+                                                {
+                                                    client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}");
+                                                }
+
+                                                client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/{remoteFileName}",
+                                                    $"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                                result = true;
+                                            }
+                                            else
+                                            {
+                                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
+                                                    @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
+                                                result = false;
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos - M Exception: {0}", e.Message);
+                                        }
+                                        return result;
+                                    });
+                                    bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+
+                                    if (isCompletedSuccessfully)
+                                    {
+                                        log.InfoFormat("PutFileCx_Pos - M: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                    }
+                                    else
+                                    {
+                                        log.ErrorFormat("PutFileCx_Pos - M: The function has taken longer than the maximum time allowed.");
+                                    }
+                                }
+                                else if (!remoteFileName.StartsWith("backup") && !remoteFileName.StartsWith("M"))
+                                {
+                                    var task = Task.Run(() =>
+                                    {
+                                        bool result = false;
+                                        try
+                                        {
+                                            var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) +
+                                                              Path.GetExtension(remoteFileName).Substring(1, 3);
+                                            //download file
+                                            using (Stream file1 = File.Create($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                            {
+                                                client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/{remoteFileName}", file1);
+                                            }
+
+                                            //if (File.Exists($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                            {
+                                                log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
+
+                                                //move file backup on server
+                                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                                if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}"))
+                                                {
+                                                    client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}");
+                                                }
+
+                                                client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/{remoteFileName}",
+                                                    $"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
+                                                result = true;
+                                            }
+                                            //else
+                                            //{
+                                            //    log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
+                                            //    result = false;
+                                            //}
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos - Other Exception: {0} - {1}", remoteFileName, e.Message);
+                                        }
+                                        return result;
+                                    });
+                                    bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+
+                                    if (isCompletedSuccessfully)
+                                    {
+                                        log.InfoFormat("PutFileCx_Pos - Other: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                    }
+                                    else
+                                    {
+                                        log.ErrorFormat("PutFileCx_Pos - Other: The function has taken longer than the maximum time allowed.");
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            log.Error("PutFileCx_Pos can not connected to FPT Cloud");
+                        }
+                    }
+                });
+
+                bool isCompletedSuccessfully_Cx2Pos = task_Cx2Pos.Wait(TimeSpan.FromMilliseconds(300000));
+                if (!isCompletedSuccessfully_Cx2Pos)
+                {
+                    log.ErrorFormat("PutFileCx_Pos: The function has taken longer than the maximum time allowed.");
+                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("PutFileCx_Pos Exception: {0}", e.Message);
+            }
+        }
+
+        private static void PutFileCx_Pos_UAT(string host, int port, string username, string password)
         {
             try
             {
@@ -230,7 +383,7 @@ namespace AEON_GetFile_WinForm
                     {
                         log.Info("PutFileCx_Pos Connected to FPT Cloud");
 
-                        var filesList = client.ListDirectory("/SAP_CX_UAT/Cx_Out/POS");
+                        var filesList = client.ListDirectory("/SAP_CX_PRD/Cx_Out/POS");
                         foreach (var file in filesList)
                         {
                             var remoteFileName = file.Name;
@@ -242,7 +395,7 @@ namespace AEON_GetFile_WinForm
                                     try
                                     {
                                         //download file
-                                        using (Stream file1 = File.OpenWrite(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
+                                        using (Stream file1 = File.Create(@"\\10.121.2.207\NFSUAT\vnmuat\download\oro2\" + remoteFileName))
                                         {
                                             client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
                                         }
@@ -297,7 +450,7 @@ namespace AEON_GetFile_WinForm
                                         var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) +
                                                           Path.GetExtension(remoteFileName).Substring(1, 3);
                                         //download file
-                                        using (Stream file1 = File.OpenWrite(
+                                        using (Stream file1 = File.Create(
                                             $@"\\10.121.2.207\NFSUAT\vnmuat\download\pos_test\{storeFolder}\{remoteFileName}"))
                                         {
                                             client.DownloadFile($"/SAP_CX_UAT/Cx_Out/POS/{remoteFileName}", file1);
@@ -2192,15 +2345,43 @@ namespace AEON_GetFile_WinForm
             }
         }
 
+        private System.Timers.Timer timer_CxPRD2Pos = null;
         private void button5_Click(object sender, EventArgs e)
         {
             try
             {
-                myWorker_PutFileCx_Pos.RunWorkerAsync();
+                // Tạo 1 timer từ libary System.Timers
+                timer_CxPRD2Pos = new System.Timers.Timer();
+                // Execute mỗi 1 phút
+                timer_CxPRD2Pos.Interval = 60000;
+                // Những gì xảy ra khi timer đó dc tick
+                timer_CxPRD2Pos.Elapsed += timer_CxPRD2Pos_Tick;
+                // Enable timer
+                timer_CxPRD2Pos.Enabled = true;
+
+                //myWorker_PutFileCx_Pos.RunWorkerAsync();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+        }
+        private void timer_CxPRD2Pos_Tick(object sender, ElapsedEventArgs args)
+        {
+            //if (args.SignalTime.Minute % 5 == 3)
+            {
+                log.InfoFormat("MyCounter_PutFileCx2Pos.count: {0}", MyCounter_PutFileCx2Pos.count);
+                if (MyCounter_PutFileCx2Pos.count == 0)
+                {
+                    try
+                    {
+                        myWorker_PutFileCx_Pos.RunWorkerAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error(String.Format("Can not run backgroud_worker: myWorker_PutFileCx_Pos!|{0}", e.Message));
+                    }
+                }
             }
         }
 
@@ -2978,14 +3159,34 @@ namespace AEON_GetFile_WinForm
         {
             try
             {
-                string file_name = textBox1.Text;
-                string store = file_name.Substring(7,1) + file_name.Substring(9,3);
-                //MessageBox.Show(store);
+                List<string> store_list = new List<string>();
+                var directory = Store_Directory;
+                if (File.Exists(directory))
+                {
+                    using (var reader = new StreamReader(directory))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                store_list.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                    return;
+                }
+
 
                 var host = AVNAzureHost;
                 var port = Convert.ToInt32(AVNAzurePort);
                 var username = AVNAzureUser;
                 var password = AVNAzurePwd;
+
 
                 using (var client = new SftpClient(host, port, username, password))
                 {
@@ -2993,26 +3194,366 @@ namespace AEON_GetFile_WinForm
                     if (client.IsConnected)
                     {
                         log.Info("Get1File - Upload: Connected to FPT Cloud");
-                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
-                        using (var fileStream = new FileStream(path, FileMode.Open))
+                        foreach (var store in store_list)
                         {
+                            string filename = "";
+                            string month = "";
+                            int month_temp = DateTime.Now.AddDays(-1).Month;
+                            if (month_temp == 10)
+                            {
+                                month = "A";
+                            }
+                            else if (month_temp == 11)
+                            {
+                                month = "B";
+                            }
+                            else if (month_temp == 12)
+                            {
+                                month = "C";
+                            }
+                            else
+                            {
+                                month = month_temp.ToString();
+                            }
 
-                            client.BufferSize = 4 * 1024; // bypass Payload error large files
-                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                            client.UploadFile(fileStream, Path.GetFileName(path));
-                            log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                            string file_name = string.Format("S{0}{1}{2}00{3}", DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month, DateTime.Now.AddDays(-1).ToString("dd"), store.Substring(0, 1) + "." + store.Substring(1, 3));
+
+                            string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
+                            try
+                            {
+                                using (var fileStream = new FileStream(path, FileMode.Open))
+                                {
+                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                    client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                    client.UploadFile(fileStream, Path.GetFileName(path));
+                                    log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                                }
+                            }
+                            catch (Exception exx)
+                            {
+                                log.ErrorFormat("Get1File Upload, Exception: {0}", exx.Message);
+                            }
                         }
                         client.Disconnect();
                     }
                     else
                     {
-                        log.Error("Get1File - Upload: Can not connected to FPT Cloud, Store: " + store);
+                        log.Error("Get1File - Upload: Can not connected to FPT Cloud");
                     }
                 }
             }
             catch (Exception ex)
             {
                 log.ErrorFormat("Get1File, Exception: {0}", ex.Message);
+            }
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("PostFileCx2Pos, Exception: {0}", ex.Message);
+            }
+        }
+
+        private void button10_Click_1(object sender, EventArgs e)
+        {
+
+            try
+            {
+                List<string> store_list = new List<string>();
+                //store_list.Add("1001");
+                var directory = Store_Directory;
+                if (File.Exists(directory))
+                {
+                    using (var reader = new StreamReader(directory))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                store_list.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                    return;
+                }
+
+                foreach (var store in store_list)
+                {
+                    var t = new Thread(() =>
+                    {
+                        GetFileVoucher(store);
+                    });
+                    t.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("GetFile W Exception: {0}", ex.Message);
+            }
+        }
+
+        private void GetFileVoucher(string store)
+        {
+            try
+            {
+                List<string> rule_rs = new List<string>();
+                string[] R1 = new string[]
+                {
+                                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                                        "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+                                        "W", "X", "Y", "Z"
+                };
+                string[] R2 = new string[]
+                {
+                                        "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G",
+                                        "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W",
+                                        "X", "Y", "Z"
+                };
+                foreach (var R1_tmp in R1)
+                {
+                    foreach (var R2_tmp in R2)
+                    {
+                        rule_rs.Add(R1_tmp + R2_tmp);
+                    }
+                }
+
+                var host = AVNAzureHost;
+                var port = Convert.ToInt32(AVNAzurePort);
+                var username = AVNAzureUser;
+                var password = AVNAzurePwd;
+                string CxtoPOS_folder_out = @"/SAP_CX_PRD/";
+
+                using (var client = new SftpClient(host, port, username, password))
+                {
+                    client.Connect();
+                    if (client.IsConnected)
+                    {
+                        log.InfoFormat("GetFile W - Upload Store {0}: Connected to FPT Cloud", store);
+
+                        //file W date before
+                        foreach (var rs in rule_rs)
+                        {
+                            string filename = "";
+                            string month = "";
+                            int month_temp = DateTime.Now.AddDays(-1).Month;
+                            if (month_temp == 10)
+                            {
+                                month = "A";
+                            }
+                            else if (month_temp == 11)
+                            {
+                                month = "B";
+                            }
+                            else if (month_temp == 12)
+                            {
+                                month = "C";
+                            }
+                            else
+                            {
+                                month = month_temp.ToString();
+                            }
+                            filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month, DateTime.Now.AddDays(-1).ToString("dd"), rs, store.Substring(0, 1) + "." + store.Substring(1, 3));
+                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                            {
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                {
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    {
+                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, filename);
+                                        try
+                                        {
+                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            {
+                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                client.UploadFile(fileStream, Path.GetFileName(path));
+                                                log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}", path);
+                                            }
+                                        }
+                                        catch (Exception exx)
+                                        {
+                                            //stop_flag = true;
+                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store, exx.Message);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        log.InfoFormat("GetFile W - Upload Store {0}: Check file date before done!", store);
+                        //file W date current
+                        foreach (var rs in rule_rs)
+                        {
+                            string filename = "";
+                            string month = "";
+                            int month_temp = DateTime.Now.Month;
+                            if (month_temp == 10)
+                            {
+                                month = "A";
+                            }
+                            else if (month_temp == 11)
+                            {
+                                month = "B";
+                            }
+                            else if (month_temp == 12)
+                            {
+                                month = "C";
+                            }
+                            else
+                            {
+                                month = month_temp.ToString();
+                            }
+                            filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"), rs, store.Substring(0, 1) + "." + store.Substring(1, 3));
+                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                            {
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                {
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    {
+                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, filename);
+                                        try
+                                        {
+                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            {
+                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                client.UploadFile(fileStream, Path.GetFileName(path));
+                                                log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}", path);
+                                            }
+                                        }
+                                        catch (Exception exx)
+                                        {
+                                            //stop_flag = true;
+                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store, exx.Message);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        log.InfoFormat("GetFile W - Upload Store {0}: Check file date current done!", store);
+
+                        //file S date before
+                        {
+                            string filename = "";
+                            string month = "";
+                            int month_temp = DateTime.Now.AddDays(-1).Month;
+                            if (month_temp == 10)
+                            {
+                                month = "A";
+                            }
+                            else if (month_temp == 11)
+                            {
+                                month = "B";
+                            }
+                            else if (month_temp == 12)
+                            {
+                                month = "C";
+                            }
+                            else
+                            {
+                                month = month_temp.ToString();
+                            }
+
+                            string file_name = string.Format("S{0}{1}{2}00{3}", DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month, DateTime.Now.AddDays(-1).ToString("dd"), store.Substring(0, 1) + "." + store.Substring(1, 3));
+                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                            {
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                {
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    {
+                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
+                                        try
+                                        {
+                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            {
+                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                client.UploadFile(fileStream, Path.GetFileName(path));
+                                                log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                                            }
+                                        }
+                                        catch (Exception exx)
+                                        {
+                                            log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store, exx.Message);
+                                        }
+                                    }    
+                                }    
+                            }
+                        }
+                        log.InfoFormat("GetFile S - Upload Store {0}: Check file date before done!", store);
+
+                        //file S date current
+                        {
+                            string filename = "";
+                            string month = "";
+                            int month_temp = DateTime.Now.Month;
+                            if (month_temp == 10)
+                            {
+                                month = "A";
+                            }
+                            else if (month_temp == 11)
+                            {
+                                month = "B";
+                            }
+                            else if (month_temp == 12)
+                            {
+                                month = "C";
+                            }
+                            else
+                            {
+                                month = month_temp.ToString();
+                            }
+
+                            string file_name = string.Format("S{0}{1}{2}00{3}", DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"), store.Substring(0, 1) + "." + store.Substring(1, 3));
+                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                            {
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                {
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    {
+                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
+                                        try
+                                        {
+                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            {
+                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                client.UploadFile(fileStream, Path.GetFileName(path));
+                                                log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                                            }
+                                        }
+                                        catch (Exception exx)
+                                        {
+                                            log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store, exx.Message);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        log.InfoFormat("GetFile S - Upload Store {0}: Check file date current done!", store);
+                        client.Disconnect();
+                    }
+                    else
+                    {
+                        log.Error("GetFile W - Upload: Can not connected to FPT Cloud");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("GetFileVoucher Store {0} Exception: {1}", store, ex.Message);
             }
         }
     }
