@@ -449,40 +449,48 @@ namespace AEON_POP_3rdParty_GetFileService
                         {
                             log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
 
-                            foreach (var pathtg in filesPath)
+                            try
                             {
-                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                foreach (var pathtg in filesPath)
                                 {
-                                    try
+                                    using (var fileStream = new FileStream(pathtg, FileMode.Open))
                                     {
-                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                        try
+                                        {
+                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                            client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                            client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message);
+                                        }
                                     }
-                                    catch (Exception ex)
+                                    if (client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + Path.GetFileName(pathtg)))
                                     {
-                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message);
-                                    }
-                                }
-                                if (client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + Path.GetFileName(pathtg)))
-                                {
-                                    //move file to folder backup
-                                    String dirBackup = DirectoryFrom_PRD + @"\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                    //String dirBackup = @"C:\profit\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                    bool exist = Directory.Exists(dirBackup);
-                                    if (!exist)
-                                    {
-                                        // Tạo thư mục.
-                                        Directory.CreateDirectory(dirBackup);
-                                    }
-                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
-                                    File.Move(pathtg, dirPathBackup);
-                                    if (File.Exists(dirPathBackup))
-                                    {
-                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", dirPathBackup);
+                                        //move file to folder backup
+                                        String dirBackup = DirectoryFrom_PRD + @"\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                        //String dirBackup = @"C:\profit\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                        bool exist = Directory.Exists(dirBackup);
+                                        if (!exist)
+                                        {
+                                            // Tạo thư mục.
+                                            Directory.CreateDirectory(dirBackup);
+                                        }
+                                        string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                        File.Move(pathtg, dirPathBackup);
+                                        if (File.Exists(dirPathBackup))
+                                        {
+                                            log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", dirPathBackup);
+                                        }
                                     }
                                 }
                             }
+                            catch (Exception ex)
+                            {
+                                log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
+                            }
+                            client.Disconnect();
                         }
                         else
                         {
@@ -493,7 +501,7 @@ namespace AEON_POP_3rdParty_GetFileService
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
+                log.ErrorFormat("UploadFile_POP3rdParty_PRD Exception: {0}", ex.Message);
             }
         }
 
@@ -588,37 +596,45 @@ namespace AEON_POP_3rdParty_GetFileService
                     {
                         log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
 
-                        var maxtimePos = 0;
-                        foreach (var path in filesPathMaster)
+                        try
                         {
-                            var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                            if (maxtimePos == 0)
+                            var maxtimePos = 0;
+                            foreach (var path in filesPathMaster)
                             {
-                                log.InfoFormat("last time pop PRD: {0}", lastwritetime);
-
-                                StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
-                                sw.Write(path + ",");
-                                sw.Write(lastwritetime);
-                                sw.WriteLine();
-                                sw.Close();
-                            }
-
-                            maxtimePos++;
-                            using (var fileStream = new FileStream(path, FileMode.Open))
-                            {
-                                try
+                                var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                if (maxtimePos == 0)
                                 {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                    client.UploadFile(fileStream, Path.GetFileName(path));
-                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}", path);
+                                    log.InfoFormat("last time pop PRD: {0}", lastwritetime);
+
+                                    StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
+                                    sw.Write(path + ",");
+                                    sw.Write(lastwritetime);
+                                    sw.WriteLine();
+                                    sw.Close();
                                 }
-                                catch (Exception ex)
+
+                                maxtimePos++;
+                                using (var fileStream = new FileStream(path, FileMode.Open))
                                 {
-                                    log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_master Exception: {0}", ex.Message);
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}", path);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_master Exception: {0}", ex.Message);
+                                    }
                                 }
                             }
                         }
+                        catch (Exception e)
+                        {
+                            log.InfoFormat("UploadFile_POP3rdParty_PRD: Excption {0}!", e.Message);
+                        }
+                        client.Disconnect();
                     }
                     else
                     {
@@ -692,41 +708,49 @@ namespace AEON_POP_3rdParty_GetFileService
                     {
                         log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
 
-                        var maxtimePos = 0;
-                        foreach (var pathtg in filesPathMaster)
+                        try
                         {
-                            var lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
-                            if (maxtimePos == 0)
+                            var maxtimePos = 0;
+                            foreach (var pathtg in filesPathMaster)
                             {
-                                log.Info(String.Format("last time pop PRD: {0}", lastwritetime));
-                                //string filename = string.Format("MaxTime_Pop.csv");
-                                //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
-                                //{
-                                //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
-                                //}
-                                StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
-                                sw.Write(pathtg + ",");
-                                sw.Write(lastwritetime);
-                                sw.WriteLine();
-                                sw.Close();
-                            }
-
-                            maxtimePos++;
-                            using (var fileStream = new FileStream(pathtg, FileMode.Open))
-                            {
-                                try
+                                var lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
+                                if (maxtimePos == 0)
                                 {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                    client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                    log.InfoFormat("GetFilePOP3rdParty: UploadFile_master_PRD successfully: {0}", pathtg);
+                                    log.Info(String.Format("last time pop PRD: {0}", lastwritetime));
+                                    //string filename = string.Format("MaxTime_Pop.csv");
+                                    //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
+                                    //{
+                                    //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
+                                    //}
+                                    StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
+                                    sw.Write(pathtg + ",");
+                                    sw.Write(lastwritetime);
+                                    sw.WriteLine();
+                                    sw.Close();
                                 }
-                                catch (Exception ex)
+
+                                maxtimePos++;
+                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
                                 {
-                                    log.ErrorFormat("GetFilePOP3rdParty: UploadFile_master_PRD Exception: {0}", ex.Message);
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                        log.InfoFormat("GetFilePOP3rdParty: UploadFile_master_PRD successfully: {0}", pathtg);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.ErrorFormat("GetFilePOP3rdParty: UploadFile_master_PRD Exception: {0}", ex.Message);
+                                    }
                                 }
                             }
                         }
+                        catch (Exception e)
+                        {
+                            log.InfoFormat("UploadFile_POP3rdParty_PRD: Exception {0}!", e.Message);
+                        }
+                        client.Disconnect();
                     }
                     else
                     {
@@ -961,38 +985,45 @@ namespace AEON_POP_3rdParty_GetFileService
                     if (client.IsConnected)
                     {
                         log.Info("UploadFile_POP3rdParty_Transaction Connected to AVN Azure");
-
-                        var maxtimePos = 0;
-                        foreach (var path in filesPathTransation)
+                        try
                         {
-                            var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                            if (maxtimePos == 0)
+                            var maxtimePos = 0;
+                            foreach (var path in filesPathTransation)
                             {
-                                log.InfoFormat("last time transation PRD: {0}", lastwritetime);
-
-                                StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
-                                sw.Write(path + ",");
-                                sw.Write(lastwritetime);
-                                sw.WriteLine();
-                                sw.Close();
-                            }
-
-                            maxtimePos++;
-                            using (var fileStream = new FileStream(path, FileMode.Open))
-                            {
-                                try
+                                var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                if (maxtimePos == 0)
                                 {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                    client.UploadFile(fileStream, Path.GetFileName(path));
-                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                    log.InfoFormat("last time transation PRD: {0}", lastwritetime);
+
+                                    StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
+                                    sw.Write(path + ",");
+                                    sw.Write(lastwritetime);
+                                    sw.WriteLine();
+                                    sw.Close();
                                 }
-                                catch (Exception ex)
+
+                                maxtimePos++;
+                                using (var fileStream = new FileStream(path, FileMode.Open))
                                 {
-                                    log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
+                                    try
+                                    {
+                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
+                                    }
                                 }
                             }
                         }
+                        catch (Exception e)
+                        {
+                            log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: Exception {0}!", e.Message);
+                        }
+                        client.Disconnect();
                     }
                     else
                     {
@@ -1055,38 +1086,45 @@ namespace AEON_POP_3rdParty_GetFileService
                         if (client.IsConnected)
                         {
                             log.Info("UploadFile_POP3rdParty_Transaction Connected to AVN Azure");
-
-                            var maxtimePos = 0;
-                            foreach (var path in filesPathTransation)
+                            try
                             {
-                                var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                                if (maxtimePos == 0)
+                                var maxtimePos = 0;
+                                foreach (var path in filesPathTransation)
                                 {
-                                    log.InfoFormat("last time transation PRD: {0}", lastwritetime);
-
-                                    StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
-                                    sw.Write(path + ",");
-                                    sw.Write(lastwritetime);
-                                    sw.WriteLine();
-                                    sw.Close();
-                                }
-
-                                maxtimePos++;
-                                using (var fileStream = new FileStream(path, FileMode.Open))
-                                {
-                                    try
+                                    var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                    if (maxtimePos == 0)
                                     {
-                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                        client.UploadFile(fileStream, Path.GetFileName(path));
-                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                        log.InfoFormat("last time transation PRD: {0}", lastwritetime);
+
+                                        StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
+                                        sw.Write(path + ",");
+                                        sw.Write(lastwritetime);
+                                        sw.WriteLine();
+                                        sw.Close();
                                     }
-                                    catch (Exception ex)
+
+                                    maxtimePos++;
+                                    using (var fileStream = new FileStream(path, FileMode.Open))
                                     {
-                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
+                                        try
+                                        {
+                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                            client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                            client.UploadFile(fileStream, Path.GetFileName(path));
+                                            log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
+                                        }
                                     }
                                 }
                             }
+                            catch (Exception e)
+                            {
+                                log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: Exception {0}!", e.Message);
+                            }
+                            client.Disconnect();
                         }
                         else
                         {

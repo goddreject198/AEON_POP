@@ -28,6 +28,8 @@ namespace AEON_GetFile_WinForm
         private BackgroundWorker myWorker_PutFileCx_Pos = new BackgroundWorker();
         private BackgroundWorker myWorker_PutFileCx_BI = new BackgroundWorker();
 
+        private BackgroundWorker myWorker_GetFileCxPRD_new = new BackgroundWorker();
+
         private string FileConfig = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfig");
         private string DirectoryFrom = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom");
         private string FileConfig2 = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfig2");
@@ -71,6 +73,12 @@ namespace AEON_GetFile_WinForm
             myWorker_GetFileCxPRD.WorkerReportsProgress = true;
             myWorker_GetFileCxPRD.WorkerSupportsCancellation = true;
 
+            myWorker_GetFileCxPRD_new.DoWork += new DoWorkEventHandler(myWorker_GetFileCxPRD_new_DoWork);
+            myWorker_GetFileCxPRD_new.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_GetFileCxPRD_new_RunWorkerCompleted);
+            myWorker_GetFileCxPRD_new.ProgressChanged += new ProgressChangedEventHandler(myWorker_GetFileCxPRD_new_ProgressChanged);
+            myWorker_GetFileCxPRD_new.WorkerReportsProgress = true;
+            myWorker_GetFileCxPRD_new.WorkerSupportsCancellation = true;
+
             myWorker_GetFile3rdParty.DoWork += new DoWorkEventHandler(myWorker_GetFile3rdParty_DoWork);
             myWorker_GetFile3rdParty.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_GetFile3rdParty_RunWorkerCompleted);
             myWorker_GetFile3rdParty.ProgressChanged += new ProgressChangedEventHandler(myWorker_GetFile3rdParty_ProgressChanged);
@@ -106,6 +114,59 @@ namespace AEON_GetFile_WinForm
             myWorker_PutFileCx_BI.ProgressChanged += new ProgressChangedEventHandler(myWorker_PutFileCx_BI_ProgressChanged);
             myWorker_PutFileCx_BI.WorkerReportsProgress = true;
             myWorker_PutFileCx_BI.WorkerSupportsCancellation = true;
+        }
+
+        private void myWorker_GetFileCxPRD_new_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_GetFileCxPRD_new_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_GetFileCxPRD_new_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //throw new NotImplementedException();
+            try
+            {
+                List<string> store_list = new List<string>();
+                //store_list.Add("1001");
+                var directory = Store_Directory;
+                if (File.Exists(directory))
+                {
+                    using (var reader = new StreamReader(directory))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                store_list.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                    return;
+                }
+
+                foreach (var store in store_list)
+                {
+                    var t = new Thread(() =>
+                    {
+                        GetFileVoucher(store);
+                    });
+                    t.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("GetFile W Exception: {0}", ex.Message);
+            }
         }
 
         private void myWorker_PutFileCx_BI_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -237,7 +298,7 @@ namespace AEON_GetFile_WinForm
                         {
                             log.Info("PutFileCx_Pos Connected to FPT Cloud");
 
-                            var filesList = client.ListDirectory("/SAP_CX_PRD/Cx_Out/POS").OrderByDescending(file => file.Name);
+                            var filesList = client.ListDirectory("/SAP_CX_PRD/Cx_Out/POS").OrderBy(file => file.Name);
                             foreach (var file in filesList)
                             {
                                 var remoteFileName = file.Name;
@@ -309,7 +370,7 @@ namespace AEON_GetFile_WinForm
                                                 client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/{remoteFileName}", file1);
                                             }
 
-                                            //if (File.Exists($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                            if (File.Exists($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
                                             {
                                                 log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
 
@@ -324,11 +385,11 @@ namespace AEON_GetFile_WinForm
                                                     $"/SAP_CX_PRD/Cx_Out/POS/backup/{dateNow}/{remoteFileName}");
                                                 result = true;
                                             }
-                                            //else
-                                            //{
-                                            //    log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
-                                            //    result = false;
-                                            //}
+                                            else
+                                            {
+                                                log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
+                                                result = false;
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -2903,7 +2964,7 @@ namespace AEON_GetFile_WinForm
                         var duration = new TimeSpan(0, 0, 0, 1);
                         filesPathUpload_temp = infoUpload.GetFiles("*.*")
                             //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                            .Where(x => (x.LastWriteTime >= maxTimeCxUpload.Add(duration)) &&
+                            .Where(x => (x.LastWriteTime >= maxTimeCxUpload.Add(duration) && x.LastWriteTime <= DateTime.Now.AddDays(-2)) &&
                                         (Path.GetFileName(x.FullName).Substring(0, 1) == "S" ||
                                          Path.GetFileName(x.FullName).Substring(0, 1) == "W"))
                             .OrderByDescending(x => x.LastWriteTime)
@@ -3159,6 +3220,7 @@ namespace AEON_GetFile_WinForm
         {
             try
             {
+
                 List<string> store_list = new List<string>();
                 var directory = Store_Directory;
                 if (File.Exists(directory))
@@ -3260,65 +3322,66 @@ namespace AEON_GetFile_WinForm
             }
         }
 
+        private System.Timers.Timer timer_Pos_Cx = null;
+
         private void button10_Click_1(object sender, EventArgs e)
         {
-
             try
             {
-                List<string> store_list = new List<string>();
-                //store_list.Add("1001");
-                var directory = Store_Directory;
-                if (File.Exists(directory))
-                {
-                    using (var reader = new StreamReader(directory))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            var line = reader.ReadLine();
-                            if (!string.IsNullOrEmpty(line))
-                            {
-                                store_list.Add(line);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
-                    return;
-                }
+                // Tạo 1 timer từ libary System.Timers
+                timer_Pos_Cx = new System.Timers.Timer();
+                // Execute mỗi 1 phút
+                timer_Pos_Cx.Interval = 60000;
+                // Những gì xảy ra khi timer đó dc tick
+                timer_Pos_Cx.Elapsed += timer_Pos2Cx_Tick;
+                // Enable timer
+                timer_Pos_Cx.Enabled = true;
 
-                foreach (var store in store_list)
-                {
-                    var t = new Thread(() =>
-                    {
-                        GetFileVoucher(store);
-                    });
-                    t.Start();
-                }
+                //myWorker_PutFileCx_Pos.RunWorkerAsync();
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("GetFile W Exception: {0}", ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
+        private void timer_Pos2Cx_Tick(object sender, ElapsedEventArgs args)
+        {
+            if (args.SignalTime.Minute % 5 == 0)
+            {
+                log.InfoFormat("MyCounter_PutFileCx2Pos.count: {0}", MyCounter_GetFilePos2CxPRD.count);
+                if (MyCounter_GetFilePos2CxPRD.count == 0)
+                {
+                    try
+                    {
+                        myWorker_GetFileCxPRD_new.RunWorkerAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error(String.Format("Can not run backgroud_worker: myWorker_GetFileCxPRD_new!|{0}", e.Message));
+                    }
+                }
+            }
+        }
+
 
         private void GetFileVoucher(string store)
         {
             try
             {
+                MyCounter_GetFilePos2CxPRD.MuTexLock.WaitOne();
+                MyCounter_GetFilePos2CxPRD.count++;
+                MyCounter_GetFilePos2CxPRD.MuTexLock.ReleaseMutex();
+
                 List<string> rule_rs = new List<string>();
                 string[] R1 = new string[]
                 {
-                                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
-                                        "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
-                                        "W", "X", "Y", "Z"
+                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+                    "W", "X", "Y", "Z"
                 };
                 string[] R2 = new string[]
                 {
-                                        "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G",
-                                        "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W",
-                                        "X", "Y", "Z"
+                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"
                 };
                 foreach (var R1_tmp in R1)
                 {
@@ -3344,109 +3407,135 @@ namespace AEON_GetFile_WinForm
                         //file W date before
                         foreach (var rs in rule_rs)
                         {
-                            string filename = "";
-                            string month = "";
-                            int month_temp = DateTime.Now.AddDays(-1).Month;
-                            if (month_temp == 10)
+                            if (rs != "00")
                             {
-                                month = "A";
-                            }
-                            else if (month_temp == 11)
-                            {
-                                month = "B";
-                            }
-                            else if (month_temp == 12)
-                            {
-                                month = "C";
-                            }
-                            else
-                            {
-                                month = month_temp.ToString();
-                            }
-                            filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month, DateTime.Now.AddDays(-1).ToString("dd"), rs, store.Substring(0, 1) + "." + store.Substring(1, 3));
-                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
-                            {
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                string filename = "";
+                                string month = "";
+                                int month_temp = DateTime.Now.AddDays(-1).Month;
+                                if (month_temp == 10)
                                 {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    month = "A";
+                                }
+                                else if (month_temp == 11)
+                                {
+                                    month = "B";
+                                }
+                                else if (month_temp == 12)
+                                {
+                                    month = "C";
+                                }
+                                else
+                                {
+                                    month = month_temp.ToString();
+                                }
+
+                                filename = string.Format("W{0}{1}{2}{3}{4}",
+                                    DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month,
+                                    DateTime.Now.AddDays(-1).ToString("dd"), rs,
+                                    store.Substring(0, 1) + "." + store.Substring(1, 3));
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                                {
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                       DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
                                     {
-                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, filename);
-                                        try
+                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                           DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
                                         {
-                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            string path = string.Format(
+                                                @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                                filename);
+                                            try
                                             {
-                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                                                client.UploadFile(fileStream, Path.GetFileName(path));
-                                                log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}", path);
+                                                using (var fileStream = new FileStream(path, FileMode.Open))
+                                                {
+                                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                    client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                    client.UploadFile(fileStream, Path.GetFileName(path));
+                                                    log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
+                                                        path);
+                                                }
                                             }
-                                        }
-                                        catch (Exception exx)
-                                        {
-                                            //stop_flag = true;
-                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store, exx.Message);
-                                            break;
+                                            catch (Exception exx)
+                                            {
+                                                //stop_flag = true;
+                                                log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
+                                                    exx.Message);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
                         log.InfoFormat("GetFile W - Upload Store {0}: Check file date before done!", store);
                         //file W date current
                         foreach (var rs in rule_rs)
                         {
-                            string filename = "";
-                            string month = "";
-                            int month_temp = DateTime.Now.Month;
-                            if (month_temp == 10)
+                            if (rs != "00")
                             {
-                                month = "A";
-                            }
-                            else if (month_temp == 11)
-                            {
-                                month = "B";
-                            }
-                            else if (month_temp == 12)
-                            {
-                                month = "C";
-                            }
-                            else
-                            {
-                                month = month_temp.ToString();
-                            }
-                            filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"), rs, store.Substring(0, 1) + "." + store.Substring(1, 3));
-                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
-                            {
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                string filename = "";
+                                string month = "";
+                                int month_temp = DateTime.Now.Month;
+                                if (month_temp == 10)
                                 {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    month = "A";
+                                }
+                                else if (month_temp == 11)
+                                {
+                                    month = "B";
+                                }
+                                else if (month_temp == 12)
+                                {
+                                    month = "C";
+                                }
+                                else
+                                {
+                                    month = month_temp.ToString();
+                                }
+
+                                filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.Year.ToString().Substring(3, 1),
+                                    month, DateTime.Now.ToString("dd"), rs,
+                                    store.Substring(0, 1) + "." + store.Substring(1, 3));
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                                {
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                       DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
                                     {
-                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, filename);
-                                        try
+                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                           DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
                                         {
-                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            string path = string.Format(
+                                                @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                                filename);
+                                            try
                                             {
-                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                                                client.UploadFile(fileStream, Path.GetFileName(path));
-                                                log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}", path);
+                                                using (var fileStream = new FileStream(path, FileMode.Open))
+                                                {
+                                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                    client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                    client.UploadFile(fileStream, Path.GetFileName(path));
+                                                    log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
+                                                        path);
+                                                }
                                             }
-                                        }
-                                        catch (Exception exx)
-                                        {
-                                            //stop_flag = true;
-                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store, exx.Message);
-                                            break;
+                                            catch (Exception exx)
+                                            {
+                                                //stop_flag = true;
+                                                log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
+                                                    exx.Message);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
                         log.InfoFormat("GetFile W - Upload Store {0}: Check file date current done!", store);
 
                         //file S date before
                         {
-                            string filename = "";
                             string month = "";
                             int month_temp = DateTime.Now.AddDays(-1).Month;
                             if (month_temp == 10)
@@ -3466,14 +3555,19 @@ namespace AEON_GetFile_WinForm
                                 month = month_temp.ToString();
                             }
 
-                            string file_name = string.Format("S{0}{1}{2}00{3}", DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month, DateTime.Now.AddDays(-1).ToString("dd"), store.Substring(0, 1) + "." + store.Substring(1, 3));
-                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                            string file_name = string.Format("S{0}{1}{2}00{3}",
+                                DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month,
+                                DateTime.Now.AddDays(-1).ToString("dd"),
+                                store.Substring(0, 1) + "." + store.Substring(1, 3));
+                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + file_name))
                             {
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + file_name))
                                 {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + file_name))
                                     {
-                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
+                                        string path = string.Format(
+                                            @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                            file_name);
                                         try
                                         {
                                             using (var fileStream = new FileStream(path, FileMode.Open))
@@ -3481,22 +3575,29 @@ namespace AEON_GetFile_WinForm
                                                 client.BufferSize = 4 * 1024; // bypass Payload error large files
                                                 client.ChangeDirectory("/SAP_CX_PRD/" + store);
                                                 client.UploadFile(fileStream, Path.GetFileName(path));
-                                                log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                                                log.InfoFormat("GetFile S - Upload: UploadFile successfully: {0}", path);
                                             }
                                         }
                                         catch (Exception exx)
                                         {
-                                            log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store, exx.Message);
+                                            log.ErrorFormat("GetFile S - Upload Store {0}, Exception: {1}", store,exx.Message);
                                         }
-                                    }    
-                                }    
+                                    }
+                                    else
+                                    {
+                                        log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup today!", store, file_name);
+                                    }
+                                }
+                                else
+                                {
+                                    log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup before!", store, file_name);
+                                }
                             }
                         }
                         log.InfoFormat("GetFile S - Upload Store {0}: Check file date before done!", store);
 
                         //file S date current
                         {
-                            string filename = "";
                             string month = "";
                             int month_temp = DateTime.Now.Month;
                             if (month_temp == 10)
@@ -3516,14 +3617,20 @@ namespace AEON_GetFile_WinForm
                                 month = month_temp.ToString();
                             }
 
-                            string file_name = string.Format("S{0}{1}{2}00{3}", DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"), store.Substring(0, 1) + "." + store.Substring(1, 3));
-                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                            string file_name = string.Format("S{0}{1}{2}00{3}",
+                                DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"),
+                                store.Substring(0, 1) + "." + store.Substring(1, 3));
+                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + file_name))
                             {
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                   DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + file_name))
                                 {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                       DateTime.Now.ToString("yyyyMMdd") + @"/" + file_name))
                                     {
-                                        string path = string.Format(@"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store, file_name);
+                                        string path = string.Format(
+                                            @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                            file_name);
                                         try
                                         {
                                             using (var fileStream = new FileStream(path, FileMode.Open))
@@ -3536,9 +3643,18 @@ namespace AEON_GetFile_WinForm
                                         }
                                         catch (Exception exx)
                                         {
-                                            log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store, exx.Message);
+                                            log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store,
+                                                exx.Message);
                                         }
                                     }
+                                    else
+                                    {
+                                        log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup today!", store, file_name);
+                                    }
+                                }
+                                else
+                                {
+                                    log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup before!", store, file_name);
                                 }
                             }
                         }
@@ -3554,6 +3670,12 @@ namespace AEON_GetFile_WinForm
             catch (Exception ex)
             {
                 log.ErrorFormat("GetFileVoucher Store {0} Exception: {1}", store, ex.Message);
+            }
+            finally
+            {
+                MyCounter_GetFilePos2CxPRD.MuTexLock.WaitOne();
+                MyCounter_GetFilePos2CxPRD.count--;
+                MyCounter_GetFilePos2CxPRD.MuTexLock.ReleaseMutex();
             }
         }
     }
