@@ -3348,7 +3348,7 @@ namespace AEON_GetFile_WinForm
         {
             if (args.SignalTime.Minute % 5 == 0)
             {
-                log.InfoFormat("MyCounter_PutFileCx2Pos.count: {0}", MyCounter_GetFilePos2CxPRD.count);
+                log.InfoFormat("MyCounter_GetFilePos2CxPRD.count: {0}", MyCounter_GetFilePos2CxPRD.count);
                 if (MyCounter_GetFilePos2CxPRD.count == 0)
                 {
                     try

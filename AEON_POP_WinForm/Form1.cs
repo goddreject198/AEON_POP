@@ -3715,36 +3715,43 @@ namespace AEON_POP_WinForm
                                             int line = 0;
                                             //insert data to table
                                             var sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`purchase_order_temp`
-                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`FILE_ID`)VALUES");
+                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`ORDER_QTY`,`UNIT_COST_UOM`,`FILE_ID`)VALUES");
 
                                             while (!sr.EndOfStream)
                                             {
                                                 string[] rows = sr.ReadLine().Replace("\\", "").Split(',');
-                                                line++;
-
+                                                
                                                 //get data
                                                 string ORDER_NO = rows[0].ToString();
                                                 string SUPPLIER = rows[5].ToString();
                                                 string ETA_DATE = rows[8].ToString();
                                                 string SKU = rows[48].ToString();
+                                                string BRANCH_CODE = rows[23].ToString();
+                                                string CONTRACT_NO = rows[6].ToString();
+                                                string DELIVERY_LOCATION = rows[46].ToString();
+                                                string ORDER_QTY = rows[50].ToString();
+                                                string UNIT_COST_UOM = rows[53].ToString();
                                                 string FILE_ID = log_fileid;
 
-
-                                                sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}""),"
-                                                                                            , ORDER_NO, SUPPLIER, ETA_DATE, SKU, FILE_ID);
-
-                                                if (line == 100)
+                                                if (DELIVERY_LOCATION != "DCXD" && DELIVERY_LOCATION != "DCSP")
                                                 {
-                                                    connection.Open();
-                                                    MySqlCommand comm_sql_insert_data = connection.CreateCommand();
-                                                    sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
-                                                    comm_sql_insert_data.CommandText = sql_insert_data;
-                                                    int kq = comm_sql_insert_data.ExecuteNonQuery();
-                                                    connection.Close();
+                                                    line++;
+                                                    sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}""),"
+                                                        , ORDER_NO, SUPPLIER, ETA_DATE, SKU, BRANCH_CODE, CONTRACT_NO, ORDER_QTY, UNIT_COST_UOM, FILE_ID);
 
-                                                    sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`purchase_order_temp`
-                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`FILE_ID`)VALUES");
-                                                    line = 0;
+                                                    if (line == 100)
+                                                    {
+                                                        connection.Open();
+                                                        MySqlCommand comm_sql_insert_data = connection.CreateCommand();
+                                                        sql_insert_data = sql_insert_data.Substring(0, sql_insert_data.Length - 1);
+                                                        comm_sql_insert_data.CommandText = sql_insert_data;
+                                                        int kq = comm_sql_insert_data.ExecuteNonQuery();
+                                                        connection.Close();
+
+                                                        sql_insert_data = String.Format(@"INSERT INTO `aeon_pop`.`purchase_order_temp`
+                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`ORDER_QTY`,`UNIT_COST_UOM`,`FILE_ID`)VALUES");
+                                                        line = 0;
+                                                    }
                                                 }
                                             }
                                             if (line > 0)
@@ -3765,8 +3772,18 @@ namespace AEON_POP_WinForm
                                             // Tạo thư mục.
                                             Directory.CreateDirectory(dirBackup);
                                         }
+
                                         string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
                                         File.Move(pathtg, dirPathBackup);
+
+                                        //if (File.Exists(dirPathBackup))
+                                        //{
+                                        //    log.InfoFormat("Read File Success! {0}", dirPathBackup);
+                                        //}
+                                        //else
+                                        //{
+                                        //    log.ErrorFormat("Read File Failed! {0}", dirPathBackup);
+                                        //}
 
 
                                         //update info file to log_file

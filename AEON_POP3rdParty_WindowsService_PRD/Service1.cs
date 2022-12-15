@@ -2823,7 +2823,7 @@ namespace AEON_POP3rdParty_WindowsService
                                             int line = 0;
                                             //insert data to table
                                             var sql_insert_data = String.Format(@"INSERT INTO `aeon_pop_prd`.`purchase_order_temp`
-                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`FILE_ID`)VALUES");
+                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`ORDER_QTY`,`UNIT_COST_UOM`,`FILE_ID`)VALUES");
 
                                             while (!sr.EndOfStream)
                                             {
@@ -2837,13 +2837,15 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string BRANCH_CODE = rows[23].ToString();
                                                 string CONTRACT_NO = rows[6].ToString();
                                                 string DELIVERY_LOCATION = rows[46].ToString();
+                                                string ORDER_QTY = rows[50].ToString();
+                                                string UNIT_COST_UOM = rows[53].ToString();
                                                 string FILE_ID = log_fileid;
 
                                                 if (DELIVERY_LOCATION != "DCXD" && DELIVERY_LOCATION != "DCSP")
                                                 {
                                                     line++;
-                                                    sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}""),"
-                                                        , ORDER_NO, SUPPLIER, ETA_DATE, SKU, BRANCH_CODE, CONTRACT_NO, FILE_ID);
+                                                    sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}""),"
+                                                        , ORDER_NO, SUPPLIER, ETA_DATE, SKU, BRANCH_CODE, CONTRACT_NO, ORDER_QTY, UNIT_COST_UOM, FILE_ID);
 
                                                     if (line == 100)
                                                     {
@@ -2855,7 +2857,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                         connection.Close();
 
                                                         sql_insert_data = String.Format(@"INSERT INTO `aeon_pop_prd`.`purchase_order_temp`
-                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`FILE_ID`)VALUES");
+                                                                                    (`ORDER_NO`,`SUPPLIER`,`ETA_DATE`,`SKU`,`BRANCH_CODE`,`CONTRACT_NO`,`ORDER_QTY`,`UNIT_COST_UOM`,`FILE_ID`)VALUES");
                                                         line = 0;
                                                     }
                                                 }
