@@ -619,167 +619,18 @@ namespace AEON_GetFile_WinForm
             }
         }
 
-        private bool GetMaxTimePopTransaction(out DateTime maxTimePopTransaction)
-        {
-            maxTimePopTransaction = DateTime.MinValue;
-            if (File.Exists(FileConfigTransation))
-            {
-                using (var reader = new StreamReader(FileConfigTransation))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        var line = reader.ReadLine();
-                        if (line != null)
-                        {
-                            var values = line.Split(',');
-                            var maxTime = values[1].ToString();
-                            log.Info(maxTime);
-                            DateTime.TryParseExact(maxTime, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture,
-                                System.Globalization.DateTimeStyles.None, out maxTimePopTransaction);
-                        }
-                    }
-                }
-            }
-
-            if (maxTimePopTransaction == DateTime.MinValue)
-            {
-                log.Info(maxTimePopTransaction.ToString(CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            log.Info(maxTimePopTransaction.ToString(CultureInfo.InvariantCulture));
-            return false;
-        }
-        private List<string> GetFilesPathTransation_DayCurrent(DateTime maxTimePopTransaction)
-        {
-            List<string> filesPathTransation = new List<string>();
-            var task = Task.Run(() =>
-            {
-                try
-                {
-                    var durationTransation = new TimeSpan(0, 0, 0, 0);
-                    var infoTransaction =
-                        new DirectoryInfo(string.Format(DirectoryFromTransation + @"\" + DateTime.Now.ToString("ddMMyyyy")));
-                    filesPathTransation = infoTransaction.GetFiles("PO_*.csv")
-                        .Where(x => x.LastWriteTime >= maxTimePopTransaction.Add(durationTransation))
-                        .OrderByDescending(x => x.LastWriteTime)
-                        .Select(x => x.FullName)
-                        .ToList();
-                }
-                catch (Exception e)
-                {
-                    log.ErrorFormat("GetFilesPathTransation_DayCurrent Exception: {0}", e.Message);
-                }
-                return filesPathTransation;
-            });
-            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
-            if (isCompletedSuccessfully)
-            {
-                log.InfoFormat("GetFilesPathTransation_DayCurrent successfully! File count: {0}", task.Result.Count);
-            }
-            else
-            {
-                log.ErrorFormat("GetFilesPathTransation_DayCurrent: The function has taken longer than the maximum time allowed.");
-            }
-            return filesPathTransation;
-        }
-        private void DownloadFilePopTransaction_DayCurrent(IReadOnlyCollection<string> filesPathTransation)
-        {
-            if (filesPathTransation.Count > 0)
-            {
-                var host = AzureHost;
-                var port = Convert.ToInt32(AzurePort);
-                var username = AzureUser;
-                var password = AzurePwd;
-
-                using (var client = new SftpClient(host, port, username, password))
-                {
-                    client.Connect();
-                    if (client.IsConnected)
-                    {
-                        log.Info("UploadFile_POP3rdParty_Transaction Connected to AVN Azure");
-
-                        var maxtimePos = 0;
-                        foreach (var path in filesPathTransation)
-                        {
-                            var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                            if (maxtimePos == 0)
-                            {
-                                log.InfoFormat("last time transation PRD: {0}", lastwritetime);
-
-                                StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
-                                sw.Write(path + ",");
-                                sw.Write(lastwritetime);
-                                sw.WriteLine();
-                                sw.Close();
-                            }
-
-                            maxtimePos++;
-                            using (var fileStream = new FileStream(path, FileMode.Open))
-                            {
-                                try
-                                {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                    client.UploadFile(fileStream, Path.GetFileName(path));
-                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
-                                }
-                                catch (Exception ex)
-                                {
-                                    log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        log.Error("UploadFile_POP3rdParty_transaction_PRD can not connected to AVN Azure");
-                    }
-                }
-            }
-            else
-            {
-                log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: service get no file from {0}!", DirectoryFromTransation);
-            }
-        }
-        private List<string> GetFilesPathTransation_DayBefore(DateTime maxTimePopTransaction)
-        {
-            List<string> filesPathTransation = new List<string>();
-            var task = Task.Run(() =>
-            {
-                try
-                {
-                    var durationTransation = new TimeSpan(0, 0, 0, 0);
-                    var infoTransaction =
-                        new DirectoryInfo(string.Format(DirectoryFromTransation + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
-                    filesPathTransation = infoTransaction.GetFiles("PO_*.csv")
-                        .Where(x => x.LastWriteTime >= maxTimePopTransaction.Add(durationTransation))
-                        .OrderByDescending(x => x.LastWriteTime)
-                        .Select(x => x.FullName)
-                        .ToList();
-                }
-                catch (Exception e)
-                {
-                    log.ErrorFormat("GetFilesPathTransation_DayBefore Exception: {0}", e.Message);
-                }
-                return filesPathTransation;
-            });
-            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
-            if (isCompletedSuccessfully)
-            {
-                log.InfoFormat("GetFilesPathTransation_DayBefore successfully! File count: {0}", task.Result.Count);
-            }
-            else
-            {
-                log.ErrorFormat("GetFilesPathTransation_DayBefore: The function has taken longer than the maximum time allowed.");
-            }
-            return filesPathTransation;
-        }
-        private void DownloadFilePopTransaction_DayBefore(IReadOnlyCollection<string> filesPathTransation)
+        private void DownloadFilePop_New()
         {
             try
             {
-                if (filesPathTransation.Count > 0)
+                //string pop_path = @"\\10.121.2.207\NFS\production\vnm\download\fpt_bi\pop_system";
+                string pop_path = DirectoryFrom_PRD;
+                DirectoryInfo info = new DirectoryInfo(pop_path);
+                List<string> filesPath = info.GetFiles("*.csv")
+                    .Select(x => x.FullName)
+                    .ToList();
+                log.InfoFormat("UploadFile_POP3rdParty_PRD pop_path count: {0}", filesPath.Count);
+                if (filesPath.Count > 0)
                 {
                     var host = AzureHost;
                     var port = Convert.ToInt32(AzurePort);
@@ -791,56 +642,76 @@ namespace AEON_GetFile_WinForm
                         client.Connect();
                         if (client.IsConnected)
                         {
-                            log.Info("UploadFile_POP3rdParty_Transaction Connected to AVN Azure");
-
-                            var maxtimePos = 0;
-                            foreach (var path in filesPathTransation)
+                            log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
+                            var task = Task.Run(() =>
                             {
-                                var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                                if (maxtimePos == 0)
+                                try
                                 {
-                                    log.InfoFormat("last time transation PRD: {0}", lastwritetime);
-
-                                    StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
-                                    sw.Write(path + ",");
-                                    sw.Write(lastwritetime);
-                                    sw.WriteLine();
-                                    sw.Close();
+                                    foreach (var pathtg in filesPath)
+                                    {
+                                        using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                        {
+                                            try
+                                            {
+                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                                client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message);
+                                            }
+                                        }
+                                        if (client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + Path.GetFileName(pathtg)))
+                                        {
+                                            //move file to folder backup
+                                            String dirBackup = DirectoryFrom_PRD + @"\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                            //String dirBackup = @"C:\profit\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
+                                            bool exist = Directory.Exists(dirBackup);
+                                            if (!exist)
+                                            {
+                                                // Tạo thư mục.
+                                                Directory.CreateDirectory(dirBackup);
+                                            }
+                                            string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
+                                            File.Move(pathtg, dirPathBackup);
+                                            if (File.Exists(dirPathBackup))
+                                            {
+                                                log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", dirPathBackup);
+                                            }
+                                        }
+                                    }
                                 }
-
-                                maxtimePos++;
-                                using (var fileStream = new FileStream(path, FileMode.Open))
+                                catch (Exception ex)
                                 {
-                                    try
-                                    {
-                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                        client.UploadFile(fileStream, Path.GetFileName(path));
-                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_transaction Exception: {0}", ex.Message);
-                                    }
+                                    log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
                                 }
+                            });
+
+                            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                            if (isCompletedSuccessfully)
+                            {
+                                log.InfoFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New successfully!");
                             }
+                            else
+                            {
+                                log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New: The function has taken longer than the maximum time allowed.");
+                            }
+                            client.Disconnect();
                         }
                         else
                         {
-                            log.Error("UploadFile_POP3rdParty_transaction_PRD can not connected to AVN Azure");
+                            log.Error("UploadFile_POP3rdParty_PRD can not connected to FPT Cloud");
                         }
                     }
                 }
-                else
-                {
-                    log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: service get no file from {0}!", DirectoryFromTransation);
-                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                log.ErrorFormat("DownloadFilePopTransaction_DayBefore Exception: {0}", e.Message);
+                log.ErrorFormat("UploadFile_POP3rdParty_PRD Exception: {0}", ex.Message);
             }
         }
+
         private void DownloadFilePop(List<string> filesPath, string lastFileName)
         {
             if (filesPath.Count > 0)
@@ -918,71 +789,102 @@ namespace AEON_GetFile_WinForm
 
         private void DownloadFilePopMaster_DayCurrent(IReadOnlyCollection<string> filesPathMaster)
         {
-            if (filesPathMaster.Count > 0)
+            try
             {
-                var host = AzureHost;
-                var port = Convert.ToInt32(AzurePort);
-                var username = AzureUser;
-                var password = AzurePwd;
-
-                using (var client = new SftpClient(host, port, username, password))
+                if (filesPathMaster.Count > 0)
                 {
-                    client.Connect();
-                    if (client.IsConnected)
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
+
+                    using (var client = new SftpClient(host, port, username, password))
                     {
-                        log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
-
-                        var maxtimePos = 0;
-                        foreach (var path in filesPathMaster)
+                        client.Connect();
+                        if (client.IsConnected)
                         {
-                            var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
-                            if (maxtimePos == 0)
-                            {
-                                log.InfoFormat("last time pop PRD: {0}", lastwritetime);
-
-                                StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
-                                sw.Write(path + ",");
-                                sw.Write(lastwritetime);
-                                sw.WriteLine();
-                                sw.Close();
-                            }
-
-                            maxtimePos++;
-                            using (var fileStream = new FileStream(path, FileMode.Open))
+                            log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
+                            var task = Task.Run(() =>
                             {
                                 try
                                 {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                    client.UploadFile(fileStream, Path.GetFileName(path));
-                                    log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile_master successfully: {0}", path);
+                                    var maxtimePos = 0;
+                                    foreach (var path in filesPathMaster)
+                                    {
+                                        var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                        if (maxtimePos == 0)
+                                        {
+                                            log.InfoFormat("last time pop PRD: {0}", lastwritetime);
+
+                                            StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
+                                            sw.Write(path + ",");
+                                            sw.Write(lastwritetime);
+                                            sw.WriteLine();
+                                            sw.Close();
+                                        }
+
+                                        maxtimePos++;
+                                        string filename = Path.GetFileName(path);
+                                        if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + filename))
+                                        {
+                                            if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                            {
+                                                if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                                {
+                                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                                    {
+                                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                                        log.InfoFormat("UploadFile_POP3rdParty_PRD: UploadFile_master successfully: {0}", path);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                catch (Exception ex)
+                                catch (Exception e)
                                 {
-                                    log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile_master Exception: {0}", ex.Message);
+                                    log.InfoFormat("UploadFile_POP3rdParty_PRD: Excption {0}!", e.Message);
                                 }
+                            });
+
+                            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                            if (isCompletedSuccessfully)
+                            {
+                                log.InfoFormat("GetFilePOP3rdParty_PRD UploadFile_master successfully!");
                             }
+                            else
+                            {
+                                log.ErrorFormat("GetFilePOP3rdParty_PRD UploadFile_master: The function has taken longer than the maximum time allowed.");
+                            }
+                            client.Disconnect();
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
                         }
                     }
-                    else
-                    {
-                        log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
-                    }
+                }
+                else
+                {
+                    log.InfoFormat("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2_PRD);
                 }
             }
-            else
+            catch (Exception e)
             {
-                log.InfoFormat("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2_PRD);
+                log.ErrorFormat("DownloadFilePopMaster_DayCurrent Exception: {0}", e.Message);
             }
         }
 
         private List<string> GetFilesPathMaster_DayCurrent(DateTime maxTimePopMaster)
         {
             List<string> filesPathMaster = new List<string>();
-            var task = Task.Run(() =>
+            try
             {
-                try
+                var task = Task.Run(() =>
                 {
+
                     var durationMaster = new TimeSpan(0, 0, -1, 0);
                     var infoMaster =
                         new DirectoryInfo(string.Format(DirectoryFrom2_PRD + @"\" + DateTime.Now.ToString("ddMMyyyy")));
@@ -1001,95 +903,126 @@ namespace AEON_GetFile_WinForm
                         .OrderByDescending(x => x.LastWriteTime)
                         .Select(x => x.FullName)
                         .ToList();
-                }
-                catch (Exception e)
+
+                    return filesPathMaster;
+                });
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                if (isCompletedSuccessfully)
                 {
-                    log.ErrorFormat("GetFilesPathMaster_DayCurrent Exception: {0}", e.Message);
+                    log.InfoFormat("GetFilesPathMaster_DayCurrent successfully! File count: {0}", task.Result.Count);
                 }
-                return filesPathMaster;
-            });
-            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
-            if (isCompletedSuccessfully)
-            {
-                log.InfoFormat("GetFilesPathMaster_DayCurrent successfully! File count: {0}", task.Result.Count);
+                else
+                {
+                    log.ErrorFormat("GetFilesPathMaster_DayCurrent: The function has taken longer than the maximum time allowed.");
+                }
             }
-            else
+            catch (Exception e)
             {
-                log.ErrorFormat("GetFilesPathMaster_DayCurrent: The function has taken longer than the maximum time allowed.");
+                log.ErrorFormat("GetFilesPathMaster_DayCurrent Exception: {0}", e.Message);
             }
             return filesPathMaster;
         }
 
         private void DownloadFilePopMaster_DayBefore(IReadOnlyCollection<string> filesPathMaster)
         {
-            if (filesPathMaster.Count > 0)
+            try
             {
-                var host = AzureHost;
-                var port = Convert.ToInt32(AzurePort);
-                var username = AzureUser;
-                var password = AzurePwd;
-
-                using (var client = new SftpClient(host, port, username, password))
+                if (filesPathMaster.Count > 0)
                 {
-                    client.Connect();
-                    if (client.IsConnected)
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
+
+                    using (var client = new SftpClient(host, port, username, password))
                     {
-                        log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
-
-                        var maxtimePos = 0;
-                        foreach (var pathtg in filesPathMaster)
+                        client.Connect();
+                        if (client.IsConnected)
                         {
-                            var lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
-                            if (maxtimePos == 0)
-                            {
-                                log.Info(String.Format("last time pop PRD: {0}", lastwritetime));
-                                //string filename = string.Format("MaxTime_Pop.csv");
-                                //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
-                                //{
-                                //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
-                                //}
-                                StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
-                                sw.Write(pathtg + ",");
-                                sw.Write(lastwritetime);
-                                sw.WriteLine();
-                                sw.Close();
-                            }
-
-                            maxtimePos++;
-                            using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                            log.Info("UploadFile_POP3rdParty_master Connected to AEON Azure");
+                            var task = Task.Run(() =>
                             {
                                 try
                                 {
-                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                    client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                    client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                    log.InfoFormat("GetFilePOP3rdParty: UploadFile_master_PRD successfully: {0}", pathtg);
+                                    var maxtimePos = 0;
+                                    foreach (var pathtg in filesPathMaster)
+                                    {
+                                        var lastwritetime = File.GetLastWriteTime(pathtg).ToString("yyyyMMddHHmmss");
+                                        if (maxtimePos == 0)
+                                        {
+                                            log.Info(String.Format("last time pop PRD: {0}", lastwritetime));
+                                            //string filename = string.Format("MaxTime_Pop.csv");
+                                            //if (File.Exists(@"C:\FPTGetFile\Log\" + filename))
+                                            //{
+                                            //    File.Delete(@"C:\FPTGetFile\Log\" + filename);
+                                            //}
+                                            StreamWriter sw = new StreamWriter(FileConfig2_PRD, false, Encoding.Unicode);
+                                            sw.Write(pathtg + ",");
+                                            sw.Write(lastwritetime);
+                                            sw.WriteLine();
+                                            sw.Close();
+                                        }
+
+                                        maxtimePos++;
+                                        string filename = Path.GetFileName(pathtg);
+                                        if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + filename))
+                                        {
+                                            if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                            {
+                                                if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                                {
+                                                    using (var fileStream = new FileStream(pathtg, FileMode.Open))
+                                                    {
+                                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
+                                                        log.InfoFormat("UploadFile_POP3rdParty_PRD: UploadFile_master_PRD successfully: {0}", pathtg);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                catch (Exception ex)
+                                catch (Exception e)
                                 {
-                                    log.ErrorFormat("GetFilePOP3rdParty: UploadFile_master_PRD Exception: {0}", ex.Message);
+                                    log.ErrorFormat("UploadFile_POP3rdParty_PRD: Exception {0}!", e.Message);
                                 }
+                            });
+
+                            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                            if (isCompletedSuccessfully)
+                            {
+                                log.InfoFormat("UploadFile_POP3rdParty_PRD successfully!");
                             }
+                            else
+                            {
+                                log.ErrorFormat("UploadFile_POP3rdParty_PRD UploadFile_master_PRD: The function has taken longer than the maximum time allowed.");
+                            }
+                            client.Disconnect();
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
                         }
                     }
-                    else
-                    {
-                        log.Error("UploadFile_POP3rdParty_master_PRD can not connected to AEON Azure");
-                    }
+                }
+                else
+                {
+                    log.InfoFormat("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2_PRD);
                 }
             }
-            else
+            catch (Exception e)
             {
-                log.InfoFormat("UploadFile_POP3rdParty_PRD: service get no file from {0}!", DirectoryFrom2_PRD);
+                log.ErrorFormat("UploadFile_POP3rdParty_PRD: Exception {0}!", e.Message);
             }
         }
 
         private List<string> GetFilesPathMaster_DayBefore(DateTime maxTimePopMaster)
         {
             List<string> filesPathMaster = new List<string>();
-            var task = Task.Run(() =>
+            try
             {
-                try
+                var task = Task.Run(() =>
                 {
                     var durationMaster = new TimeSpan(0, 0, -1, 0);
                     var infoMaster =
@@ -1109,55 +1042,71 @@ namespace AEON_GetFile_WinForm
                         .OrderByDescending(x => x.LastWriteTime)
                         .Select(x => x.FullName)
                         .ToList();
-                }
-                catch (Exception e)
+                    return filesPathMaster;
+                });
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
+                if (isCompletedSuccessfully)
                 {
-                    log.ErrorFormat("GetFilesPathMaster_DayBefore Exception: {0}", e.Message);
+                    log.InfoFormat("GetFilesPathMaster_DayBefore successfully! File count: {0}", task.Result.Count);
                 }
-                return filesPathMaster;
-            });
-            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(300000));
-            if (isCompletedSuccessfully)
-            {
-                log.InfoFormat("GetFilesPathMaster_DayBefore successfully! File count: {0}", task.Result.Count);
+                else
+                {
+                    log.ErrorFormat("GetFilesPathMaster_DayBefore: The function has taken longer than the maximum time allowed.");
+                }
             }
-            else
+            catch (Exception e)
             {
-                log.ErrorFormat("GetFilesPathMaster_DayBefore: The function has taken longer than the maximum time allowed.");
+                log.ErrorFormat("GetFilesPathMaster_DayBefore Exception: {0}", e.Message);
             }
+
             return filesPathMaster;
         }
 
         private bool GetMaxTimePopMaster(out DateTime maxTimePopMaster)
         {
+            bool rs = false;
             maxTimePopMaster = DateTime.MinValue;
-            if (File.Exists(FileConfig2_PRD))
+            try
             {
-                using (var reader = new StreamReader(FileConfig2_PRD))
+                if (File.Exists(FileConfig2_PRD))
                 {
-                    while (!reader.EndOfStream)
+                    using (var reader = new StreamReader(FileConfig2_PRD))
                     {
-                        var line = reader.ReadLine();
-                        if (line != null)
+                        while (!reader.EndOfStream)
                         {
-                            var values = line.Split(',');
-                            var maxTime = values[1].ToString();
-                            log.Info(maxTime);
-                            DateTime.TryParseExact(maxTime, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture,
-                                System.Globalization.DateTimeStyles.None, out maxTimePopMaster);
+                            var line = reader.ReadLine();
+                            if (line != null)
+                            {
+                                var values = line.Split(',');
+                                var maxTime = values[1].ToString();
+                                log.Info(maxTime);
+                                DateTime.TryParseExact(maxTime, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None, out maxTimePopMaster);
+                            }
                         }
                     }
+                    if (maxTimePopMaster == DateTime.MinValue)
+                    {
+                        log.Info(maxTimePopMaster.ToString(CultureInfo.InvariantCulture));
+                        rs = false;
+                    }
+                    else
+                    {
+                        log.Info(maxTimePopMaster.ToString(CultureInfo.InvariantCulture));
+                        rs = true;
+                    }
+                }
+                else
+                {
+                    rs = false;
                 }
             }
-
-            if (maxTimePopMaster == DateTime.MinValue)
+            catch (Exception e)
             {
-                log.Info(maxTimePopMaster.ToString(CultureInfo.InvariantCulture));
-                return true;
+                log.ErrorFormat("GetMaxTimePopMaster exception: {0}", e.Message);
             }
 
-            log.Info(maxTimePopMaster.ToString(CultureInfo.InvariantCulture));
-            return false;
+            return rs;
         }
 
         private List<string> GetFilesPath(DateTime maxTimePop)
@@ -1171,7 +1120,7 @@ namespace AEON_GetFile_WinForm
                     var duration = new TimeSpan(0, 0, -1, 0);
                     filesPathUpload_temp = info.GetFiles("*.csv")
                         //.Where(x => x.LastWriteTime.Date.Day == 3 && x.LastWriteTime.Date.Month == 3)
-                        .Where(x => x.LastWriteTime >= maxTimePop)
+                        .Where(x => x.LastWriteTime >= maxTimePop.Add(duration))
                         .OrderByDescending(x => x.LastWriteTime)
                         .Select(x => x.FullName)
                         .ToList();
@@ -1226,7 +1175,299 @@ namespace AEON_GetFile_WinForm
             log.Info("MaxTime_Pop_PRD: " + maxTimePop.ToString(CultureInfo.InvariantCulture));
             return false;
         }
+        private bool GetMaxTimePopTransaction(out DateTime maxTimePopTransaction)
+        {
+            maxTimePopTransaction = DateTime.MinValue;
+            bool rs = false;
+            try
+            {
+                if (File.Exists(FileConfigTransation))
+                {
+                    using (var reader = new StreamReader(FileConfigTransation))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (line != null)
+                            {
+                                var values = line.Split(',');
+                                var maxTime = values[1].ToString();
+                                log.Info(maxTime);
+                                DateTime.TryParseExact(maxTime, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None, out maxTimePopTransaction);
+                            }
+                        }
+                    }
+                    if (maxTimePopTransaction == DateTime.MinValue)
+                    {
+                        log.Info(maxTimePopTransaction.ToString(CultureInfo.InvariantCulture));
+                        rs = false;
+                    }
+                    else
+                    {
+                        log.Info(maxTimePopTransaction.ToString(CultureInfo.InvariantCulture));
+                        rs = true;
+                    }
+                }
+                else
+                {
+                    rs = false;
+                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("GetMaxTimePopTransaction Exception: {0}", e.Message);
+            }
 
+            return rs;
+        }
+        private List<string> GetFilesPathTransation_DayCurrent(DateTime maxTimePopTransaction)
+        {
+            List<string> filesPathTransation = new List<string>();
+            try
+            {
+                var task = Task.Run(() =>
+                {
+                    var durationTransation = new TimeSpan(0, 0, 0, 0);
+                    var infoTransaction =
+                        new DirectoryInfo(string.Format(DirectoryFromTransation + @"\" + DateTime.Now.ToString("ddMMyyyy")));
+                    filesPathTransation = infoTransaction.GetFiles("PO_*.csv")
+                        .Where(x => x.LastWriteTime >= maxTimePopTransaction.Add(durationTransation))
+                        .OrderByDescending(x => x.LastWriteTime)
+                        .Select(x => x.FullName)
+                        .ToList();
+
+                    return filesPathTransation;
+                });
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                if (isCompletedSuccessfully)
+                {
+                    log.InfoFormat("GetFilesPathTransation_DayCurrent successfully! File count: {0}", task.Result.Count);
+                }
+                else
+                {
+                    log.ErrorFormat("GetFilesPathTransation_DayCurrent: The function has taken longer than the maximum time allowed.");
+                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("GetFilesPathTransation_DayCurrent Exception: {0}", e.Message);
+            }
+            return filesPathTransation;
+        }
+        private void DownloadFilePopTransaction_DayCurrent(IReadOnlyCollection<string> filesPathTransation)
+        {
+            try
+            {
+                if (filesPathTransation.Count > 0)
+                {
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
+
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("UploadFile_POP3rdParty_Transaction Connected to AVN Azure");
+                            var task = Task.Run(() =>
+                            {
+                                try
+                                {
+                                    var maxtimePos = 0;
+                                    foreach (var path in filesPathTransation)
+                                    {
+                                        var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                        if (maxtimePos == 0)
+                                        {
+                                            log.InfoFormat("last time transation PRD: {0}", lastwritetime);
+
+                                            StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
+                                            sw.Write(path + ",");
+                                            sw.Write(lastwritetime);
+                                            sw.WriteLine();
+                                            sw.Close();
+                                        }
+
+                                        maxtimePos++;
+                                        string filename = Path.GetFileName(path);
+                                        if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + filename))
+                                        {
+                                            if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                            {
+                                                if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                                {
+                                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                                    {
+                                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                                        log.InfoFormat("UploadFile_POP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: Exception {0}!", e.Message);
+                                }
+                            });
+
+                            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                            if (isCompletedSuccessfully)
+                            {
+                                log.InfoFormat("UploadFile_POP3rdParty_PRD UploadFile_transaction successfully!");
+                            }
+                            else
+                            {
+                                log.ErrorFormat("UploadFile_POP3rdParty_PRD UploadFile_transaction: The function has taken longer than the maximum time allowed.");
+                            }
+                            client.Disconnect();
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty_transaction_PRD can not connected to AVN Azure");
+                        }
+                    }
+                }
+                else
+                {
+                    log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: service get no file from {0}!", DirectoryFromTransation);
+                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("DownloadFilePopTransaction_DayCurrent Exception: {0}", e.Message);
+            }
+        }
+        private List<string> GetFilesPathTransation_DayBefore(DateTime maxTimePopTransaction)
+        {
+            List<string> filesPathTransation = new List<string>();
+            try
+            {
+                var task = Task.Run(() =>
+                {
+
+                    var durationTransation = new TimeSpan(0, 0, 0, 0);
+                    var infoTransaction =
+                        new DirectoryInfo(string.Format(DirectoryFromTransation + @"\" + DateTime.Now.AddDays(-1).ToString("ddMMyyyy")));
+                    filesPathTransation = infoTransaction.GetFiles("PO_*.csv")
+                        .Where(x => x.LastWriteTime >= maxTimePopTransaction.Add(durationTransation))
+                        .OrderByDescending(x => x.LastWriteTime)
+                        .Select(x => x.FullName)
+                        .ToList();
+
+                    return filesPathTransation;
+                });
+                bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                if (isCompletedSuccessfully)
+                {
+                    log.InfoFormat("GetFilesPathTransation_DayBefore successfully! File count: {0}", task.Result.Count);
+                }
+                else
+                {
+                    log.ErrorFormat("GetFilesPathTransation_DayBefore: The function has taken longer than the maximum time allowed.");
+                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("GetFilesPathTransation_DayBefore Exception: {0}", e.Message);
+            }
+            return filesPathTransation;
+        }
+        private void DownloadFilePopTransaction_DayBefore(IReadOnlyCollection<string> filesPathTransation)
+        {
+            try
+            {
+                if (filesPathTransation.Count > 0)
+                {
+                    var host = AzureHost;
+                    var port = Convert.ToInt32(AzurePort);
+                    var username = AzureUser;
+                    var password = AzurePwd;
+
+                    using (var client = new SftpClient(host, port, username, password))
+                    {
+                        client.Connect();
+                        if (client.IsConnected)
+                        {
+                            log.Info("UploadFile_POP3rdParty_Transaction Connected to AVN Azure");
+                            var task = Task.Run(() =>
+                            {
+                                try
+                                {
+                                    var maxtimePos = 0;
+                                    foreach (var path in filesPathTransation)
+                                    {
+                                        var lastwritetime = File.GetLastWriteTime(path).ToString("yyyyMMddHHmmss");
+                                        if (maxtimePos == 0)
+                                        {
+                                            log.InfoFormat("last time transation PRD: {0}", lastwritetime);
+
+                                            StreamWriter sw = new StreamWriter(FileConfigTransation, false, Encoding.Unicode);
+                                            sw.Write(path + ",");
+                                            sw.Write(lastwritetime);
+                                            sw.WriteLine();
+                                            sw.Close();
+                                        }
+
+                                        maxtimePos++;
+                                        string filename = Path.GetFileName(path);
+                                        if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + filename))
+                                        {
+                                            if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                            {
+                                                if (!client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/Backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                                {
+                                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                                    {
+                                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
+                                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                                        log.InfoFormat("UploadFile_POP3rdParty_PRD: UploadFile_transaction successfully: {0}", path);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: Exception {0}!", e.Message);
+                                }
+                            });
+
+                            bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                            if (isCompletedSuccessfully)
+                            {
+                                log.InfoFormat("GetFilePOP3rdParty_PRD UploadFile_transaction successfully!");
+                            }
+                            else
+                            {
+                                log.ErrorFormat("GetFilePOP3rdParty_PRD UploadFile_transaction: The function has taken longer than the maximum time allowed.");
+                            }
+                            client.Disconnect();
+                        }
+                        else
+                        {
+                            log.Error("UploadFile_POP3rdParty_transaction_PRD can not connected to AVN Azure");
+                        }
+                    }
+                }
+                else
+                {
+                    log.InfoFormat("UploadFile_POP3rdParty_transaction_PRD: service get no file from {0}!", DirectoryFromTransation);
+                }
+            }
+            catch (Exception e)
+            {
+                log.ErrorFormat("DownloadFilePopTransaction_DayBefore Exception: {0}", e.Message);
+            }
+        }
         private void myWorker_GetFile3rdParty_PRD_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             //throw new NotImplementedException();
@@ -3122,97 +3363,28 @@ namespace AEON_GetFile_WinForm
 
                 DownloadFilePop_New();
 
-                if (GetMaxTimePopMaster(out var maxTimePopMaster)) return;
-                //check day before
-                DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
-                //check current day
-                DownloadFilePopMaster_DayCurrent(GetFilesPathMaster_DayCurrent(maxTimePopMaster));
+                if (GetMaxTimePopMaster(out var maxTimePopMaster))
+                {
+                    //check day before
+                    DownloadFilePopMaster_DayBefore(GetFilesPathMaster_DayBefore(maxTimePopMaster));
 
-                if (GetMaxTimePopTransaction(out var maxTimePopTransaction)) return;
-                //check day before
-                DownloadFilePopTransaction_DayBefore(GetFilesPathTransation_DayBefore(maxTimePopTransaction));
-                //check day current
-                DownloadFilePopTransaction_DayCurrent(GetFilesPathTransation_DayCurrent(maxTimePopTransaction));
+                    //check current day
+                    DownloadFilePopMaster_DayCurrent(GetFilesPathMaster_DayCurrent(maxTimePopMaster));
+                }
 
+                if (GetMaxTimePopTransaction(out var maxTimePopTransaction))
+                {
+                    //check day before
+                    DownloadFilePopTransaction_DayBefore(GetFilesPathTransation_DayBefore(maxTimePopTransaction));
+                    //check day current
+                    DownloadFilePopTransaction_DayCurrent(GetFilesPathTransation_DayCurrent(maxTimePopTransaction));
+                }
 
                 log.Info("myWorker_GetFile3rdParty_Azure_New_DoWork done!");
             }
             catch (Exception ex)
             {
                 log.ErrorFormat("myWorker_GetFile3rdParty_Azure_New_DoWork - Exception: {0}", ex.Message);
-            }
-        }
-
-        private void DownloadFilePop_New()
-        {
-            try
-            {
-                string pop_path = @"\\10.121.2.207\NFS\production\vnm\download\fpt_bi\pop_system";
-                //string pop_path = @"C:\profit\vnm\download\fpt_bi\pop_system";
-                DirectoryInfo info = new DirectoryInfo(pop_path);
-                List<string> filesPath = info.GetFiles("*.csv")
-                    .Select(x => x.FullName)
-                    .ToList();
-                log.InfoFormat("UploadFile_POP3rdParty_PRD pop_path count: {0}", filesPath.Count);
-                if (filesPath.Count > 0)
-                {
-                    var host = AzureHost;
-                    var port = Convert.ToInt32(AzurePort);
-                    var username = AzureUser;
-                    var password = AzurePwd;
-
-                    using (var client = new SftpClient(host, port, username, password))
-                    {
-                        client.Connect();
-                        if (client.IsConnected)
-                        {
-                            log.Info("UploadFile_POP3rdParty_PRD Connected to AEON Azure");
-
-                            foreach (var pathtg in filesPath)
-                            {
-                                using (var fileStream = new FileStream(pathtg, FileMode.Open))
-                                {
-                                    try
-                                    {
-                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                        client.ChangeDirectory("/datadrive/SFTP/POP_3rdParty_PRD");
-                                        client.UploadFile(fileStream, Path.GetFileName(pathtg));
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        log.ErrorFormat("GetFilePOP3rdParty_PRD: UploadFile Exception: {0}", ex.Message);
-                                    }
-                                }
-                                if (client.Exists(@"/datadrive/SFTP/POP_3rdParty_PRD/" + Path.GetFileName(pathtg)))
-                                {
-                                    //move file to folder backup
-                                    String dirBackup = @"\\10.121.2.207\NFS\production\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                    //String dirBackup = @"C:\profit\vnm\download\fpt_bi\pop_system\fpt_backup\" + DateTime.Now.ToString("yyyyMMdd") + @"\";
-                                    bool exist = Directory.Exists(dirBackup);
-                                    if (!exist)
-                                    {
-                                        // Tạo thư mục.
-                                        Directory.CreateDirectory(dirBackup);
-                                    }
-                                    string dirPathBackup = dirBackup + Path.GetFileName(pathtg);
-                                    File.Move(pathtg, dirPathBackup);
-                                    if (File.Exists(dirPathBackup))
-                                    {
-                                        log.InfoFormat("GetFilePOP3rdParty_PRD: UploadFile successfully: {0}", dirPathBackup);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            log.Error("UploadFile_POP3rdParty_PRD can not connected to FPT Cloud");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                log.ErrorFormat("UploadFile_POP3rdParty_PRD DownloadFilePop_New Exception: {0}", ex.Message);
             }
         }
 
@@ -3402,263 +3574,281 @@ namespace AEON_GetFile_WinForm
                     client.Connect();
                     if (client.IsConnected)
                     {
-                        log.InfoFormat("GetFile W - Upload Store {0}: Connected to FPT Cloud", store);
-
-                        //file W date before
-                        foreach (var rs in rule_rs)
+                        log.InfoFormat("GetFile Upload Store {0}: Connected to FPT Cloud", store);
+                        var task = Task.Run(() =>
                         {
-                            if (rs != "00")
+                            try
                             {
-                                string filename = "";
-                                string month = "";
-                                int month_temp = DateTime.Now.AddDays(-1).Month;
-                                if (month_temp == 10)
+                                //file W date before
+                                foreach (var rs in rule_rs)
                                 {
-                                    month = "A";
-                                }
-                                else if (month_temp == 11)
-                                {
-                                    month = "B";
-                                }
-                                else if (month_temp == 12)
-                                {
-                                    month = "C";
-                                }
-                                else
-                                {
-                                    month = month_temp.ToString();
-                                }
-
-                                filename = string.Format("W{0}{1}{2}{3}{4}",
-                                    DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month,
-                                    DateTime.Now.AddDays(-1).ToString("dd"), rs,
-                                    store.Substring(0, 1) + "." + store.Substring(1, 3));
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
-                                {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
-                                                       DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                    if (rs != "00")
                                     {
-                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
-                                                           DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                        string filename = "";
+                                        string month = "";
+                                        int month_temp = DateTime.Now.AddDays(-1).Month;
+                                        if (month_temp == 10)
                                         {
-                                            string path = string.Format(
-                                                @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
-                                                filename);
-                                            try
+                                            month = "A";
+                                        }
+                                        else if (month_temp == 11)
+                                        {
+                                            month = "B";
+                                        }
+                                        else if (month_temp == 12)
+                                        {
+                                            month = "C";
+                                        }
+                                        else
+                                        {
+                                            month = month_temp.ToString();
+                                        }
+
+                                        filename = string.Format("W{0}{1}{2}{3}{4}",
+                                                        DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month,
+                                                        DateTime.Now.AddDays(-1).ToString("dd"), rs,
+                                                        store.Substring(0, 1) + "." + store.Substring(1, 3));
+                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                                        {
+                                            if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                                           DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
                                             {
-                                                using (var fileStream = new FileStream(path, FileMode.Open))
+                                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                                               DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
                                                 {
-                                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                    client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                                                    client.UploadFile(fileStream, Path.GetFileName(path));
-                                                    log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
-                                                        path);
+                                                    string path = string.Format(
+                                                                    @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                                                    filename);
+                                                    try
+                                                    {
+                                                        using (var fileStream = new FileStream(path, FileMode.Open))
+                                                        {
+                                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                            client.UploadFile(fileStream, Path.GetFileName(path));
+                                                            log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
+                                                                            path);
+                                                        }
+                                                    }
+                                                    catch (Exception exx)
+                                                    {
+                                                            //stop_flag = true;
+                                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
+                                                                exx.Message);
+                                                        break;
+                                                    }
                                                 }
-                                            }
-                                            catch (Exception exx)
-                                            {
-                                                //stop_flag = true;
-                                                log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
-                                                    exx.Message);
-                                                break;
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
 
-                        log.InfoFormat("GetFile W - Upload Store {0}: Check file date before done!", store);
-                        //file W date current
-                        foreach (var rs in rule_rs)
-                        {
-                            if (rs != "00")
-                            {
-                                string filename = "";
-                                string month = "";
-                                int month_temp = DateTime.Now.Month;
-                                if (month_temp == 10)
+                                log.InfoFormat("GetFile W - Upload Store {0}: Check file date before done!", store);
+                                //file W date current
+                                foreach (var rs in rule_rs)
                                 {
-                                    month = "A";
-                                }
-                                else if (month_temp == 11)
-                                {
-                                    month = "B";
-                                }
-                                else if (month_temp == 12)
-                                {
-                                    month = "C";
-                                }
-                                else
-                                {
-                                    month = month_temp.ToString();
-                                }
-
-                                filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.Year.ToString().Substring(3, 1),
-                                    month, DateTime.Now.ToString("dd"), rs,
-                                    store.Substring(0, 1) + "." + store.Substring(1, 3));
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
-                                {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
-                                                       DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
+                                    if (rs != "00")
                                     {
-                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
-                                                           DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
+                                        string filename = "";
+                                        string month = "";
+                                        int month_temp = DateTime.Now.Month;
+                                        if (month_temp == 10)
                                         {
-                                            string path = string.Format(
-                                                @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
-                                                filename);
-                                            try
+                                            month = "A";
+                                        }
+                                        else if (month_temp == 11)
+                                        {
+                                            month = "B";
+                                        }
+                                        else if (month_temp == 12)
+                                        {
+                                            month = "C";
+                                        }
+                                        else
+                                        {
+                                            month = month_temp.ToString();
+                                        }
+
+                                        filename = string.Format("W{0}{1}{2}{3}{4}", DateTime.Now.Year.ToString().Substring(3, 1),
+                                                        month, DateTime.Now.ToString("dd"), rs,
+                                                        store.Substring(0, 1) + "." + store.Substring(1, 3));
+                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/" + filename))
+                                        {
+                                            if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                                           DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + filename))
                                             {
-                                                using (var fileStream = new FileStream(path, FileMode.Open))
+                                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                                               DateTime.Now.ToString("yyyyMMdd") + @"/" + filename))
                                                 {
-                                                    client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                    client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                                                    client.UploadFile(fileStream, Path.GetFileName(path));
-                                                    log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
-                                                        path);
+                                                    string path = string.Format(
+                                                                    @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                                                    filename);
+                                                    try
+                                                    {
+                                                        using (var fileStream = new FileStream(path, FileMode.Open))
+                                                        {
+                                                            client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                            client.UploadFile(fileStream, Path.GetFileName(path));
+                                                            log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
+                                                                            path);
+                                                        }
+                                                    }
+                                                    catch (Exception exx)
+                                                    {
+                                                            //stop_flag = true;
+                                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
+                                                                exx.Message);
+                                                        break;
+                                                    }
                                                 }
-                                            }
-                                            catch (Exception exx)
-                                            {
-                                                //stop_flag = true;
-                                                log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
-                                                    exx.Message);
-                                                break;
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
 
-                        log.InfoFormat("GetFile W - Upload Store {0}: Check file date current done!", store);
+                                log.InfoFormat("GetFile W - Upload Store {0}: Check file date current done!", store);
 
-                        //file S date before
-                        {
-                            string month = "";
-                            int month_temp = DateTime.Now.AddDays(-1).Month;
-                            if (month_temp == 10)
-                            {
-                                month = "A";
-                            }
-                            else if (month_temp == 11)
-                            {
-                                month = "B";
-                            }
-                            else if (month_temp == 12)
-                            {
-                                month = "C";
-                            }
-                            else
-                            {
-                                month = month_temp.ToString();
-                            }
-
-                            string file_name = string.Format("S{0}{1}{2}00{3}",
-                                DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month,
-                                DateTime.Now.AddDays(-1).ToString("dd"),
-                                store.Substring(0, 1) + "." + store.Substring(1, 3));
-                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + file_name))
-                            {
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + file_name))
+                                //file S date before
                                 {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + file_name))
+                                    string month = "";
+                                    int month_temp = DateTime.Now.AddDays(-1).Month;
+                                    if (month_temp == 10)
                                     {
-                                        string path = string.Format(
-                                            @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
-                                            file_name);
-                                        try
-                                        {
-                                            using (var fileStream = new FileStream(path, FileMode.Open))
-                                            {
-                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                                                client.UploadFile(fileStream, Path.GetFileName(path));
-                                                log.InfoFormat("GetFile S - Upload: UploadFile successfully: {0}", path);
-                                            }
-                                        }
-                                        catch (Exception exx)
-                                        {
-                                            log.ErrorFormat("GetFile S - Upload Store {0}, Exception: {1}", store,exx.Message);
-                                        }
+                                        month = "A";
+                                    }
+                                    else if (month_temp == 11)
+                                    {
+                                        month = "B";
+                                    }
+                                    else if (month_temp == 12)
+                                    {
+                                        month = "C";
                                     }
                                     else
                                     {
-                                        log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup today!", store, file_name);
+                                        month = month_temp.ToString();
                                     }
-                                }
-                                else
-                                {
-                                    log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup before!", store, file_name);
-                                }
-                            }
-                        }
-                        log.InfoFormat("GetFile S - Upload Store {0}: Check file date before done!", store);
 
-                        //file S date current
-                        {
-                            string month = "";
-                            int month_temp = DateTime.Now.Month;
-                            if (month_temp == 10)
-                            {
-                                month = "A";
-                            }
-                            else if (month_temp == 11)
-                            {
-                                month = "B";
-                            }
-                            else if (month_temp == 12)
-                            {
-                                month = "C";
-                            }
-                            else
-                            {
-                                month = month_temp.ToString();
-                            }
-
-                            string file_name = string.Format("S{0}{1}{2}00{3}",
-                                DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"),
-                                store.Substring(0, 1) + "." + store.Substring(1, 3));
-                            if (!client.Exists(CxtoPOS_folder_out + store + @"/" + file_name))
-                            {
-                                if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
-                                                   DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + file_name))
-                                {
-                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
-                                                       DateTime.Now.ToString("yyyyMMdd") + @"/" + file_name))
+                                    string file_name = string.Format("S{0}{1}{2}00{3}",
+                                                    DateTime.Now.AddDays(-1).Year.ToString().Substring(3, 1), month,
+                                                    DateTime.Now.AddDays(-1).ToString("dd"),
+                                                    store.Substring(0, 1) + "." + store.Substring(1, 3));
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/" + file_name))
                                     {
-                                        string path = string.Format(
-                                            @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
-                                            file_name);
-                                        try
+                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + file_name))
                                         {
-                                            using (var fileStream = new FileStream(path, FileMode.Open))
+                                            if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" + DateTime.Now.ToString("yyyyMMdd") + @"/" + file_name))
                                             {
-                                                client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
-                                                client.UploadFile(fileStream, Path.GetFileName(path));
-                                                log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                                                string path = string.Format(
+                                                                @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                                                file_name);
+                                                try
+                                                {
+                                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                                    {
+                                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                                        log.InfoFormat("GetFile S - Upload: UploadFile successfully: {0}", path);
+                                                    }
+                                                }
+                                                catch (Exception exx)
+                                                {
+                                                    log.ErrorFormat("GetFile S - Upload Store {0}, Exception: {1}", store, exx.Message);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup today!", store, file_name);
                                             }
                                         }
-                                        catch (Exception exx)
+                                        else
                                         {
-                                            log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store,
-                                                exx.Message);
+                                            log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup before!", store, file_name);
                                         }
+                                    }
+                                }
+                                log.InfoFormat("GetFile S - Upload Store {0}: Check file date before done!", store);
+
+                                //file S date current
+                                {
+                                    string month = "";
+                                    int month_temp = DateTime.Now.Month;
+                                    if (month_temp == 10)
+                                    {
+                                        month = "A";
+                                    }
+                                    else if (month_temp == 11)
+                                    {
+                                        month = "B";
+                                    }
+                                    else if (month_temp == 12)
+                                    {
+                                        month = "C";
                                     }
                                     else
                                     {
-                                        log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup today!", store, file_name);
+                                        month = month_temp.ToString();
+                                    }
+
+                                    string file_name = string.Format("S{0}{1}{2}00{3}",
+                                                    DateTime.Now.Year.ToString().Substring(3, 1), month, DateTime.Now.ToString("dd"),
+                                                    store.Substring(0, 1) + "." + store.Substring(1, 3));
+                                    if (!client.Exists(CxtoPOS_folder_out + store + @"/" + file_name))
+                                    {
+                                        if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                                       DateTime.Now.AddDays(-1).ToString("yyyyMMdd") + @"/" + file_name))
+                                        {
+                                            if (!client.Exists(CxtoPOS_folder_out + store + @"/backup/" +
+                                                                           DateTime.Now.ToString("yyyyMMdd") + @"/" + file_name))
+                                            {
+                                                string path = string.Format(
+                                                                @"\\10.121.2.207\NFS\production\vnm\upload\pos\{0}\backup\{1}", store,
+                                                                file_name);
+                                                try
+                                                {
+                                                    using (var fileStream = new FileStream(path, FileMode.Open))
+                                                    {
+                                                        client.BufferSize = 4 * 1024; // bypass Payload error large files
+                                                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                        client.UploadFile(fileStream, Path.GetFileName(path));
+                                                        log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
+                                                    }
+                                                }
+                                                catch (Exception exx)
+                                                {
+                                                    log.ErrorFormat("Get1File Upload Store {0}, Exception: {1}", store,
+                                                                    exx.Message);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup today!", store, file_name);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup before!", store, file_name);
+                                        }
                                     }
                                 }
-                                else
-                                {
-                                    log.InfoFormat("GetFile S - Upload Store {0} - {1}: file exist in folder backup before!", store, file_name);
-                                }
+                                log.InfoFormat("GetFile S - Upload Store {0}: Check file date current done!", store);
                             }
+                            catch (Exception e)
+                            {
+                                log.ErrorFormat("GetFile_new_Store {0} Exception: {1}", store, e.Message);
+                            }
+                        });
+                        bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                        if (isCompletedSuccessfully)
+                        {
+                            log.InfoFormat("GetFile_new Store {0} successfully!", store);
                         }
-                        log.InfoFormat("GetFile S - Upload Store {0}: Check file date current done!", store);
+                        else
+                        {
+                            log.ErrorFormat("GetFile_new: The function has taken longer than the maximum time allowed.");
+                        }
                         client.Disconnect();
                     }
                     else
@@ -3669,7 +3859,7 @@ namespace AEON_GetFile_WinForm
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("GetFileVoucher Store {0} Exception: {1}", store, ex.Message);
+                log.ErrorFormat("GetFile_new Store {0} Exception: {1}", store, ex.Message);
             }
             finally
             {
