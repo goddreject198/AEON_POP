@@ -29,6 +29,7 @@ namespace AEON_GetFile_WinForm
         private BackgroundWorker myWorker_PutFileCx_BI = new BackgroundWorker();
 
         private BackgroundWorker myWorker_GetFileCxPRD_new = new BackgroundWorker();
+        private BackgroundWorker myWorker_PutFileCx_Pos_new = new BackgroundWorker();
 
         private string FileConfig = System.Configuration.ConfigurationManager.AppSettings.Get("FileConfig");
         private string DirectoryFrom = System.Configuration.ConfigurationManager.AppSettings.Get("DirectoryFrom");
@@ -54,6 +55,7 @@ namespace AEON_GetFile_WinForm
         private string AVNAzureUser = System.Configuration.ConfigurationManager.AppSettings.Get("AVNAzureUser");
         private string AVNAzurePwd = System.Configuration.ConfigurationManager.AppSettings.Get("AVNAzurePwd");
         private string Store_Directory = System.Configuration.ConfigurationManager.AppSettings.Get("Store_Directory");
+        private string Store_Directory_Download = System.Configuration.ConfigurationManager.AppSettings.Get("Store_Directory_Download");
 
 
         public Form1()
@@ -108,6 +110,12 @@ namespace AEON_GetFile_WinForm
             myWorker_PutFileCx_Pos.ProgressChanged += new ProgressChangedEventHandler(myWorker_PutFileCx_Pos_ProgressChanged);
             myWorker_PutFileCx_Pos.WorkerReportsProgress = true;
             myWorker_PutFileCx_Pos.WorkerSupportsCancellation = true;
+
+            myWorker_PutFileCx_Pos_new.DoWork += new DoWorkEventHandler(myWorker_PutFileCx_Pos_new_DoWork);
+            myWorker_PutFileCx_Pos_new.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PutFileCx_Pos_new_RunWorkerCompleted);
+            myWorker_PutFileCx_Pos_new.ProgressChanged += new ProgressChangedEventHandler(myWorker_PutFileCx_Pos_new_ProgressChanged);
+            myWorker_PutFileCx_Pos_new.WorkerReportsProgress = true;
+            myWorker_PutFileCx_Pos_new.WorkerSupportsCancellation = true;
 
             myWorker_PutFileCx_BI.DoWork += new DoWorkEventHandler(myWorker_PutFileCx_BI_DoWork);
             myWorker_PutFileCx_BI.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_PutFileCx_BI_RunWorkerCompleted);
@@ -3624,7 +3632,7 @@ namespace AEON_GetFile_WinForm
                                                         using (var fileStream = new FileStream(path, FileMode.Open))
                                                         {
                                                             client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
                                                             client.UploadFile(fileStream, Path.GetFileName(path));
                                                             log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
                                                                             path);
@@ -3632,9 +3640,9 @@ namespace AEON_GetFile_WinForm
                                                     }
                                                     catch (Exception exx)
                                                     {
-                                                            //stop_flag = true;
-                                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
-                                                                exx.Message);
+                                                        //stop_flag = true;
+                                                        log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
+                                                            exx.Message);
                                                         break;
                                                     }
                                                 }
@@ -3688,7 +3696,7 @@ namespace AEON_GetFile_WinForm
                                                         using (var fileStream = new FileStream(path, FileMode.Open))
                                                         {
                                                             client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                                client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
                                                             client.UploadFile(fileStream, Path.GetFileName(path));
                                                             log.InfoFormat("GetFile W - Upload: UploadFile successfully: {0}",
                                                                             path);
@@ -3696,9 +3704,9 @@ namespace AEON_GetFile_WinForm
                                                     }
                                                     catch (Exception exx)
                                                     {
-                                                            //stop_flag = true;
-                                                            log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
-                                                                exx.Message);
+                                                        //stop_flag = true;
+                                                        log.ErrorFormat("GetFile W - Upload Store {0}: Exception: {1}", store,
+                                                            exx.Message);
                                                         break;
                                                     }
                                                 }
@@ -3748,7 +3756,7 @@ namespace AEON_GetFile_WinForm
                                                     using (var fileStream = new FileStream(path, FileMode.Open))
                                                     {
                                                         client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                        client.ChangeDirectory("/SAP_CX_PRD/" + store);
                                                         client.UploadFile(fileStream, Path.GetFileName(path));
                                                         log.InfoFormat("GetFile S - Upload: UploadFile successfully: {0}", path);
                                                     }
@@ -3811,7 +3819,7 @@ namespace AEON_GetFile_WinForm
                                                     using (var fileStream = new FileStream(path, FileMode.Open))
                                                     {
                                                         client.BufferSize = 4 * 1024; // bypass Payload error large files
-                                                            client.ChangeDirectory("/SAP_CX_PRD/" + store);
+                                                        client.ChangeDirectory("/SAP_CX_PRD/" + store);
                                                         client.UploadFile(fileStream, Path.GetFileName(path));
                                                         log.InfoFormat("Get1File - Upload: UploadFile successfully: {0}", path);
                                                     }
@@ -3866,6 +3874,265 @@ namespace AEON_GetFile_WinForm
                 MyCounter_GetFilePos2CxPRD.MuTexLock.WaitOne();
                 MyCounter_GetFilePos2CxPRD.count--;
                 MyCounter_GetFilePos2CxPRD.MuTexLock.ReleaseMutex();
+            }
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Tạo 1 timer từ libary System.Timers
+                timer_Pos_Cx = new System.Timers.Timer();
+                // Execute mỗi 1 phút
+                timer_Pos_Cx.Interval = 60000;
+                // Những gì xảy ra khi timer đó dc tick
+                timer_Pos_Cx.Elapsed += timer_Cx2Pos_new_Tick;
+                // Enable timer
+                timer_Pos_Cx.Enabled = true;
+
+                //myWorker_PutFileCx_Pos.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Put file Cx PRD to Pos Exception: {0}", ex.Message);
+            }
+        }
+        private void timer_Cx2Pos_new_Tick(object sender, ElapsedEventArgs args)
+        {
+            //if (args.SignalTime.Minute % 5 == 0)
+            {
+                log.InfoFormat("MyCounter_PutFileCx2Pos_new.count: {0}", MyCounter_PutFileCx2Pos_new.count);
+                if (MyCounter_PutFileCx2Pos_new.count == 0)
+                {
+                    try
+                    {
+                        myWorker_PutFileCx_Pos_new.RunWorkerAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error(String.Format("Can not run backgroud_worker: myWorker_PutFileCx_Pos_new!|{0}", e.Message));
+                    }
+                }
+            }
+        }
+        private void myWorker_PutFileCx_Pos_new_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void myWorker_PutFileCx_Pos_new_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            log.Info("myWorker_PutFileCx_Pos_new_RunWorkerCompleted");
+        }
+        class MyCounter_PutFileCx2Pos_new
+        {
+            public static int count = 0;
+            public static Mutex MuTexLock = new Mutex();
+        }
+        private void myWorker_PutFileCx_Pos_new_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                log.Info("myWorker_PutFileCx_Pos_DoWork");
+
+                List<string> store_list = new List<string>();
+                //store_list.Add("1001");
+                var directory = Store_Directory_Download;
+                if (File.Exists(directory))
+                {
+                    using (var reader = new StreamReader(directory))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                store_list.Add(line);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    log.ErrorFormat("myWorker_GetFileCxPRD_DoWork - Can not find config file: {0}", directory);
+                    return;
+                }
+
+                foreach (var store in store_list)
+                {
+                    var t = new Thread(() =>
+                    {
+                        PutFileCx_Pos_PRD_new(store);
+                    });
+                    t.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("myWorker_PutFileCx_Pos_DoWork Exception: {0}", ex.Message);
+            }
+        }
+
+        private void PutFileCx_Pos_PRD_new(string store)
+        {
+            try
+            {
+                MyCounter_PutFileCx2Pos_new.MuTexLock.WaitOne();
+                MyCounter_PutFileCx2Pos_new.count++;
+                MyCounter_PutFileCx2Pos_new.MuTexLock.ReleaseMutex();
+
+                var host = FPTHost;
+                var port = Convert.ToInt32(FPTPort);
+                var username = FPTUser;
+                var password = FPTPwd;
+                using (var client = new SftpClient(host, port, username, password))
+                {
+                    client.Connect();
+                    if (client.IsConnected)
+                    {
+                        log.Info("PutFileCx_Pos Connected to AVN Azure");
+                        var task_Cx2Pos = Task.Run(() =>
+                        {
+                            if (store == "Member")
+                            {
+                                var filesList = client.ListDirectory("/SAP_CX_PRD/Cx_Out/POS/Member").OrderBy(file => file.Name);
+                                foreach (var file in filesList)
+                                {
+                                    var remoteFileName = file.Name;
+                                    var task = Task.Run(() =>
+                                    {
+                                        bool result = false;
+                                        try
+                                        {
+                                            //download file
+                                            using (Stream file1 = File.Create(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
+                                            {
+                                                client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/Member/{remoteFileName}", file1);
+                                            }
+
+                                            if (File.Exists(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
+                                            {
+                                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
+                                                    @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
+
+                                                //move file backup on server
+                                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                                if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}"))
+                                                {
+                                                    client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}");
+                                                }
+
+                                                client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/Member/{remoteFileName}",
+                                                    $"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}/{remoteFileName}");
+                                                result = true;
+                                            }
+                                            else
+                                            {
+                                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
+                                                    @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
+                                                result = false;
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos - M Exception: {0}", e.Message);
+                                        }
+                                        return result;
+                                    });
+                                    bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+
+                                    if (isCompletedSuccessfully)
+                                    {
+                                        log.InfoFormat("PutFileCx_Pos - M: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                    }
+                                    else
+                                    {
+                                        log.ErrorFormat("PutFileCx_Pos - M: The function has taken longer than the maximum time allowed.");
+                                    }
+                                }    
+                            }
+                            else
+                            {
+                                var filesList = client.ListDirectory(string.Format("/SAP_CX_PRD/Cx_Out/POS/{0}", store)).OrderBy(file => file.Name);
+                                foreach (var file in filesList)
+                                {
+                                    var remoteFileName = file.Name;
+                                    var task = Task.Run(() =>
+                                    {
+                                        bool result = false;
+                                        try
+                                        {
+                                            var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) + Path.GetExtension(remoteFileName).Substring(1, 3);
+                                            //download file
+                                            using (Stream file1 = File.Create($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                            {
+                                                client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/{store}/{remoteFileName}", file1);
+                                            }
+
+                                            if (File.Exists($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                            {
+                                                log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
+
+                                                //move file backup on server
+                                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                                if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}"))
+                                                {
+                                                    client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}");
+                                                }
+
+                                                client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/{store}/{remoteFileName}",
+                                                    $"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}/{remoteFileName}");
+                                                result = true;
+                                            }
+                                            else
+                                            {
+                                                log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
+                                                result = false;
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos - Other Exception: {0} - {1}", remoteFileName, e.Message);
+                                        }
+                                        return result;
+                                    });
+                                    bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+
+                                    if (isCompletedSuccessfully)
+                                    {
+                                        log.InfoFormat("PutFileCx_Pos - Other: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                    }
+                                    else
+                                    {
+                                        log.ErrorFormat("PutFileCx_Pos - Other: The function has taken longer than the maximum time allowed.");
+                                    }
+                                }    
+                            }
+                        });
+
+                        bool isCompletedSuccessfully_Cx2Pos = task_Cx2Pos.Wait(TimeSpan.FromMilliseconds(300000));
+                        if (!isCompletedSuccessfully_Cx2Pos)
+                        {
+                            log.ErrorFormat("PutFileCx_Pos: The function has taken longer than the maximum time allowed.");
+                        }
+                        client.Disconnect();
+                    }
+                    else
+                    {
+                        log.Error("PutFileCx_Pos can not connected to FPT Cloud");
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("PutFileCx_Pos_PRD_new Exception: {0}", ex.Message);
+            }
+            finally
+            {
+                MyCounter_PutFileCx2Pos_new.MuTexLock.WaitOne();
+                MyCounter_PutFileCx2Pos_new.count--;
+                MyCounter_PutFileCx2Pos_new.MuTexLock.ReleaseMutex();
             }
         }
     }
