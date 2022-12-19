@@ -3990,7 +3990,7 @@ namespace AEON_GetFile_WinForm
                     client.Connect();
                     if (client.IsConnected)
                     {
-                        log.Info("PutFileCx_Pos Connected to AVN Azure");
+                        log.InfoFormat("PutFileCx_Pos Connected to AVN Azure Store {0}", store);
                         var task_Cx2Pos = Task.Run(() =>
                         {
                             if (store == "Member")
@@ -3999,57 +3999,60 @@ namespace AEON_GetFile_WinForm
                                 foreach (var file in filesList)
                                 {
                                     var remoteFileName = file.Name;
-                                    var task = Task.Run(() =>
+                                    if (!remoteFileName.StartsWith("backup"))
                                     {
-                                        bool result = false;
-                                        try
+                                        var task = Task.Run(() =>
                                         {
-                                            //download file
-                                            using (Stream file1 = File.Create(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
+                                            bool result = false;
+                                            try
                                             {
-                                                client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/Member/{remoteFileName}", file1);
-                                            }
-
-                                            if (File.Exists(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
-                                            {
-                                                log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
-                                                    @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
-
-                                                //move file backup on server
-                                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                                if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}"))
+                                                //download file
+                                                using (Stream file1 = File.Create(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
                                                 {
-                                                    client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}");
+                                                    client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/Member/{remoteFileName}", file1);
                                                 }
 
-                                                client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/Member/{remoteFileName}",
-                                                    $"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}/{remoteFileName}");
-                                                result = true;
-                                            }
-                                            else
-                                            {
-                                                log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
-                                                    @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
-                                                result = false;
-                                            }
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            log.ErrorFormat("PutFileCx_Pos - M Exception: {0}", e.Message);
-                                        }
-                                        return result;
-                                    });
-                                    bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                                                if (File.Exists(@"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName))
+                                                {
+                                                    log.InfoFormat("PutFileCx_Pos: download file successfully: {0}",
+                                                        @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
 
-                                    if (isCompletedSuccessfully)
-                                    {
-                                        log.InfoFormat("PutFileCx_Pos - M: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                                    //move file backup on server
+                                                    var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                                    if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}"))
+                                                    {
+                                                        client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}");
+                                                    }
+
+                                                    client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/Member/{remoteFileName}",
+                                                        $"/SAP_CX_PRD/Cx_Out/POS/Member/backup/{dateNow}/{remoteFileName}");
+                                                    result = true;
+                                                }
+                                                else
+                                                {
+                                                    log.ErrorFormat("PutFileCx_Pos: download file failed: {0}",
+                                                        @"\\10.121.2.207\NFS\production\vnm\download\oro2\" + remoteFileName);
+                                                    result = false;
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                log.ErrorFormat("PutFileCx_Pos - M Exception: {0}", e.Message);
+                                            }
+                                            return result;
+                                        });
+                                        bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+
+                                        if (isCompletedSuccessfully)
+                                        {
+                                            log.InfoFormat("PutFileCx_Pos - M: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                        }
+                                        else
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos - M: The function has taken longer than the maximum time allowed.");
+                                        }
                                     }
-                                    else
-                                    {
-                                        log.ErrorFormat("PutFileCx_Pos - M: The function has taken longer than the maximum time allowed.");
-                                    }
-                                }    
+                                }
                             }
                             else
                             {
@@ -4057,56 +4060,59 @@ namespace AEON_GetFile_WinForm
                                 foreach (var file in filesList)
                                 {
                                     var remoteFileName = file.Name;
-                                    var task = Task.Run(() =>
+                                    if (!remoteFileName.StartsWith("backup"))
                                     {
-                                        bool result = false;
-                                        try
+                                        var task = Task.Run(() =>
                                         {
-                                            var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) + Path.GetExtension(remoteFileName).Substring(1, 3);
-                                            //download file
-                                            using (Stream file1 = File.Create($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                            bool result = false;
+                                            try
                                             {
-                                                client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/{store}/{remoteFileName}", file1);
-                                            }
-
-                                            if (File.Exists($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
-                                            {
-                                                log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
-
-                                                //move file backup on server
-                                                var dateNow = DateTime.Now.ToString("yyyyMMdd");
-                                                if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}"))
+                                                var storeFolder = remoteFileName.Substring(remoteFileName.Length - 5, 1) + Path.GetExtension(remoteFileName).Substring(1, 3);
+                                                //download file
+                                                using (Stream file1 = File.Create($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
                                                 {
-                                                    client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}");
+                                                    client.DownloadFile($"/SAP_CX_PRD/Cx_Out/POS/{store}/{remoteFileName}", file1);
                                                 }
 
-                                                client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/{store}/{remoteFileName}",
-                                                    $"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}/{remoteFileName}");
-                                                result = true;
-                                            }
-                                            else
-                                            {
-                                                log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
-                                                result = false;
-                                            }
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            log.ErrorFormat("PutFileCx_Pos - Other Exception: {0} - {1}", remoteFileName, e.Message);
-                                        }
-                                        return result;
-                                    });
-                                    bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+                                                if (File.Exists($@"\\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}"))
+                                                {
+                                                    log.InfoFormat($@"PutFileCx_Pos: download file successfully: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
 
-                                    if (isCompletedSuccessfully)
-                                    {
-                                        log.InfoFormat("PutFileCx_Pos - Other: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                                    //move file backup on server
+                                                    var dateNow = DateTime.Now.ToString("yyyyMMdd");
+                                                    if (!client.Exists($"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}"))
+                                                    {
+                                                        client.CreateDirectory($"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}");
+                                                    }
+
+                                                    client.RenameFile($"/SAP_CX_PRD/Cx_Out/POS/{store}/{remoteFileName}",
+                                                        $"/SAP_CX_PRD/Cx_Out/POS/{store}/backup/{dateNow}/{remoteFileName}");
+                                                    result = true;
+                                                }
+                                                else
+                                                {
+                                                    log.ErrorFormat($@"PutFileCx_Pos: download file failed: \\10.121.2.207\NFS\production\vnm\download\pos\{storeFolder}\{remoteFileName}");
+                                                    result = false;
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                log.ErrorFormat("PutFileCx_Pos - Other Exception: {0} - {1}", remoteFileName, e.Message);
+                                            }
+                                            return result;
+                                        });
+                                        bool isCompletedSuccessfully = task.Wait(TimeSpan.FromMilliseconds(240000));
+
+                                        if (isCompletedSuccessfully)
+                                        {
+                                            log.InfoFormat("PutFileCx_Pos - Other: Put file Cx to Pos susscessfully! result: {0}", task.Result);
+                                        }
+                                        else
+                                        {
+                                            log.ErrorFormat("PutFileCx_Pos - Other: The function has taken longer than the maximum time allowed.");
+                                        }
                                     }
-                                    else
-                                    {
-                                        log.ErrorFormat("PutFileCx_Pos - Other: The function has taken longer than the maximum time allowed.");
-                                    }
-                                }    
+                                }
                             }
                         });
 
@@ -4114,6 +4120,10 @@ namespace AEON_GetFile_WinForm
                         if (!isCompletedSuccessfully_Cx2Pos)
                         {
                             log.ErrorFormat("PutFileCx_Pos: The function has taken longer than the maximum time allowed.");
+                        }
+                        else
+                        {
+                            log.InfoFormat("PutFileCx_Pos: Done Store {0}", store);
                         }
                         client.Disconnect();
                     }
