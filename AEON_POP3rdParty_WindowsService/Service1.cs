@@ -20,7 +20,7 @@ namespace AEON_POP3rdParty_WindowsService
 {
     public partial class Service1 : ServiceBase
     {
-        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop", "fpt", "fptpop@2021");
+        private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "localhost", "aeon_pop", "fpt", "fptpop@2023");
         //private string connectionString = String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};old guids=true;", "139.180.214.252", "aeon_pop_prd", "fpt", "fptpop@2021");
         //khai báo backgroundprocess
         private BackgroundWorker myWorker_ItemSellPrice = new BackgroundWorker();
@@ -113,7 +113,7 @@ namespace AEON_POP3rdParty_WindowsService
             {
                 try
                 {
-                    myWorker_PostDataToBookingApp.RunWorkerAsync();
+                    //myWorker_PostDataToBookingApp.RunWorkerAsync();
                 }
                 catch (Exception e)
                 {
