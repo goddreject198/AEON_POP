@@ -2861,7 +2861,7 @@ namespace AEON_POP3rdParty_WindowsService
                                                 string UNIT_COST_UOM = rows[53].ToString();
                                                 string FILE_ID = log_fileid;
 
-                                                if (DELIVERY_LOCATION != "DCXD" && DELIVERY_LOCATION != "DCSP")
+                                                //if (DELIVERY_LOCATION != "DCXD" && DELIVERY_LOCATION != "DCSP")
                                                 {
                                                     line++;
                                                     sql_insert_data += string.Format(@"(""{0}"",""{1}"",""{2}"",""{3}"",""{4}"",""{5}"",""{6}"",""{7}"",""{8}""),"
